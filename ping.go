@@ -5,13 +5,15 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/meooow25/cfspy/bot"
 )
 
 const cfHomeURL = "https://codeforces.com"
 
 var pingCfClient = http.Client{Timeout: 5 * time.Second}
 
-func onPingCf(ctx BotContext) {
+func onPingCf(ctx bot.Context) {
 	go func() {
 		if len(ctx.Args) > 1 {
 			ctx.SendIncorrectUsageMsg()
@@ -35,7 +37,7 @@ func onPingCf(ctx BotContext) {
 	}()
 }
 
-func onPing(ctx BotContext) {
+func onPing(ctx bot.Context) {
 	go func() {
 		if len(ctx.Args) > 1 {
 			ctx.SendIncorrectUsageMsg()
@@ -51,15 +53,15 @@ func onPing(ctx BotContext) {
 	}()
 }
 
-// InstallPingFeature installs the ping and cfping commands.
-func InstallPingFeature(bot *Bot) {
-	bot.Client.Logger().Info("Setting up ping feature")
-	bot.AddCommand(&Command{
+// Installs the ping and cfping commands.
+func installPingFeature(b *bot.Bot) {
+	b.Client.Logger().Info("Setting up ping feature")
+	b.AddCommand(&bot.Command{
 		ID:      "ping",
 		Desc:    "Checks the latency of the Discord REST API",
 		Handler: onPing,
 	})
-	bot.AddCommand(&Command{
+	b.AddCommand(&bot.Command{
 		ID:      "pingcf",
 		Desc:    "Checks the latency of codeforces.com",
 		Handler: onPingCf,

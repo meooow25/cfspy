@@ -1,4 +1,4 @@
-package main
+package bot
 
 import (
 	"time"
@@ -6,29 +6,32 @@ import (
 	"github.com/andersfylling/disgord"
 )
 
+// ReactHandler is an alias for a map of MessageReactionAdd handlers.
+type ReactHandler = func(disgord.Session, *disgord.MessageReactionAdd)
+
 // ReactHandlerMap is an alias for a map of emoji strings to handlers. Does not support custom
 // emojis.
-type ReactHandlerMap = map[string]func(disgord.Session, *disgord.MessageReactionAdd)
+type ReactHandlerMap = map[string]ReactHandler
 
 // AddButtons adds reacts to the given message and binds the given handlers so that when a user
 // reacts the appropriate handler is called.
 func AddButtons(
-	ctx BotContext,
-	msg *disgord.Message,
+	ctx Context,
+	widget *disgord.Message,
 	buttons *ReactHandlerMap,
 	deactivateAfter time.Duration,
 ) {
 	for emoji, handler := range *buttons {
-		msg.React(ctx.Ctx, ctx.Session, emoji)
+		widget.React(ctx.Ctx, ctx.Session, emoji)
 		ctx.Session.On(
 			disgord.EvtMessageReactionAdd,
-			reactFilter(emoji, msg.ID),
+			reactFilter(emoji, widget.ID),
 			handler,
 			&disgord.Ctrl{Duration: deactivateAfter})
 	}
 	time.AfterFunc(deactivateAfter, func() {
 		// Fails without manage messages, ignore.
-		ctx.Session.DeleteAllReactions(ctx.Ctx, msg.ChannelID, msg.ID)
+		ctx.Session.DeleteAllReactions(ctx.Ctx, widget.ChannelID, widget.ID)
 	})
 }
 

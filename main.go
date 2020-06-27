@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 
+	"github.com/meooow25/cfspy/bot"
 	"github.com/sirupsen/logrus"
 )
 
@@ -20,8 +21,8 @@ func init() {
 func main() {
 	logger.Info("CFSpy starting")
 
-	bot := NewBot(
-		BotInfo{
+	b := bot.New(
+		bot.Info{
 			Name:   "CFSpy",
 			Token:  token,
 			Prefix: "c;",
@@ -31,11 +32,12 @@ func main() {
 		},
 	)
 
-	InstallPingFeature(bot)
-	InstallCfCommentFeature(bot)
-	InstallStatusFeature(bot)
+	installPingFeature(b)
+	installCfCommentFeature(b)
+	installCfBlogFeature(b)
+	installStatusFeature(b)
 
-	bot.Client.StayConnectedUntilInterrupted(context.Background())
+	b.Client.StayConnectedUntilInterrupted(context.Background())
 
 	logger.Info("CFSpy stopped")
 }

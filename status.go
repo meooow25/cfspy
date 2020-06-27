@@ -1,6 +1,9 @@
 package main
 
-import "github.com/andersfylling/disgord"
+import (
+	"github.com/andersfylling/disgord"
+	"github.com/meooow25/cfspy/bot"
+)
 
 var updateStatusPayload = &disgord.UpdateStatusPayload{
 	Game: &disgord.Activity{
@@ -11,6 +14,7 @@ var updateStatusPayload = &disgord.UpdateStatusPayload{
 
 func setStatus(s disgord.Session) {
 	go func() {
+		s.Logger().Info("Updating status")
 		err := s.UpdateStatus(updateStatusPayload)
 		if err != nil {
 			s.Logger().Error("Error setting status: ", err)
@@ -18,10 +22,10 @@ func setStatus(s disgord.Session) {
 	}()
 }
 
-// InstallStatusFeature installs the staus feature, which updates the bot's status on ready and on
+// Installs the staus feature, which updates the bot's status on ready and on
 // resume.
-func InstallStatusFeature(bot *Bot) {
-	bot.Client.Logger().Info("Setting up status feature")
-	bot.Client.On(disgord.EvtReady, setStatus)
-	bot.Client.On(disgord.EvtResumed, setStatus)
+func installStatusFeature(b *bot.Bot) {
+	b.Client.Logger().Info("Setting up status feature")
+	b.Client.On(disgord.EvtReady, setStatus)
+	b.Client.On(disgord.EvtResumed, setStatus)
 }
