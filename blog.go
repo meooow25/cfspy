@@ -35,6 +35,9 @@ func maybeHandleBlogURL(ctx bot.Context, evt *disgord.MessageCreate) {
 	go handleBlogURL(ctx, match[1], match[2])
 }
 
+// Fetches the blog page and responds on the Discord channel with some basic info on the blog.
+// Scrapes instead of using the API because a preview will be added but the blog content is not
+// available through the API.
 // TODO: Send blog content preview.
 func handleBlogURL(ctx bot.Context, blogURL, blogID string) {
 	ctx.Logger.Info("Processing blog URL: ", blogURL)
