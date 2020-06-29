@@ -21,7 +21,7 @@ var (
 	cfAPI, _  = goforces.NewClient(nil)
 
 	// Useful for scraping
-	titleSelec  = cascadia.MustCompile("title")
+	titleSelec  = cascadia.MustCompile(".title")
 	handleSelec = cascadia.MustCompile("a.rated-user")
 	timeSelec   = cascadia.MustCompile(".info .format-humantime")
 	moscowTZ    = time.FixedZone("Europe/Moscow", int(3*time.Hour/time.Second))
@@ -76,7 +76,7 @@ func scraperGetDoc(url string) (*goquery.Document, error) {
 }
 
 func parseTitle(doc *goquery.Document) string {
-	return doc.FindMatcher(titleSelec).Text()
+	return doc.FindMatcher(titleSelec).First().Text()
 }
 
 func parseHandle(selec *goquery.Selection) string {
