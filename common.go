@@ -21,10 +21,12 @@ var (
 	cfAPI, _  = goforces.NewClient(nil)
 
 	// Useful for scraping
-	titleSelec  = cascadia.MustCompile(".title")
-	handleSelec = cascadia.MustCompile("a.rated-user")
-	timeSelec   = cascadia.MustCompile(".info .format-humantime")
-	moscowTZ    = time.FixedZone("Europe/Moscow", int(3*time.Hour/time.Second))
+	titleSelec         = cascadia.MustCompile(".title")
+	handleSelec        = cascadia.MustCompile("a.rated-user")
+	timeSelec          = cascadia.MustCompile(".info .format-humantime")
+	moscowTZ           = time.FixedZone("Europe/Moscow", int(3*time.Hour/time.Second))
+	commentAvatarSelec = cascadia.MustCompile(".avatar")
+	imgSelec           = cascadia.MustCompile("img")
 
 	// From https://sta.codeforces.com/s/50332/css/community.css
 	colorClsMap = map[string]int{
@@ -104,6 +106,11 @@ func parseTime(selec *goquery.Selection) (t time.Time, err error) {
 	}
 	t = t.UTC()
 	return
+}
+
+func parseImg(selec *goquery.Selection) string {
+	return withCodeforcesHost(
+		selec.FindMatcher(imgSelec).AttrOr("src", "missing-src-unexpected"))
 }
 
 func withCodeforcesHost(url string) string {

@@ -89,13 +89,24 @@ func makeBlogEmbed(blogURL string, doc *goquery.Document) (*disgord.Embed, error
 	}
 	blogRating := blogDiv.FindMatcher(blogRatingSelec).Text()
 	color := parseHandleColor(blogDiv)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	infos, err := cfAPI.GetUserInfo(ctx, []string{authorHandle})
-	if err != nil {
-		return nil, err
+
+	var authorPic string
+	// If the author commented under the blog we get the pic, otherwise fetch from the API.
+	if authorCommentAvatars := blogDiv.FindMatcher(commentAvatarSelec).FilterFunction(
+		func(_ int, s *goquery.Selection) bool {
+			return s.FindMatcher(handleSelec).Text() == authorHandle
+		},
+	); authorCommentAvatars.Length() > 0 {
+		authorPic = parseImg(authorCommentAvatars)
+	} else {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		infos, err := cfAPI.GetUserInfo(ctx, []string{authorHandle})
+		if err != nil {
+			return nil, err
+		}
+		authorPic = withCodeforcesHost(infos[0].Avatar)
 	}
-	authorPic := withCodeforcesHost(infos[0].Avatar)
 
 	embed := &disgord.Embed{
 		Title: title,

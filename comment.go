@@ -16,8 +16,6 @@ import (
 var (
 	cfCommentURLRe     = regexp.MustCompile(`https?://codeforces.com/blog/entry/\d+\??(?:locale=ru)?#comment-(\d+)`)
 	commentRatingSelec = cascadia.MustCompile(".commentRating")
-	commentAvatarSelec = cascadia.MustCompile(".avatar")
-	imgSelec           = cascadia.MustCompile("img")
 	contentSelec       = cascadia.MustCompile(".ttypography")
 	spoilerContentCls  = "spoiler-content"
 	spoilerSelec       = cascadia.MustCompile("." + spoilerContentCls)
@@ -111,8 +109,7 @@ func makeCommentEmbed(
 	title := parseTitle(doc)
 	avatarDiv := comment.FindMatcher(commentAvatarSelec)
 	authorHandle := parseHandle(avatarDiv)
-	authorPic := withCodeforcesHost(
-		comment.FindMatcher(imgSelec).AttrOr("src", "missing-src-unexpected"))
+	authorPic := parseImg(avatarDiv)
 	commentContent, imgs := getCommentContent(comment)
 	commentCreationTime, err := parseTime(comment)
 	if err != nil {
