@@ -1,11 +1,9 @@
-package main
+package bot
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/andersfylling/disgord"
 )
@@ -14,13 +12,13 @@ import (
 // concurrently modify the internal disgord client.
 type Bot struct {
 	Client      *disgord.Client
-	Info        BotInfo
+	Info        Info
 	commands    map[string]*Command
 	helpCommand *Command
 }
 
-// BotInfo wraps some bot info.
-type BotInfo struct {
+// Info wraps some bot info.
+type Info struct {
 	Name   string
 	Token  string
 	Prefix string
@@ -28,30 +26,19 @@ type BotInfo struct {
 	Logger disgord.Logger
 }
 
-// BotContext is passed to all command handlers and contains fields relevant to the current command
-// invocation.
-type BotContext struct {
-	Session disgord.Session
-	Message *disgord.Message
-	Command *Command
-	Args    []string
-	Ctx     context.Context
-	Logger  disgord.Logger
-}
-
 // Command represents a bot command.
 type Command struct {
 	ID      string
 	Usage   string
 	Desc    string
-	Handler func(BotContext)
+	Handler func(Context)
 }
 
 // Used for parsing args, the string `hello "wor ld"` will be parsed to ["hello", "wor ld"]
 var argsRe = regexp.MustCompile(`"([^"]+)"|([^\s]+)`)
 
-// NewBot creates a new bot with the given BotInfo.
-func NewBot(info BotInfo) *Bot {
+// New creates a new bot with the given BotInfo.
+func New(info Info) *Bot {
 	bot := Bot{
 		Client: disgord.New(
 			disgord.Config{
@@ -72,9 +59,9 @@ func NewBot(info BotInfo) *Bot {
 }
 
 // OnMessageCreate attaches a handler that is called on the message create event.
-func (bot *Bot) OnMessageCreate(handler func(BotContext, *disgord.MessageCreate)) {
+func (bot *Bot) OnMessageCreate(handler func(Context, *disgord.MessageCreate)) {
 	wrapped := func(s disgord.Session, evt *disgord.MessageCreate) {
-		ctx := BotContext{
+		ctx := Context{
 			Session: s,
 			Message: evt.Message,
 			Ctx:     evt.Ctx,
@@ -104,7 +91,7 @@ func (bot *Bot) maybeHandleCommand(s disgord.Session, evt *disgord.MessageCreate
 		args[i] = argsNested[i][0]
 	}
 	commandID := args[0][len(bot.Info.Prefix):]
-	ctx := BotContext{
+	ctx := Context{
 		Session: s,
 		Message: msg,
 		Args:    args,
@@ -124,7 +111,7 @@ func (bot *Bot) maybeHandleCommand(s disgord.Session, evt *disgord.MessageCreate
 	}
 }
 
-func (bot *Bot) sendHelp(ctx BotContext) {
+func (bot *Bot) sendHelp(ctx Context) {
 	go func() {
 		if len(ctx.Args) > 1 {
 			ctx.SendIncorrectUsageMsg()
@@ -134,7 +121,7 @@ func (bot *Bot) sendHelp(ctx BotContext) {
 	}()
 }
 
-func (bot *Bot) rejectCommand(ctx BotContext, commandID string) {
+func (bot *Bot) rejectCommand(ctx Context, commandID string) {
 	var content string
 	switch commandID {
 	case "":
@@ -171,67 +158,6 @@ func (bot *Bot) buildHelpEmbed() *disgord.Embed {
 		Fields:      fields,
 	}
 	return &embed
-}
-
-// Send sends a message in the current channel.
-func (ctx *BotContext) Send(data ...interface{}) (*disgord.Message, error) {
-	return ctx.Session.SendMsg(ctx.Ctx, ctx.Message.ChannelID, data...)
-}
-
-// SendTimed sends a message and deletes it after a delay. Ignores any error if the delete fails.
-func (ctx *BotContext) SendTimed(
-	deleteAfter time.Duration,
-	data ...interface{},
-) (*disgord.Message, error) {
-	msg, err := ctx.Send(data...)
-	if err == nil {
-		time.AfterFunc(deleteAfter, func() { ctx.DeleteMsg(msg) })
-	}
-	return msg, err
-}
-
-// EditMsg edits a message to set the given string as content.
-func (ctx *BotContext) EditMsg(msg *disgord.Message, content string) (*disgord.Message, error) {
-	return ctx.Session.SetMsgContent(ctx.Ctx, msg.ChannelID, msg.ID, content)
-}
-
-// SuppressEmbeds suppresses all embeds on the given message.
-func (ctx *BotContext) SuppressEmbeds(msg *disgord.Message) (*disgord.Message, error) {
-	return ctx.Session.UpdateMessage(
-		ctx.Ctx,
-		msg.ChannelID,
-		msg.ID,
-	).Set(
-		"flags",
-		msg.Flags|disgord.MessageFlagSupressEmbeds,
-	).Execute()
-}
-
-// UnsuppressEmbeds unsuppresses all embeds on the given message.
-func (ctx *BotContext) UnsuppressEmbeds(msg *disgord.Message) (*disgord.Message, error) {
-	return ctx.Session.UpdateMessage(
-		ctx.Ctx,
-		msg.ChannelID,
-		msg.ID,
-	).Set(
-		"flags",
-		msg.Flags&^disgord.MessageFlagSupressEmbeds,
-	).Execute()
-}
-
-// DeleteMsg deletes the given message.
-func (ctx *BotContext) DeleteMsg(msg *disgord.Message) error {
-	return ctx.Session.DeleteFromDiscord(ctx.Ctx, msg)
-}
-
-// React reacts on the given message with the given emoji.
-func (ctx *BotContext) React(msg *disgord.Message, emoji interface{}) error {
-	return msg.React(ctx.Ctx, ctx.Session, emoji)
-}
-
-// SendIncorrectUsageMsg sends the incorrect usage message for the current command.
-func (ctx *BotContext) SendIncorrectUsageMsg() (*disgord.Message, error) {
-	return ctx.Send(ctx.Command.IncorrectUsageMsg())
 }
 
 // FullUsage returns the "ID Usage" form of the command.
