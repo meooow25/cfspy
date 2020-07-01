@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"regexp"
 	"strings"
 	"time"
@@ -20,6 +21,10 @@ var (
 	spoilerContentCls  = "spoiler-content"
 	spoilerSelec       = cascadia.MustCompile("." + spoilerContentCls)
 )
+
+func init() {
+	rand.Seed(time.Now().Unix())
+}
 
 const timedMsgTTL = 20 * time.Second
 
@@ -67,12 +72,16 @@ func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 		return
 	}
 
-	msg, err := ctx.Send(embed)
-	if restErr, ok := err.(*disgord.ErrRest); ok {
-		if strings.Contains(restErr.Suggestion, "Embed size exceeds maximum size") {
-			ctx.SendTimed(timedMsgTTL, "Comment too long :(")
+	if bot.EmbedDescriptionTooLong(embed) {
+		if rand.Intn(20) == 0 {
+			embed.Description = "I have discovered this truly marvelous comment, which this " +
+				"embed is too narrow to contain."
+		} else {
+			embed.Description = "The comment is too large to display."
 		}
 	}
+
+	msg, err := ctx.Send(embed)
 	if err != nil {
 		ctx.Logger.Error(fmt.Errorf("Error sending comment preview: %w", err))
 		return
