@@ -8,6 +8,7 @@ import (
 	"time"
 
 	md "github.com/JohannesKaufmann/html-to-markdown"
+	"github.com/JohannesKaufmann/html-to-markdown/plugin"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/andersfylling/disgord"
 	"github.com/andybalholm/cascadia"
@@ -201,6 +202,8 @@ func getCommentContent(comment *goquery.Selection) (string, []string) {
 			},
 		},
 	)
+	converter.Use(plugin.Strikethrough("~~"))
+
 	// TODO: html-to-markdown removes pure whitespace text, which causes adjacent inline elements
 	// (such as links) to stick together. Maybe file an issue.
 	// https://github.com/JohannesKaufmann/html-to-markdown/blob/master/commonmark.go
