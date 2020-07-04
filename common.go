@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -17,8 +18,11 @@ import (
 
 var (
 	// Global clients.
-	cfScraper = http.Client{Timeout: 10 * time.Second}
-	cfAPI, _  = goforces.NewClient(nil)
+	cfScraper = http.Client{
+		Timeout:       10 * time.Second,
+		CheckRedirect: redirectPolicyFunc,
+	}
+	cfAPI, _ = goforces.NewClient(nil)
 
 	// Useful for scraping
 	titleSelec         = cascadia.MustCompile(".title")
@@ -45,13 +49,26 @@ var (
 	}
 )
 
+type redirectErr struct {
+	From *url.URL
+	To   *url.URL
+}
+
+func (err *redirectErr) Error() string {
+	return fmt.Sprintf("Redirect from %v to %v", err.From, err.To)
+}
+
 type scrapeFetchErr struct {
 	URL *url.URL
 	Err error
 }
 
 func (err *scrapeFetchErr) Error() string {
-	return fmt.Errorf("Error fetching from %v: %w", err.URL, err.Err).Error()
+	return fmt.Errorf("Error fetching from <%v>: %w", err.URL, err.Err).Error()
+}
+
+func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
+	return &redirectErr{From: via[len(via)-1].URL, To: req.URL}
 }
 
 // scraperGetDoc fetches the page from the given URL and returns a parsed goquery document.
@@ -64,6 +81,12 @@ func scraperGetDoc(url string) (*goquery.Document, error) {
 	parsedURL.ForceQuery = false
 	resp, err := cfScraper.Get(parsedURL.String())
 	if err != nil {
+		inner := errors.Unwrap(err)
+		if _, ok := inner.(*redirectErr); ok {
+			// Instead of serving a 404 page if the resourse is missing, Codeforces redirects to the
+			// last visited page. Don't ask me why.
+			err = fmt.Errorf("Page not found")
+		}
 		return nil, &scrapeFetchErr{URL: parsedURL, Err: err}
 	}
 	defer resp.Body.Close()
