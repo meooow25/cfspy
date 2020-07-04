@@ -26,6 +26,9 @@ func installCfBlogFeature(bot *bot.Bot) {
 }
 
 func maybeHandleBlogURL(ctx bot.Context, evt *disgord.MessageCreate) {
+	if evt.Message.Author.Bot {
+		return
+	}
 	match := cfBlogURLRe.FindStringSubmatch(evt.Message.Content)
 	if len(match) == 0 {
 		return
