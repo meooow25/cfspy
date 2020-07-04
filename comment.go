@@ -46,6 +46,9 @@ func installCfCommentFeature(bot *bot.Bot) {
 }
 
 func maybeHandleCommentURL(ctx bot.Context, evt *disgord.MessageCreate) {
+	if evt.Message.Author.Bot {
+		return
+	}
 	match := cfCommentURLRe.FindStringSubmatch(evt.Message.Content)
 	if len(match) == 0 {
 		return

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 	"time"
 
@@ -14,7 +13,6 @@ import (
 )
 
 var (
-	blogClient      = http.Client{Timeout: 10 * time.Second}
 	cfBlogURLRe     = regexp.MustCompile(`(https?://codeforces.com/blog/entry/(\d+)\??(?:locale=ru)?)(?:$|\s)`)
 	blogSelec       = cascadia.MustCompile(".topic")
 	blogRatingSelec = cascadia.MustCompile(`[title="Topic rating"]`)
@@ -28,6 +26,9 @@ func installCfBlogFeature(bot *bot.Bot) {
 }
 
 func maybeHandleBlogURL(ctx bot.Context, evt *disgord.MessageCreate) {
+	if evt.Message.Author.Bot {
+		return
+	}
 	match := cfBlogURLRe.FindStringSubmatch(evt.Message.Content)
 	if len(match) == 0 {
 		return
