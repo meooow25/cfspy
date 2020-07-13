@@ -21,6 +21,7 @@ var (
 	cfScraper = http.Client{
 		Timeout:       10 * time.Second,
 		CheckRedirect: redirectPolicyFunc,
+		Jar:           &cfJar{},
 	}
 	cfAPI, _ = goforces.NewClient(nil)
 
@@ -31,6 +32,7 @@ var (
 	moscowTZ           = time.FixedZone("Europe/Moscow", int(3*time.Hour/time.Second))
 	commentAvatarSelec = cascadia.MustCompile(".avatar")
 	imgSelec           = cascadia.MustCompile("img")
+	scriptSelec        = cascadia.MustCompile("script")
 
 	// From https://sta.codeforces.com/s/50332/css/community.css
 	colorClsMap = map[string]int{
@@ -79,7 +81,25 @@ func scraperGetDoc(url string) (*goquery.Document, error) {
 	}
 	parsedURL.Fragment = ""
 	parsedURL.ForceQuery = false
-	resp, err := cfScraper.Get(parsedURL.String())
+	doc, err := fetch(parsedURL)
+	if err != nil {
+		return nil, err
+	}
+	scripts := doc.FindMatcher(scriptSelec)
+	if scripts.Length() == 2 { // Fragile check, meh
+		if err = setStrangeCookieOnClient(scripts.Text(), cfScraper); err != nil {
+			return nil, fmt.Errorf("Set strange cookie failed: %w", err)
+		}
+		doc, err = fetch(parsedURL)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return doc, nil
+}
+
+func fetch(url *urlpkg.URL) (*goquery.Document, error) {
+	resp, err := cfScraper.Get(url.String())
 	if err != nil {
 		inner := errors.Unwrap(err)
 		if _, ok := inner.(*redirectErr); ok {
@@ -87,15 +107,15 @@ func scraperGetDoc(url string) (*goquery.Document, error) {
 			// last visited page. Don't ask me why.
 			err = fmt.Errorf("Page not found")
 		}
-		return nil, &scrapeFetchErr{URL: parsedURL, Err: err}
+		return nil, &scrapeFetchErr{URL: url, Err: err}
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
-		return nil, &scrapeFetchErr{URL: parsedURL, Err: fmt.Errorf("%v", resp.Status)}
+		return nil, &scrapeFetchErr{URL: url, Err: fmt.Errorf("%v", resp.Status)}
 	}
 	doc, err := goquery.NewDocumentFromResponse(resp)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing HTML from %q: %w", parsedURL, err)
+		return nil, fmt.Errorf("Error parsing HTML from %q: %w", url, err)
 	}
 	return doc, nil
 }
