@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 	urlpkg "net/url"
 	"strings"
@@ -18,10 +19,11 @@ import (
 
 var (
 	// Global clients.
+	cfJar, _  = cookiejar.New(nil)
 	cfScraper = http.Client{
 		Timeout:       10 * time.Second,
 		CheckRedirect: redirectPolicyFunc,
-		Jar:           &cfJar{},
+		Jar:           cfJar,
 	}
 	cfAPI, _ = goforces.NewClient(nil)
 

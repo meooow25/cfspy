@@ -8,37 +8,10 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
-	"sync"
 )
 
 // These are for bypassing a strange check introduced by Codeforces.
 // See https://github.com/meooow25/cfspy/issues/4
-
-type cfJar struct {
-	rcpc *http.Cookie
-	mu   sync.Mutex
-}
-
-func (j *cfJar) SetCookies(u *url.URL, cookies []*http.Cookie) {
-	for _, cookie := range cookies {
-		if cookie.Name == "RCPC" {
-			j.mu.Lock()
-			j.rcpc = cookie
-			j.mu.Unlock()
-		}
-	}
-}
-
-func (j *cfJar) Cookies(u *url.URL) []*http.Cookie {
-	if u.Host == "codeforces.com" {
-		j.mu.Lock()
-		defer j.mu.Unlock()
-		if j.rcpc != nil {
-			return []*http.Cookie{j.rcpc}
-		}
-	}
-	return nil
-}
 
 var (
 	aRe = regexp.MustCompile(`a=toNumbers\("([0-9a-f]+)"\)`)
