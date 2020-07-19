@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/http/cookiejar"
 	"net/url"
 	urlpkg "net/url"
 	"strings"
@@ -19,11 +18,9 @@ import (
 
 var (
 	// Global clients.
-	cfJar, _  = cookiejar.New(nil)
 	cfScraper = http.Client{
 		Timeout:       10 * time.Second,
 		CheckRedirect: redirectPolicyFunc,
-		Jar:           cfJar,
 	}
 	cfAPI, _ = goforces.NewClient(nil)
 
@@ -34,7 +31,6 @@ var (
 	moscowTZ           = time.FixedZone("Europe/Moscow", int(3*time.Hour/time.Second))
 	commentAvatarSelec = cascadia.MustCompile(".avatar")
 	imgSelec           = cascadia.MustCompile("img")
-	scriptSelec        = cascadia.MustCompile("script")
 
 	// From https://sta.codeforces.com/s/50332/css/community.css
 	colorClsMap = map[string]int{
@@ -83,21 +79,7 @@ func scraperGetDoc(url string) (*goquery.Document, error) {
 	}
 	parsedURL.Fragment = ""
 	parsedURL.ForceQuery = false
-	doc, err := fetch(parsedURL)
-	if err != nil {
-		return nil, err
-	}
-	scripts := doc.FindMatcher(scriptSelec)
-	if scripts.Length() == 2 { // Fragile check, meh
-		if err = setStrangeCookieOnClient(scripts.Text(), cfScraper); err != nil {
-			return nil, fmt.Errorf("Set strange cookie failed: %w", err)
-		}
-		doc, err = fetch(parsedURL)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return doc, nil
+	return fetch(parsedURL)
 }
 
 func fetch(url *urlpkg.URL) (*goquery.Document, error) {
