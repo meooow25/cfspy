@@ -40,30 +40,6 @@ func (ctx *Context) EditMsg(msg *disgord.Message, content string) (*disgord.Mess
 	return ctx.Session.SetMsgContent(ctx.Ctx, msg.ChannelID, msg.ID, content)
 }
 
-// SuppressEmbeds suppresses all embeds on the given message.
-func (ctx *Context) SuppressEmbeds(msg *disgord.Message) (*disgord.Message, error) {
-	return ctx.Session.UpdateMessage(
-		ctx.Ctx,
-		msg.ChannelID,
-		msg.ID,
-	).Set(
-		"flags",
-		msg.Flags|disgord.MessageFlagSupressEmbeds,
-	).Execute()
-}
-
-// UnsuppressEmbeds unsuppresses all embeds on the given message.
-func (ctx *Context) UnsuppressEmbeds(msg *disgord.Message) (*disgord.Message, error) {
-	return ctx.Session.UpdateMessage(
-		ctx.Ctx,
-		msg.ChannelID,
-		msg.ID,
-	).Set(
-		"flags",
-		msg.Flags&^disgord.MessageFlagSupressEmbeds,
-	).Execute()
-}
-
 // DeleteMsg deletes the given message.
 func (ctx *Context) DeleteMsg(msg *disgord.Message) error {
 	return ctx.Session.DeleteFromDiscord(ctx.Ctx, msg)
@@ -77,4 +53,14 @@ func (ctx *Context) React(msg *disgord.Message, emoji interface{}) error {
 // SendIncorrectUsageMsg sends the incorrect usage message for the current command.
 func (ctx *Context) SendIncorrectUsageMsg() (*disgord.Message, error) {
 	return ctx.Send(ctx.Command.IncorrectUsageMsg())
+}
+
+// SendPaginated sends a paginated message in the current channel.
+func (ctx *Context) SendPaginated(params PaginateParams) (*disgord.Message, error) {
+	return SendPaginated(ctx.Ctx, params, ctx.Session, ctx.Message.ChannelID)
+}
+
+// SendWithDelBtn sends a message and adds a delete button to it.
+func (ctx *Context) SendWithDelBtn(params OnePageWithDelParams) (*disgord.Message, error) {
+	return SendWithDelBtn(ctx.Ctx, params, ctx.Session, ctx.Message.ChannelID)
 }

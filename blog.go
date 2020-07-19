@@ -55,17 +55,25 @@ func handleBlogURL(ctx bot.Context, blogURL, blogID string) {
 		return
 	}
 
-	msg, err := ctx.Send(embed)
+	// Allow the author to delete the preview.
+	_, err = ctx.SendWithDelBtn(bot.OnePageWithDelParams{
+		Embed:           embed,
+		DeactivateAfter: time.Minute,
+		DelCallback: func(evt *disgord.MessageReactionAdd) {
+			// This will fail without manage messages permission, that's fine.
+			bot.UnsuppressEmbeds(evt.Ctx, ctx.Session, ctx.Message)
+		},
+		AllowOp: func(evt *disgord.MessageReactionAdd) bool {
+			return evt.UserID == ctx.Message.Author.ID
+		},
+	})
 	if err != nil {
 		ctx.Logger.Error(fmt.Errorf("Error sending blog info: %w", err))
 		return
 	}
-	// This will fail without manage messages permission, that's fine.
-	ctx.SuppressEmbeds(ctx.Message)
 
-	// Allow the author to delete the preview.
-	handlers := bot.ReactHandlerMap{"🗑": getWidgetDeleteHandler(msg, ctx.Message)}
-	bot.AddButtons(ctx, msg, &handlers, time.Minute)
+	// This will fail without manage messages permission, that's fine.
+	bot.SuppressEmbeds(ctx.Ctx, ctx.Session, ctx.Message)
 }
 
 func getBlogEmbed(blogURL, blogID string) (*disgord.Embed, error) {
