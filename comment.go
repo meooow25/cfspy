@@ -64,6 +64,7 @@ func maybeHandleCommentURL(ctx bot.Context, evt *disgord.MessageCreate) {
 // channel. Scrapes instead of using the API because
 // - It's just easier, the comment and author details are together.
 // - Some comments in Russian locale seems to be missing from the API.
+// - Scraping allows access to different revisions.
 func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 	ctx.Logger.Info("Processing comment URL: ", commentURL)
 
@@ -79,7 +80,7 @@ func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 		return
 	}
 
-	// Allow the author to delete the preview.
+	// Allow the author to delete the preview or choose the revision.
 	_, err = ctx.SendPaginated(bot.PaginateParams{
 		GetPage:         embedGetter,
 		NumPages:        revisionCnt,
@@ -103,49 +104,53 @@ func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 	bot.SuppressEmbeds(ctx.Ctx, ctx.Session, ctx.Message)
 }
 
-func getCommentEmbedGetter(commentURL, commentID string) (bot.PageGetter, int, error) {
+func getCommentEmbedGetter(
+	commentURL,
+	commentID string,
+) (pageGetter bot.PageGetter, revisionCnt int, err error) {
 	doc, err := scraperGetDocBrowser(commentURL)
 	if err != nil {
-		return nil, 0, err
+		return
 	}
 	comment := doc.Find(fmt.Sprintf(`[commentId="%v"]`, commentID))
 	if comment.Length() == 0 {
-		return nil, 0, &commentNotFoundErr{URL: commentURL, CommentID: commentID}
+		err = &commentNotFoundErr{URL: commentURL, CommentID: commentID}
+		return
 	}
 
 	embed, err := makeCommentEmbed(commentURL, doc, comment)
 	if err != nil {
-		return nil, 0, fmt.Errorf("Error building embed for %q: %w", commentURL, err)
+		err = fmt.Errorf("Error building embed for %q: %w", commentURL, err)
+		return
 	}
 
 	csrf := doc.FindMatcher(csrfTokenSelec).AttrOr("content", "?!")
-	revisionCnt := parseCommentRevision(comment)
+	revisionCnt = parseCommentRevision(comment)
 	commentCache := map[int]*goquery.Selection{revisionCnt: comment}
 
-	getter := func(revision int) (string, *disgord.Embed) {
-		var commentContent string
-		var imgs []string
+	getContent := func(revision int) (string, []string) {
 		if comment, ok := commentCache[revision]; ok {
-			commentContent, imgs = getCommentContent(comment)
-		} else {
-			if resp, err := fetchComment(commentID, revision, csrf); err != nil {
-				commentContent = "An error occured :("
-			} else {
-				if doc, err := goquery.NewDocumentFromReader(strings.NewReader(resp)); err != nil {
-					commentContent = "An error occured :("
-				} else {
-					commentCache[revision] = doc.Selection
-					commentContent, imgs = getCommentContent(doc.Selection)
-				}
-			}
+			return getCommentContent(comment)
 		}
+		resp, err := fetchCommentBrowser(commentID, revision, csrf)
+		if err != nil {
+			return "An error occured :(", nil
+		}
+		doc, err := goquery.NewDocumentFromReader(strings.NewReader(resp))
+		if err != nil {
+			return "An error occured :(", nil
+		}
+		commentCache[revision] = doc.Selection
+		return getCommentContent(doc.Selection)
+	}
+
+	pageGetter = func(revision int) (string, *disgord.Embed) {
+		commentContent, imgs := getContent(revision)
 		embedCopy := embed.DeepCopy().(*disgord.Embed)
 		embedCopy.Description = commentContent
 		updateEmbedIfCommentTooLong(embedCopy)
 		if len(imgs) > 0 {
-			embedCopy.Image = &disgord.EmbedImage{
-				URL: imgs[0],
-			}
+			embedCopy.Image = &disgord.EmbedImage{URL: imgs[0]}
 		}
 		revisionStr := ""
 		if revisionCnt > 1 {
@@ -154,8 +159,7 @@ func getCommentEmbedGetter(commentURL, commentID string) (bot.PageGetter, int, e
 		embedCopy.Footer.Text += revisionStr
 		return "", embedCopy
 	}
-
-	return getter, revisionCnt, nil
+	return
 }
 
 func updateEmbedIfCommentTooLong(embed *disgord.Embed) {

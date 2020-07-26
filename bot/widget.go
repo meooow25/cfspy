@@ -10,7 +10,7 @@ import (
 	"github.com/andersfylling/disgord"
 )
 
-// PageGetter is a type alias for a function to returns a page given the page number.
+// PageGetter is a type alias for a function that returns a page given the page number.
 type PageGetter = func(int) (string, *disgord.Embed)
 
 // DelCallbackType is a type alias for the callback function invoked on delete.
@@ -22,7 +22,8 @@ type AllowPredicateType = func(*disgord.MessageReactionAdd) bool
 
 // PaginateParams aggregates the params required for a paginated message.
 type PaginateParams struct {
-	// Returns the page corresponding to the given page number.
+	// Should returns the page corresponding to the given page number. Will not be called
+	// concurrently.
 	GetPage PageGetter
 
 	NumPages        int
@@ -104,9 +105,11 @@ func SendPaginated(
 		session.UpdateMessage(ctx, channelID, msg.ID).SetContent(content).SetEmbed(embed).Execute()
 	}
 
+	ctx, cancel := context.WithCancel(ctx)
 	reactMap := map[string]func(*disgord.MessageReactionAdd){
 		delSymbol: func(evt *disgord.MessageReactionAdd) {
 			go session.DeleteFromDiscord(evt.Ctx, msg)
+			cancel()
 			params.DelCallback(evt)
 		},
 		prevSymbol: func(evt *disgord.MessageReactionAdd) {

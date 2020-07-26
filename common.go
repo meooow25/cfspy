@@ -18,11 +18,13 @@ import (
 )
 
 var (
-	// Global clients.
+	// Ordinary client
 	cfScraper = &http.Client{
 		Timeout:       10 * time.Second,
 		CheckRedirect: redirectPolicyFunc,
 	}
+
+	// Client that uses a browser user agent
 	cfScraperBrowserJar, _ = cookiejar.New(nil)
 	cfScraperBrowser       = &http.Client{
 		Transport:     &browserUATransport{},
@@ -30,6 +32,8 @@ var (
 		CheckRedirect: redirectPolicyFunc,
 		Jar:           cfScraperBrowserJar,
 	}
+
+	// API client
 	cfAPI, _ = goforces.NewClient(nil)
 
 	// Useful for scraping
@@ -57,10 +61,11 @@ var (
 	}
 )
 
+// Transport that sets a browser user agent.
 type browserUATransport struct{}
 
 func (t *browserUATransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.Header.Add(
+	req.Header.Set(
 		"User-Agent",
 		"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101 Firefox/78.0",
 	)
@@ -89,12 +94,13 @@ func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
 	return &redirectErr{From: via[len(via)-1].URL, To: req.URL}
 }
 
-// scraperGetDoc fetches the page from the given URL and returns a parsed goquery document.
+// scraperGetDoc fetches the page from the given URL and returns a parsed goquery document. Uses the
+// cfScraper client.
 func scraperGetDoc(url string) (*goquery.Document, error) {
 	return scraperGetDocInternal(url, cfScraper)
 }
 
-// Same as scraperGetDoc but uses a browser user agent.
+// Same as scraperGetDoc but uses a browser user agent. Uses the cfScraperBrowser client.
 func scraperGetDocBrowser(url string) (*goquery.Document, error) {
 	return scraperGetDocInternal(url, cfScraperBrowser)
 }
@@ -181,7 +187,11 @@ func withCodeforcesHost(url string) string {
 	return parsedURL.String()
 }
 
-func fetchComment(commentID string, revision int, csrfToken string) (string, error) {
+// Fetches a comment revision. This endpoint only works if there is more than one revision,
+// otherwise it would be usable for fetching comments more easily. Requires a CSRF token. Uses
+// cfScraperBrowser, which should have the JSESSIONID cookie set, which should be the case if it was
+// used to fetch a page before this.
+func fetchCommentBrowser(commentID string, revision int, csrfToken string) (string, error) {
 	formData := urlpkg.Values{
 		"action":     {"revision"},
 		"commentId":  {commentID},
@@ -203,13 +213,14 @@ func fetchComment(commentID string, revision int, csrfToken string) (string, err
 	if resp.StatusCode >= 300 {
 		return "", fmt.Errorf("%v", resp.Status)
 	}
-	var jsonResp map[string]string
-	err = json.NewDecoder(resp.Body).Decode(&jsonResp)
-	if err != nil {
+	var jsonResp struct {
+		Content string `json:"content"`
+	}
+	if err = json.NewDecoder(resp.Body).Decode(&jsonResp); err != nil {
 		return "", fmt.Errorf("JSON decode error: %w", err)
 	}
-	if comment, ok := jsonResp["content"]; ok {
-		return comment, nil
+	if jsonResp.Content == "" {
+		return "", errors.New("'content' not present in JSON response")
 	}
-	return "", errors.New("'comment' not present in JSON response")
+	return jsonResp.Content, nil
 }
