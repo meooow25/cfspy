@@ -12,6 +12,9 @@ To improve that, CFSpy can
 
 To answer the common question _"Is Codeforces down?"_, there is a command to ping codeforces.com.
 
+## Screenshot
+![screenshot](https://i.imgur.com/WAcdoPP.png)
+
 ## Use it
 
 #### Invite the bot to your server
