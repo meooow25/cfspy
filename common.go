@@ -100,7 +100,7 @@ func scraperGetDoc(url string) (*goquery.Document, error) {
 	return scraperGetDocInternal(url, cfScraper)
 }
 
-// Same as scraperGetDoc but uses a browser user agent. Uses the cfScraperBrowser client.
+// Same as scraperGetDoc but uses the cfScraperBrowser client, which uses a browser user agent.
 func scraperGetDocBrowser(url string) (*goquery.Document, error) {
 	return scraperGetDocInternal(url, cfScraperBrowser)
 }
@@ -130,7 +130,7 @@ func fetch(url *urlpkg.URL, client *http.Client) (*goquery.Document, error) {
 	if resp.StatusCode >= 300 {
 		return nil, &scrapeFetchErr{URL: url, Err: fmt.Errorf("%v", resp.Status)}
 	}
-	doc, err := goquery.NewDocumentFromResponse(resp)
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing HTML from %q: %w", url, err)
 	}
@@ -187,11 +187,15 @@ func withCodeforcesHost(url string) string {
 	return parsedURL.String()
 }
 
-// Fetches a comment revision. This endpoint only works if there is more than one revision,
-// otherwise it would be usable for fetching comments more easily. Requires a CSRF token. Uses
-// cfScraperBrowser, which should have the JSESSIONID cookie set, which should be the case if it was
-// used to fetch a page before this.
-func fetchCommentBrowser(commentID string, revision int, csrfToken string) (string, error) {
+// Fetches a comment revision. This endpoint rejects non-browser user agents, so cfScraperBrowser is
+// used. This endpoint only works if there is more than one revision, otherwise it would be usable
+// for fetching comments more easily. Requires a CSRF token and the JSESSIONID cookie. The session
+// cookie should already be present if cfScraperBrowser was used to fetch a page before this.
+func fetchCommentBrowser(
+	commentID string,
+	revision int,
+	csrfToken string,
+) (content string, err error) {
 	formData := urlpkg.Values{
 		"action":     {"revision"},
 		"commentId":  {commentID},
@@ -207,20 +211,24 @@ func fetchCommentBrowser(commentID string, revision int, csrfToken string) (stri
 
 	resp, err := cfScraperBrowser.Do(req)
 	if err != nil {
-		return "", err
+		return
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
-		return "", fmt.Errorf("%v", resp.Status)
+		err = fmt.Errorf("%v", resp.Status)
+		return
 	}
 	var jsonResp struct {
 		Content string `json:"content"`
 	}
 	if err = json.NewDecoder(resp.Body).Decode(&jsonResp); err != nil {
-		return "", fmt.Errorf("JSON decode error: %w", err)
+		err = fmt.Errorf("JSON decode error: %w", err)
+		return
 	}
 	if jsonResp.Content == "" {
-		return "", errors.New("'content' not present in JSON response")
+		err = errors.New("'content' not present in JSON response")
+		return
 	}
-	return jsonResp.Content, nil
+	content = jsonResp.Content
+	return
 }

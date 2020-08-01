@@ -22,7 +22,7 @@ type AllowPredicateType = func(*disgord.MessageReactionAdd) bool
 
 // PaginateParams aggregates the params required for a paginated message.
 type PaginateParams struct {
-	// Should returns the page corresponding to the given page number. Will not be called
+	// Should return the page corresponding to the given page number. Will not be called
 	// concurrently.
 	GetPage PageGetter
 
