@@ -1,27 +1,39 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 	urlpkg "net/url"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/andersfylling/disgord"
 	"github.com/andybalholm/cascadia"
-	"github.com/meooow25/cfspy/bot"
 	"github.com/togatoga/goforces"
 )
 
 var (
-	// Global clients.
-	cfScraper = http.Client{
+	// Ordinary client
+	cfScraper = &http.Client{
 		Timeout:       10 * time.Second,
 		CheckRedirect: redirectPolicyFunc,
 	}
+
+	// Client that uses a browser user agent
+	cfScraperBrowserJar, _ = cookiejar.New(nil)
+	cfScraperBrowser       = &http.Client{
+		Transport:     &browserUATransport{},
+		Timeout:       10 * time.Second,
+		CheckRedirect: redirectPolicyFunc,
+		Jar:           cfScraperBrowserJar,
+	}
+
+	// API client
 	cfAPI, _ = goforces.NewClient(nil)
 
 	// Useful for scraping
@@ -49,6 +61,17 @@ var (
 	}
 )
 
+// Transport that sets a browser user agent.
+type browserUATransport struct{}
+
+func (t *browserUATransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	req.Header.Set(
+		"User-Agent",
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101 Firefox/78.0",
+	)
+	return http.DefaultTransport.RoundTrip(req)
+}
+
 type redirectErr struct {
 	From *url.URL
 	To   *url.URL
@@ -71,19 +94,29 @@ func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
 	return &redirectErr{From: via[len(via)-1].URL, To: req.URL}
 }
 
-// scraperGetDoc fetches the page from the given URL and returns a parsed goquery document.
+// scraperGetDoc fetches the page from the given URL and returns a parsed goquery document. Uses the
+// cfScraper client.
 func scraperGetDoc(url string) (*goquery.Document, error) {
+	return scraperGetDocInternal(url, cfScraper)
+}
+
+// Same as scraperGetDoc but uses the cfScraperBrowser client, which uses a browser user agent.
+func scraperGetDocBrowser(url string) (*goquery.Document, error) {
+	return scraperGetDocInternal(url, cfScraperBrowser)
+}
+
+func scraperGetDocInternal(url string, client *http.Client) (*goquery.Document, error) {
 	parsedURL, err := urlpkg.Parse(url)
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing URL %q: %w", url, err)
 	}
 	parsedURL.Fragment = ""
 	parsedURL.ForceQuery = false
-	return fetch(parsedURL)
+	return fetch(parsedURL, client)
 }
 
-func fetch(url *urlpkg.URL) (*goquery.Document, error) {
-	resp, err := cfScraper.Get(url.String())
+func fetch(url *urlpkg.URL, client *http.Client) (*goquery.Document, error) {
+	resp, err := client.Get(url.String())
 	if err != nil {
 		inner := errors.Unwrap(err)
 		if _, ok := inner.(*redirectErr); ok {
@@ -97,7 +130,7 @@ func fetch(url *urlpkg.URL) (*goquery.Document, error) {
 	if resp.StatusCode >= 300 {
 		return nil, &scrapeFetchErr{URL: url, Err: fmt.Errorf("%v", resp.Status)}
 	}
-	doc, err := goquery.NewDocumentFromResponse(resp)
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing HTML from %q: %w", url, err)
 	}
@@ -154,21 +187,48 @@ func withCodeforcesHost(url string) string {
 	return parsedURL.String()
 }
 
-// This is rather specific.
-// Returns a handler that deletes widget and unsuppresses embeds on original, only if the
-// deleter is the author of original.
-func getWidgetDeleteHandler(widget *disgord.Message, original *disgord.Message) bot.ReactHandler {
-	return func(s disgord.Session, evt *disgord.MessageReactionAdd) {
-		if evt.UserID != original.Author.ID {
-			return
-		}
-		// TODO: This is hacky, improve. Shouldn't use old ctx and shouldn't repeat logic.
-		ctx2 := bot.Context{
-			Ctx:     evt.Ctx,
-			Session: s,
-		}
-		ctx2.DeleteMsg(widget)
-		// This too will fail without manage messages permission, ignore.
-		ctx2.UnsuppressEmbeds(original)
+// Fetches a comment revision. This endpoint rejects non-browser user agents, so cfScraperBrowser is
+// used. This endpoint only works if there is more than one revision, otherwise it would be usable
+// for fetching comments more easily. Requires a CSRF token and the JSESSIONID cookie. The session
+// cookie should already be present if cfScraperBrowser was used to fetch a page before this.
+func fetchCommentBrowser(
+	commentID string,
+	revision int,
+	csrfToken string,
+) (content string, err error) {
+	formData := urlpkg.Values{
+		"action":     {"revision"},
+		"commentId":  {commentID},
+		"revision":   {strconv.Itoa(revision)},
+		"csrf_token": {csrfToken},
 	}
+	req, _ := http.NewRequest(
+		"POST",
+		"http://codeforces.com/data/comment-data",
+		strings.NewReader(formData.Encode()),
+	)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := cfScraperBrowser.Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		err = fmt.Errorf("%v", resp.Status)
+		return
+	}
+	var jsonResp struct {
+		Content string `json:"content"`
+	}
+	if err = json.NewDecoder(resp.Body).Decode(&jsonResp); err != nil {
+		err = fmt.Errorf("JSON decode error: %w", err)
+		return
+	}
+	if jsonResp.Content == "" {
+		err = errors.New("'content' not present in JSON response")
+		return
+	}
+	content = jsonResp.Content
+	return
 }

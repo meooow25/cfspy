@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -21,6 +22,9 @@ var (
 	contentSelec       = cascadia.MustCompile(".ttypography")
 	spoilerContentCls  = "spoiler-content"
 	spoilerSelec       = cascadia.MustCompile("." + spoilerContentCls)
+	revisionCountAttr  = "revisioncount"
+	revisionSpanSelec  = cascadia.MustCompile("span[" + revisionCountAttr + "]")
+	csrfTokenSelec     = cascadia.MustCompile(`meta[name="X-Csrf-Token"]`)
 )
 
 func init() {
@@ -35,7 +39,7 @@ type commentNotFoundErr struct {
 }
 
 func (err *commentNotFoundErr) Error() string {
-	return fmt.Sprintf("No comment with ID %v found on %v", err.CommentID, err.URL)
+	return fmt.Sprintf("No comment with ID %v found on <%v>", err.CommentID, err.URL)
 }
 
 // Installs the comment watcher feature. The bot watches for Codeforces comment links and responds
@@ -60,11 +64,11 @@ func maybeHandleCommentURL(ctx bot.Context, evt *disgord.MessageCreate) {
 // channel. Scrapes instead of using the API because
 // - It's just easier, the comment and author details are together.
 // - Some comments in Russian locale seems to be missing from the API.
-// - Scraping can allow access to different revisions (not yet supported).
+// - Scraping allows access to different revisions.
 func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 	ctx.Logger.Info("Processing comment URL: ", commentURL)
 
-	embed, err := getCommentEmbed(commentURL, commentID)
+	embedGetter, revisionCnt, err := getCommentEmbedGetter(commentURL, commentID)
 	if err != nil {
 		switch err.(type) {
 		case *scrapeFetchErr, *commentNotFoundErr:
@@ -76,6 +80,89 @@ func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 		return
 	}
 
+	// Allow the author to delete the preview or choose the revision.
+	_, err = ctx.SendPaginated(bot.PaginateParams{
+		GetPage:         embedGetter,
+		NumPages:        revisionCnt,
+		PageToShowFirst: revisionCnt,
+		DeactivateAfter: time.Minute,
+		DelBtn:          true,
+		DelCallback: func(evt *disgord.MessageReactionAdd) {
+			// This will fail without manage messages permission, that's fine.
+			bot.UnsuppressEmbeds(evt.Ctx, ctx.Session, ctx.Message)
+		},
+		AllowOp: func(evt *disgord.MessageReactionAdd) bool {
+			return evt.UserID == ctx.Message.Author.ID
+		},
+	})
+	if err != nil {
+		ctx.Logger.Error(fmt.Errorf("Error sending comment preview: %w", err))
+		return
+	}
+
+	// This will fail without manage messages permission, that's fine.
+	bot.SuppressEmbeds(ctx.Ctx, ctx.Session, ctx.Message)
+}
+
+func getCommentEmbedGetter(
+	commentURL,
+	commentID string,
+) (pageGetter bot.PageGetter, revisionCnt int, err error) {
+	doc, err := scraperGetDocBrowser(commentURL)
+	if err != nil {
+		return
+	}
+	comment := doc.Find(fmt.Sprintf(`[commentId="%v"]`, commentID))
+	if comment.Length() == 0 {
+		err = &commentNotFoundErr{URL: commentURL, CommentID: commentID}
+		return
+	}
+
+	embed, err := makeCommentEmbed(commentURL, doc, comment)
+	if err != nil {
+		err = fmt.Errorf("Error building embed for %q: %w", commentURL, err)
+		return
+	}
+
+	csrf := doc.FindMatcher(csrfTokenSelec).AttrOr("content", "?!")
+	revisionCnt = parseCommentRevision(comment)
+	commentCache := map[int]*goquery.Selection{revisionCnt: comment}
+
+	getContent := func(revision int) (string, []string) {
+		if comment, ok := commentCache[revision]; ok {
+			return getCommentContent(comment)
+		}
+		resp, err := fetchCommentBrowser(commentID, revision, csrf)
+		if err != nil {
+			return "An error occured :(", nil
+		}
+		doc, err := goquery.NewDocumentFromReader(strings.NewReader(resp))
+		if err != nil {
+			return "An error occured :(", nil
+		}
+		commentCache[revision] = doc.Selection
+		return getCommentContent(doc.Selection)
+	}
+
+	pageGetter = func(revision int) (string, *disgord.Embed) {
+		commentContent, imgs := getContent(revision)
+		embedCopy := embed.DeepCopy().(*disgord.Embed)
+		embedCopy.Description = commentContent
+		updateEmbedIfCommentTooLong(embedCopy)
+		if len(imgs) > 0 {
+			embedCopy.Image = &disgord.EmbedImage{URL: imgs[0]}
+		}
+		revisionStr := ""
+		if revisionCnt > 1 {
+			revisionStr = fmt.Sprintf("  •  Revision %v/%v", revision, revisionCnt)
+		}
+		embedCopy.Footer.Text += revisionStr
+		return "", embedCopy
+	}
+	return
+}
+
+func updateEmbedIfCommentTooLong(embed *disgord.Embed) {
 	if bot.EmbedDescriptionTooLong(embed) {
 		if rand.Intn(20) == 0 {
 			embed.Description = "I have discovered this truly marvelous comment, which this " +
@@ -84,36 +171,10 @@ func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 			embed.Description = "The comment is too large to display."
 		}
 	}
-
-	msg, err := ctx.Send(embed)
-	if err != nil {
-		ctx.Logger.Error(fmt.Errorf("Error sending comment preview: %w", err))
-		return
-	}
-	// This will fail without manage messages permission, that's fine.
-	ctx.SuppressEmbeds(ctx.Message)
-
-	// Allow the author to delete the preview.
-	handlers := bot.ReactHandlerMap{"🗑": getWidgetDeleteHandler(msg, ctx.Message)}
-	bot.AddButtons(ctx, msg, &handlers, time.Minute)
 }
 
-func getCommentEmbed(commentURL, commentID string) (*disgord.Embed, error) {
-	doc, err := scraperGetDoc(commentURL)
-	if err != nil {
-		return nil, err
-	}
-	com := doc.Find(fmt.Sprintf(`[commentId="%v"]`, commentID))
-	if com.Length() == 0 {
-		return nil, &commentNotFoundErr{URL: commentURL, CommentID: commentID}
-	}
-	embed, err := makeCommentEmbed(commentURL, doc, com)
-	if err != nil {
-		return nil, fmt.Errorf("Error building embed for %q: %w", commentURL, err)
-	}
-	return embed, nil
-}
-
+// Makes the content embed but leaves out the content and revision number because these vary with
+// revisions.
 func makeCommentEmbed(
 	commentURL string,
 	doc *goquery.Document,
@@ -123,7 +184,6 @@ func makeCommentEmbed(
 	avatarDiv := comment.FindMatcher(commentAvatarSelec)
 	authorHandle := parseHandle(avatarDiv)
 	authorPic := parseImg(avatarDiv)
-	commentContent, imgs := getCommentContent(comment)
 	commentCreationTime, err := parseTime(comment)
 	if err != nil {
 		return nil, err
@@ -132,9 +192,8 @@ func makeCommentEmbed(
 	color := parseHandleColor(avatarDiv)
 
 	embed := &disgord.Embed{
-		Title:       title,
-		URL:         commentURL,
-		Description: commentContent,
+		Title: title,
+		URL:   commentURL,
 		Author: &disgord.EmbedAuthor{
 			Name: "Comment by " + authorHandle,
 		},
@@ -149,13 +208,17 @@ func makeCommentEmbed(
 		},
 		Color: color,
 	}
-	if len(imgs) > 0 {
-		embed.Image = &disgord.EmbedImage{
-			URL: imgs[0],
+	return embed, nil
+}
+
+func parseCommentRevision(comment *goquery.Selection) int {
+	revisionSpan := comment.FindMatcher(revisionSpanSelec)
+	if revisionSpan.Length() > 0 {
+		if cnt, err := strconv.Atoi(revisionSpan.AttrOr(revisionCountAttr, "?!")); err == nil {
+			return cnt
 		}
 	}
-
-	return embed, nil
+	return 1
 }
 
 func getCommentContent(comment *goquery.Selection) (string, []string) {
