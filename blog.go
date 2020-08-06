@@ -46,7 +46,7 @@ func handleBlogURL(ctx bot.Context, blogURL string) {
 		case *scrapeFetchErr:
 			ctx.SendTimed(timedMsgTTL, err.Error())
 		default:
-			ctx.SendTimed(timedMsgTTL, "Internal error :(")
+			ctx.SendInternalErrorMsg(timedMsgTTL)
 		}
 		ctx.Logger.Info(fmt.Errorf("Blog error: %w", err))
 		return

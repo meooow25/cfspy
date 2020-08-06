@@ -8,6 +8,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const supportURL = "https://github.com/meooow25/cfspy/issues"
+
 var token = os.Getenv("TOKEN")
 var logger = logrus.New()
 
@@ -28,7 +30,8 @@ func main() {
 			Prefix: "c;",
 			Desc: "Codeforces Spy watches for Codeforces comment links and shows a preview.\n" +
 				"Supported commands:",
-			Logger: logger,
+			SupportURL: supportURL,
+			Logger:     logger,
 		},
 	)
 

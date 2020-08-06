@@ -71,7 +71,7 @@ func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 		case *scrapeFetchErr, *commentNotFoundErr:
 			ctx.SendTimed(timedMsgTTL, err.Error())
 		default:
-			ctx.SendTimed(timedMsgTTL, "Internal error :(")
+			ctx.SendInternalErrorMsg(timedMsgTTL)
 		}
 		ctx.Logger.Info(fmt.Errorf("Comment error: %w", err))
 		return

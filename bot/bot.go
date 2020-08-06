@@ -19,11 +19,12 @@ type Bot struct {
 
 // Info wraps some bot info.
 type Info struct {
-	Name   string
-	Token  string
-	Prefix string
-	Desc   string
-	Logger disgord.Logger
+	Name       string
+	Token      string
+	Prefix     string
+	Desc       string
+	SupportURL string
+	Logger     disgord.Logger
 }
 
 // Command represents a bot command.
@@ -62,6 +63,7 @@ func New(info Info) *Bot {
 func (bot *Bot) OnMessageCreate(handler func(Context, *disgord.MessageCreate)) {
 	wrapped := func(s disgord.Session, evt *disgord.MessageCreate) {
 		ctx := Context{
+			Bot:     bot,
 			Session: s,
 			Message: evt.Message,
 			Ctx:     evt.Ctx,
@@ -92,6 +94,7 @@ func (bot *Bot) maybeHandleCommand(s disgord.Session, evt *disgord.MessageCreate
 	}
 	commandID := args[0][len(bot.Info.Prefix):]
 	ctx := Context{
+		Bot:     bot,
 		Session: s,
 		Message: msg,
 		Args:    args,
