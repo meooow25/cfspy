@@ -8,6 +8,7 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	urlpkg "net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -37,13 +38,15 @@ var (
 	cfAPI, _ = goforces.NewClient(nil)
 
 	// Useful for scraping
-	titleSelec         = cascadia.MustCompile(".title")
-	handleSelec        = cascadia.MustCompile("a.rated-user")
-	timeSelec          = cascadia.MustCompile(".info .format-humantime")
-	moscowTZ           = time.FixedZone("Europe/Moscow", int(3*time.Hour/time.Second))
-	commentAvatarSelec = cascadia.MustCompile(".avatar")
-	imgSelec           = cascadia.MustCompile("img")
-	scriptSelec        = cascadia.MustCompile("script")
+	cfBlogURLRe         = regexp.MustCompile(`https?://codeforces.com/blog/entry/(\d+)\??\S*`)
+	cfCommentFragmentRe = regexp.MustCompile(`comment-(\d+)`)
+	titleSelec          = cascadia.MustCompile(".title")
+	handleSelec         = cascadia.MustCompile("a.rated-user")
+	timeSelec           = cascadia.MustCompile(".info .format-humantime")
+	moscowTZ            = time.FixedZone("Europe/Moscow", int(3*time.Hour/time.Second))
+	commentAvatarSelec  = cascadia.MustCompile(".avatar")
+	imgSelec            = cascadia.MustCompile("img")
+	scriptSelec         = cascadia.MustCompile("script")
 
 	// From https://sta.codeforces.com/s/50332/css/community.css
 	colorClsMap = map[string]int{
@@ -120,6 +123,24 @@ func (err *scrapeFetchErr) Error() string {
 
 func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
 	return &redirectErr{From: via[len(via)-1].URL, To: req.URL}
+}
+
+func tryParseCFURL(url string) (blogURL, commentID string) {
+	blogURL = cfBlogURLRe.FindString(url)
+	if blogURL == "" {
+		return
+	}
+	parsedURL, err := urlpkg.Parse(blogURL)
+	if err != nil {
+		blogURL = ""
+		return
+	}
+	commentMatch := cfCommentFragmentRe.FindStringSubmatch(parsedURL.Fragment)
+	if len(commentMatch) == 0 {
+		return
+	}
+	commentID = commentMatch[1]
+	return
 }
 
 // scraperGetDoc fetches the page from the given URL and returns a parsed goquery document. Uses the

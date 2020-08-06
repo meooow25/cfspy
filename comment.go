@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -17,7 +16,6 @@ import (
 )
 
 var (
-	cfCommentURLRe     = regexp.MustCompile(`https?://codeforces.com/blog/entry/\d+\??(?:locale=ru)?#comment-(\d+)`)
 	commentRatingSelec = cascadia.MustCompile(".commentRating")
 	contentSelec       = cascadia.MustCompile(".ttypography")
 	spoilerContentCls  = "spoiler-content"
@@ -53,11 +51,10 @@ func maybeHandleCommentURL(ctx bot.Context, evt *disgord.MessageCreate) {
 	if evt.Message.Author.Bot {
 		return
 	}
-	match := cfCommentURLRe.FindStringSubmatch(evt.Message.Content)
-	if len(match) == 0 {
-		return
+	commentURL, commentID := tryParseCFURL(evt.Message.Content)
+	if commentURL != "" && commentID != "" {
+		go handleCommentURL(ctx, commentURL, commentID)
 	}
-	go handleCommentURL(ctx, match[0], match[1])
 }
 
 // Fetches the comment from the blog page, converts it to markdown and responds on the Discord
