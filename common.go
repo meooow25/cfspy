@@ -19,9 +19,11 @@ import (
 
 var (
 	// Ordinary client
-	cfScraper = &http.Client{
+	cfScraperJar, _ = cookiejar.New(nil)
+	cfScraper       = &http.Client{
 		Timeout:       10 * time.Second,
 		CheckRedirect: redirectPolicyFunc,
+		Jar:           cfScraperJar,
 	}
 
 	// Client that uses a browser user agent
@@ -43,6 +45,7 @@ var (
 	moscowTZ           = time.FixedZone("Europe/Moscow", int(3*time.Hour/time.Second))
 	commentAvatarSelec = cascadia.MustCompile(".avatar")
 	imgSelec           = cascadia.MustCompile("img")
+	scriptSelec        = cascadia.MustCompile("script")
 
 	// From https://sta.codeforces.com/s/50332/css/community.css
 	colorClsMap = map[string]int{
@@ -105,13 +108,26 @@ func scraperGetDocBrowser(url string) (*goquery.Document, error) {
 	return scraperGetDocInternal(url, cfScraperBrowser)
 }
 
-func scraperGetDocInternal(url string, client *http.Client) (*goquery.Document, error) {
+func scraperGetDocInternal(url string, client *http.Client) (doc *goquery.Document, err error) {
 	parsedURL, err := urlpkg.Parse(url)
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing URL %q: %w", url, err)
 	}
 	parsedURL.Fragment = ""
 	parsedURL.ForceQuery = false
+
+	doc, err = fetch(parsedURL, client)
+	if err != nil {
+		return
+	}
+	scripts := doc.FindMatcher(scriptSelec)
+	if scripts.Length() > 2 { // Got the right page, setting RCPC not needed.
+		return
+	}
+	if err = setRCPCCookieOnClient(scripts.Text(), client); err != nil {
+		err = fmt.Errorf("Set RCPC cookie failed: %w", err)
+		return
+	}
 	return fetch(parsedURL, client)
 }
 
