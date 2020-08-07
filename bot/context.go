@@ -8,7 +8,7 @@ import (
 	"github.com/andersfylling/disgord"
 )
 
-const ALERT_AMBER = 0xFFBF00
+const alertAmber = 0xFFBF00
 
 // Context is passed to all command handlers and contains fields relevant to the current command
 // invocation.
@@ -63,7 +63,7 @@ func (ctx *Context) SendIncorrectUsageMsg() (*disgord.Message, error) {
 func (ctx *Context) SendInternalErrorMsg(deleteAfter time.Duration) (*disgord.Message, error) {
 	embed := disgord.Embed{
 		Author: &disgord.EmbedAuthor{Name: "Internal error :("},
-		Color:  ALERT_AMBER,
+		Color:  alertAmber,
 	}
 	if ctx.Bot.Info.SupportURL != "" {
 		desc := "If this issue is reproducible, please report it [here](%s)"
