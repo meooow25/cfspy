@@ -44,11 +44,11 @@ func handleBlogURL(ctx bot.Context, blogURL string) {
 	if err != nil {
 		switch err.(type) {
 		case *scrapeFetchErr:
-			ctx.SendTimed(timedMsgTTL, err.Error())
+			ctx.SendErrorMsg(err.Error(), timedMsgTTL)
 		default:
 			ctx.SendInternalErrorMsg(timedMsgTTL)
 		}
-		ctx.Logger.Info(fmt.Errorf("Blog error: %w", err))
+		ctx.Logger.Error(fmt.Errorf("Blog error: %w", err))
 		return
 	}
 

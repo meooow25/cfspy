@@ -69,11 +69,11 @@ func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 	if err != nil {
 		switch err.(type) {
 		case *scrapeFetchErr, *commentNotFoundErr:
-			ctx.SendTimed(timedMsgTTL, err.Error())
+			ctx.SendErrorMsg(err.Error(), timedMsgTTL)
 		default:
 			ctx.SendInternalErrorMsg(timedMsgTTL)
 		}
-		ctx.Logger.Info(fmt.Errorf("Comment error: %w", err))
+		ctx.Logger.Error(fmt.Errorf("Comment error: %w", err))
 		return
 	}
 
