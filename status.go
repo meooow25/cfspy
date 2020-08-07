@@ -14,7 +14,6 @@ var updateStatusPayload = &disgord.UpdateStatusPayload{
 
 func setStatus(s disgord.Session) {
 	go func() {
-		s.Logger().Info("Updating status")
 		err := s.UpdateStatus(updateStatusPayload)
 		if err != nil {
 			s.Logger().Error("Error setting status: ", err)
