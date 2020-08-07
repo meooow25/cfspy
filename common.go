@@ -8,6 +8,7 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	urlpkg "net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -19,33 +20,33 @@ import (
 
 var (
 	// Ordinary client
-	cfScraperJar, _ = cookiejar.New(nil)
-	cfScraper       = &http.Client{
+	cfScraper = &http.Client{
 		Timeout:       10 * time.Second,
 		CheckRedirect: redirectPolicyFunc,
-		Jar:           cfScraperJar,
+		Jar:           newCFJar("RCPC"),
 	}
 
 	// Client that uses a browser user agent
-	cfScraperBrowserJar, _ = cookiejar.New(nil)
-	cfScraperBrowser       = &http.Client{
+	cfScraperBrowser = &http.Client{
 		Transport:     &browserUATransport{},
 		Timeout:       10 * time.Second,
 		CheckRedirect: redirectPolicyFunc,
-		Jar:           cfScraperBrowserJar,
+		Jar:           newCFJar("JSESSIONID", "RCPC"),
 	}
 
 	// API client
 	cfAPI, _ = goforces.NewClient(nil)
 
 	// Useful for scraping
-	titleSelec         = cascadia.MustCompile(".title")
-	handleSelec        = cascadia.MustCompile("a.rated-user")
-	timeSelec          = cascadia.MustCompile(".info .format-humantime")
-	moscowTZ           = time.FixedZone("Europe/Moscow", int(3*time.Hour/time.Second))
-	commentAvatarSelec = cascadia.MustCompile(".avatar")
-	imgSelec           = cascadia.MustCompile("img")
-	scriptSelec        = cascadia.MustCompile("script")
+	cfBlogURLRe         = regexp.MustCompile(`https?://codeforces.com/blog/entry/(\d+)\??\S*`)
+	cfCommentFragmentRe = regexp.MustCompile(`comment-(\d+)`)
+	titleSelec          = cascadia.MustCompile(".title")
+	handleSelec         = cascadia.MustCompile("a.rated-user")
+	timeSelec           = cascadia.MustCompile(".info .format-humantime")
+	moscowTZ            = time.FixedZone("Europe/Moscow", int(3*time.Hour/time.Second))
+	commentAvatarSelec  = cascadia.MustCompile(".avatar")
+	imgSelec            = cascadia.MustCompile("img")
+	scriptSelec         = cascadia.MustCompile("script")
 
 	// From https://sta.codeforces.com/s/50332/css/community.css
 	colorClsMap = map[string]int{
@@ -75,6 +76,33 @@ func (t *browserUATransport) RoundTrip(req *http.Request) (*http.Response, error
 	return http.DefaultTransport.RoundTrip(req)
 }
 
+// Cookie jar that does not persist more state than necessary.
+type cfJar struct {
+	*cookiejar.Jar
+	allowed map[string]bool
+}
+
+func newCFJar(allowedCookies ...string) *cfJar {
+	jar, _ := cookiejar.New(nil)
+	allowed := make(map[string]bool)
+	for _, name := range allowedCookies {
+		allowed[name] = true
+	}
+	return &cfJar{Jar: jar, allowed: allowed}
+}
+
+func (j *cfJar) SetCookies(u *url.URL, cookies []*http.Cookie) {
+	var allowed []*http.Cookie
+	for _, cookie := range cookies {
+		if j.allowed[cookie.Name] {
+			allowed = append(allowed, cookie)
+		}
+	}
+	if len(allowed) > 0 {
+		j.Jar.SetCookies(u, allowed)
+	}
+}
+
 type redirectErr struct {
 	From *url.URL
 	To   *url.URL
@@ -95,6 +123,24 @@ func (err *scrapeFetchErr) Error() string {
 
 func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
 	return &redirectErr{From: via[len(via)-1].URL, To: req.URL}
+}
+
+func tryParseCFURL(url string) (blogURL, commentID string) {
+	blogURL = cfBlogURLRe.FindString(url)
+	if blogURL == "" {
+		return
+	}
+	parsedURL, err := urlpkg.Parse(blogURL)
+	if err != nil {
+		blogURL = ""
+		return
+	}
+	commentMatch := cfCommentFragmentRe.FindStringSubmatch(parsedURL.Fragment)
+	if len(commentMatch) == 0 {
+		return
+	}
+	commentID = commentMatch[1]
+	return
 }
 
 // scraperGetDoc fetches the page from the given URL and returns a parsed goquery document. Uses the

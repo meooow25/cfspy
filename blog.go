@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -13,7 +12,6 @@ import (
 )
 
 var (
-	cfBlogURLRe     = regexp.MustCompile(`(https?://codeforces.com/blog/entry/(\d+)\??(?:locale=ru)?)(?:$|\s)`)
 	blogSelec       = cascadia.MustCompile(".topic")
 	blogRatingSelec = cascadia.MustCompile(`[title="Topic rating"]`)
 )
@@ -29,29 +27,28 @@ func maybeHandleBlogURL(ctx bot.Context, evt *disgord.MessageCreate) {
 	if evt.Message.Author.Bot {
 		return
 	}
-	match := cfBlogURLRe.FindStringSubmatch(evt.Message.Content)
-	if len(match) == 0 {
-		return
+	blogURL, commentId := tryParseCFURL(evt.Message.Content)
+	if blogURL != "" && commentId == "" {
+		go handleBlogURL(ctx, blogURL)
 	}
-	go handleBlogURL(ctx, match[1], match[2])
 }
 
 // Fetches the blog page and responds on the Discord channel with some basic info on the blog.
 // Scrapes instead of using the API because a preview will be added but the blog content is not
 // available through the API.
 // TODO: Send blog content preview.
-func handleBlogURL(ctx bot.Context, blogURL, blogID string) {
+func handleBlogURL(ctx bot.Context, blogURL string) {
 	ctx.Logger.Info("Processing blog URL: ", blogURL)
 
-	embed, err := getBlogEmbed(blogURL, blogID)
+	embed, err := getBlogEmbed(blogURL)
 	if err != nil {
 		switch err.(type) {
 		case *scrapeFetchErr:
-			ctx.SendTimed(timedMsgTTL, err.Error())
+			ctx.SendErrorMsg(err.Error(), timedMsgTTL)
 		default:
-			ctx.SendTimed(timedMsgTTL, "Internal error :(")
+			ctx.SendInternalErrorMsg(timedMsgTTL)
 		}
-		ctx.Logger.Info(fmt.Errorf("Blog error: %w", err))
+		ctx.Logger.Error(fmt.Errorf("Blog error: %w", err))
 		return
 	}
 
@@ -76,7 +73,7 @@ func handleBlogURL(ctx bot.Context, blogURL, blogID string) {
 	bot.SuppressEmbeds(ctx.Ctx, ctx.Session, ctx.Message)
 }
 
-func getBlogEmbed(blogURL, blogID string) (*disgord.Embed, error) {
+func getBlogEmbed(blogURL string) (*disgord.Embed, error) {
 	doc, err := scraperGetDoc(blogURL)
 	if err != nil {
 		return nil, err

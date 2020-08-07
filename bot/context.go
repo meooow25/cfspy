@@ -2,14 +2,18 @@ package bot
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/andersfylling/disgord"
 )
 
+const alertAmber = 0xFFBF00
+
 // Context is passed to all command handlers and contains fields relevant to the current command
 // invocation.
 type Context struct {
+	Bot     *Bot
 	Session disgord.Session
 	Message *disgord.Message
 	Command *Command
@@ -53,6 +57,29 @@ func (ctx *Context) React(msg *disgord.Message, emoji interface{}) error {
 // SendIncorrectUsageMsg sends the incorrect usage message for the current command.
 func (ctx *Context) SendIncorrectUsageMsg() (*disgord.Message, error) {
 	return ctx.Send(ctx.Command.IncorrectUsageMsg())
+}
+
+// SendInternalErrorMsg sends a timed error message with the bot's support URL if it exists.
+func (ctx *Context) SendInternalErrorMsg(deleteAfter time.Duration) (*disgord.Message, error) {
+	embed := disgord.Embed{
+		Author: &disgord.EmbedAuthor{Name: "Internal error :("},
+		Color:  alertAmber,
+	}
+	if ctx.Bot.Info.SupportURL != "" {
+		desc := "If this issue is reproducible, please report it [here](%s)"
+		embed.Description = fmt.Sprintf(desc, ctx.Bot.Info.SupportURL)
+	}
+	return ctx.SendTimed(deleteAfter, embed)
+}
+
+// SendErrorMsg sends a timed error message.
+func (ctx *Context) SendErrorMsg(msg string, deleteAfter time.Duration) (*disgord.Message, error) {
+	embed := disgord.Embed{
+		Author:      &disgord.EmbedAuthor{Name: "Error"},
+		Color:       alertAmber,
+		Description: msg,
+	}
+	return ctx.SendTimed(deleteAfter, embed)
 }
 
 // SendPaginated sends a paginated message in the current channel.
