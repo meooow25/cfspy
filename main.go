@@ -39,6 +39,7 @@ func main() {
 	installCfCommentFeature(b)
 	installCfBlogFeature(b)
 	installStatusFeature(b)
+	installCfProblemFeature(b)
 
 	b.Client.StayConnectedUntilInterrupted(context.Background())
 
