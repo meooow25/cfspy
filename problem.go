@@ -18,7 +18,6 @@ var (
 	problemNameSelec      = cascadia.MustCompile(".problem-statement .header .title")
 	contestNameSelec      = cascadia.MustCompile("#sidebar a") // Pick first. Couldn't find anything better
 	contestStatusSelec    = cascadia.MustCompile(".contest-state-phase")
-	problemTagsSelec      = cascadia.MustCompile(".tag-box")
 	contestMaterialsSelec = cascadia.MustCompile("#sidebar li a") // Couldn't find anything better
 )
 
@@ -96,46 +95,22 @@ func makeProblemEmbed(problemURL string, doc *goquery.Document) (*disgord.Embed,
 	problemName := doc.FindMatcher(problemNameSelec).Text()
 	contestName := doc.FindMatcher(contestNameSelec).First().Text()
 	contestStatusSelec := doc.FindMatcher(contestStatusSelec).Text()
-	var difficultyTag string
-	var tags []string
-	doc.FindMatcher(problemTagsSelec).Each(func(_ int, s *goquery.Selection) {
-		tag := strings.TrimSpace(s.Text())
-		if s.AttrOr("title", "?!") == "Difficulty" {
-			difficultyTag = tag
-		} else {
-			tags = append(tags, tag)
-		}
-	})
 	var materials []string
 	doc.FindMatcher(contestMaterialsSelec).Each(func(_ int, s *goquery.Selection) {
 		url := withCodeforcesHost(s.AttrOr("href", "?!"))
 		materials = append(materials, fmt.Sprintf("[%s](%s)", s.Text(), url))
 	})
 
+	contestStr := contestName
+	if contestStatusSelec != "" {
+		contestStr += " [" + contestStatusSelec + "]"
+	}
 	var fields []*disgord.EmbedField
-	var tagsStr string
-	if difficultyTag != "" {
-		// difficultyTag is expected to be *1234
-		tagsStr = "*||" + difficultyTag[1:] + "|| "
-	}
-	if len(tags) > 0 {
-		tagsStr += "||" + strings.Join(tags, ", ") + "||"
-	}
-	if tagsStr != "" {
-		fields = append(fields, &disgord.EmbedField{
-			Name:  "Problem tags",
-			Value: tagsStr,
-		})
-	}
 	if len(materials) > 0 {
 		fields = append(fields, &disgord.EmbedField{
 			Name:  "Contest materials",
 			Value: strings.Join(materials, "\n"),
 		})
-	}
-	contestStr := contestName
-	if contestStatusSelec != "" {
-		contestStr += " [" + contestStatusSelec + "]"
 	}
 
 	embed := &disgord.Embed{
