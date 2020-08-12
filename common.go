@@ -38,7 +38,7 @@ var (
 	cfAPI, _ = goforces.NewClient(nil)
 
 	// Useful for scraping
-	cfBlogURLRe         = regexp.MustCompile(`https?://codeforces.com/blog/entry/(\d+)\??\S*`)
+	cfBlogURLRe         = regexp.MustCompile(`<?https?://codeforces.com/blog/entry/(\d+)\??\S*>?`)
 	cfCommentFragmentRe = regexp.MustCompile(`comment-(\d+)`)
 	titleSelec          = cascadia.MustCompile(".title")
 	handleSelec         = cascadia.MustCompile("a.rated-user")
@@ -126,21 +126,26 @@ func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
 }
 
 func tryParseCFBlogURL(url string) (blogURL, commentID string) {
-	blogURL = cfBlogURLRe.FindString(url)
-	if blogURL == "" {
+	blogMatch := cfBlogURLRe.FindString(url)
+	if blogMatch == "" || hasNoEmbed(blogMatch) {
 		return
 	}
-	parsedURL, err := urlpkg.Parse(blogURL)
+	parsedURL, err := urlpkg.Parse(blogMatch)
 	if err != nil {
-		blogURL = ""
 		return
 	}
+	blogURL = blogMatch
 	commentMatch := cfCommentFragmentRe.FindStringSubmatch(parsedURL.Fragment)
 	if len(commentMatch) == 0 {
 		return
 	}
 	commentID = commentMatch[1]
 	return
+}
+
+// Embeds are not shown on Discord if the URL is within < and >.
+func hasNoEmbed(url string) bool {
+	return strings.HasPrefix(url, "<") && strings.HasSuffix(url, ">")
 }
 
 // scraperGetDoc fetches the page from the given URL and returns a parsed goquery document. Uses the
