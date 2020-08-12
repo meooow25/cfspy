@@ -51,7 +51,7 @@ func maybeHandleCommentURL(ctx bot.Context, evt *disgord.MessageCreate) {
 	if evt.Message.Author.Bot {
 		return
 	}
-	commentURL, commentID := tryParseCFURL(evt.Message.Content)
+	commentURL, commentID := tryParseCFBlogURL(evt.Message.Content)
 	if commentURL != "" && commentID != "" {
 		go handleCommentURL(ctx, commentURL, commentID)
 	}

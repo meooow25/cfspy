@@ -125,7 +125,7 @@ func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
 	return &redirectErr{From: via[len(via)-1].URL, To: req.URL}
 }
 
-func tryParseCFURL(url string) (blogURL, commentID string) {
+func tryParseCFBlogURL(url string) (blogURL, commentID string) {
 	blogURL = cfBlogURLRe.FindString(url)
 	if blogURL == "" {
 		return
