@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	cfProblemURLRe     = regexp.MustCompile(`https?://codeforces.com/(?:contest|gym)/\d+/problem/\S+`)
+	cfProblemURLRe     = regexp.MustCompile(`https?://codeforces.com/(?:(?:contest|gym)/\d+/problem|problemset/problem/\d+)/\S+`)
 	problemNameSelec   = cascadia.MustCompile(".problem-statement .header .title")
 	contestNameSelec   = cascadia.MustCompile("#sidebar a") // Pick first. Couldn't find anything better
 	contestStatusSelec = cascadia.MustCompile(".contest-state-phase")
