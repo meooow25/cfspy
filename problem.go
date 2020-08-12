@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -14,11 +13,10 @@ import (
 )
 
 var (
-	cfProblemURLRe        = regexp.MustCompile(`https?://codeforces.com/(?:contest|gym)/\d+/problem/\S+`)
-	problemNameSelec      = cascadia.MustCompile(".problem-statement .header .title")
-	contestNameSelec      = cascadia.MustCompile("#sidebar a") // Pick first. Couldn't find anything better
-	contestStatusSelec    = cascadia.MustCompile(".contest-state-phase")
-	contestMaterialsSelec = cascadia.MustCompile("#sidebar li a") // Couldn't find anything better
+	cfProblemURLRe     = regexp.MustCompile(`https?://codeforces.com/(?:contest|gym)/\d+/problem/\S+`)
+	problemNameSelec   = cascadia.MustCompile(".problem-statement .header .title")
+	contestNameSelec   = cascadia.MustCompile("#sidebar a") // Pick first. Couldn't find anything better
+	contestStatusSelec = cascadia.MustCompile(".contest-state-phase")
 )
 
 // Installs the problem watcher feature. The bot watches for Codeforces problem links and responds
@@ -42,8 +40,7 @@ func maybeHandleProblemURL(ctx bot.Context, evt *disgord.MessageCreate) {
 }
 
 // Fetches the problem page and responds on the Discord channel with some basic info on the problem.
-// Scrapes instead of using the API because announcement and tutorial links are not available on
-// the API.
+// TODO: Maybe show a preview of the statement like DMOJ.
 func handleProblemURL(ctx bot.Context, problemURL string) {
 	ctx.Logger.Info("Processing problem URL: ", problemURL)
 
@@ -95,22 +92,10 @@ func makeProblemEmbed(problemURL string, doc *goquery.Document) (*disgord.Embed,
 	problemName := doc.FindMatcher(problemNameSelec).Text()
 	contestName := doc.FindMatcher(contestNameSelec).First().Text()
 	contestStatusSelec := doc.FindMatcher(contestStatusSelec).Text()
-	var materials []string
-	doc.FindMatcher(contestMaterialsSelec).Each(func(_ int, s *goquery.Selection) {
-		url := withCodeforcesHost(s.AttrOr("href", "?!"))
-		materials = append(materials, fmt.Sprintf("[%s](%s)", s.Text(), url))
-	})
 
 	contestStr := contestName
 	if contestStatusSelec != "" {
 		contestStr += " [" + contestStatusSelec + "]"
-	}
-	var fields []*disgord.EmbedField
-	if len(materials) > 0 {
-		fields = append(fields, &disgord.EmbedField{
-			Name:  "Contest materials",
-			Value: strings.Join(materials, "\n"),
-		})
 	}
 
 	embed := &disgord.Embed{
@@ -119,7 +104,6 @@ func makeProblemEmbed(problemURL string, doc *goquery.Document) (*disgord.Embed,
 		Author: &disgord.EmbedAuthor{
 			Name: contestStr,
 		},
-		Fields: fields,
 	}
 
 	return embed, nil
