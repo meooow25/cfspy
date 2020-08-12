@@ -21,7 +21,7 @@ var (
 
 // Installs the problem watcher feature. The bot watches for Codeforces problem links and responds
 // with an embed containing info about the problem.
-func installCfProblemFeature(bot *bot.Bot) {
+func installProblemFeature(bot *bot.Bot) {
 	bot.Client.Logger().Info("Setting up CF problem feature")
 	bot.OnMessageCreate(maybeHandleProblemURL)
 }

@@ -42,7 +42,7 @@ func (err *commentNotFoundErr) Error() string {
 
 // Installs the comment watcher feature. The bot watches for Codeforces comment links and responds
 // with an embed containing the comment.
-func installCfCommentFeature(bot *bot.Bot) {
+func installCommentFeature(bot *bot.Bot) {
 	bot.Client.Logger().Info("Setting up CF comment feature")
 	bot.OnMessageCreate(maybeHandleCommentURL)
 }
