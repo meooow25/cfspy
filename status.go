@@ -7,7 +7,7 @@ import (
 
 var updateStatusPayload = &disgord.UpdateStatusPayload{
 	Game: &disgord.Activity{
-		Name: "for Codeforces comment and blog links | c;help for info",
+		Name: "for Codeforces links | c;help for info",
 		Type: 3, // Watching activity type
 	},
 }

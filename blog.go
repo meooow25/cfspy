@@ -18,7 +18,7 @@ var (
 
 // Installs the blog watcher feature. The bot watches for Codeforces blog links and responds with an
 // embed containing info about the blog.
-func installCfBlogFeature(bot *bot.Bot) {
+func installBlogFeature(bot *bot.Bot) {
 	bot.Client.Logger().Info("Setting up CF blog feature")
 	bot.OnMessageCreate(maybeHandleBlogURL)
 }
@@ -27,8 +27,8 @@ func maybeHandleBlogURL(ctx bot.Context, evt *disgord.MessageCreate) {
 	if evt.Message.Author.Bot {
 		return
 	}
-	blogURL, commentId := tryParseCFURL(evt.Message.Content)
-	if blogURL != "" && commentId == "" {
+	blogURL, commentID := tryParseCFBlogURL(evt.Message.Content)
+	if blogURL != "" && commentID == "" {
 		go handleBlogURL(ctx, blogURL)
 	}
 }

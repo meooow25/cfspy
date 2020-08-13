@@ -28,7 +28,8 @@ func main() {
 			Name:   "CFSpy",
 			Token:  token,
 			Prefix: "c;",
-			Desc: "Codeforces Spy watches for Codeforces comment links and shows a preview.\n" +
+			Desc: "Codeforces Spy watches for Codeforces comment, blog and problem links and " +
+				"shows a preview.\n" +
 				"Supported commands:",
 			SupportURL: supportURL,
 			Logger:     logger,
@@ -36,10 +37,10 @@ func main() {
 	)
 
 	installPingFeature(b)
-	installCfCommentFeature(b)
-	installCfBlogFeature(b)
+	installCommentFeature(b)
+	installBlogFeature(b)
+	installProblemFeature(b)
 	installStatusFeature(b)
-	installCfProblemFeature(b)
 
 	b.Client.StayConnectedUntilInterrupted(context.Background())
 
