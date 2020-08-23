@@ -2,21 +2,11 @@ package main
 
 import (
 	"fmt"
-	"net/url"
-	"regexp"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/andersfylling/disgord"
-	"github.com/andybalholm/cascadia"
 	"github.com/meooow25/cfspy/bot"
-)
-
-var (
-	cfProblemURLRe     = regexp.MustCompile(`<?https?://codeforces.com/(?:(?:contest|gym)/\d+/problem|problemset/problem/\d+)/\S+>?`)
-	problemNameSelec   = cascadia.MustCompile(".problem-statement .header .title")
-	contestNameSelec   = cascadia.MustCompile("#sidebar a") // Pick first. Couldn't find anything better :<
-	contestStatusSelec = cascadia.MustCompile(".contest-state-phase")
+	"github.com/meooow25/cfspy/fetch"
 )
 
 // Installs the problem watcher feature. The bot watches for Codeforces problem links and responds
@@ -30,13 +20,17 @@ func maybeHandleProblemURL(ctx bot.Context, evt *disgord.MessageCreate) {
 	if evt.Message.Author.Bot {
 		return
 	}
-	problemURL := cfProblemURLRe.FindString(evt.Message.Content)
-	if problemURL == "" || hasNoEmbed(problemURL) {
-		return
-	}
-	if _, err := url.Parse(problemURL); err == nil {
-		go handleProblemURL(ctx, problemURL)
-	}
+	go func() {
+		problemURLMatches := fetch.ParseProblemURLs(evt.Message.Content)
+		if len(problemURLMatches) == 0 {
+			return
+		}
+		first := problemURLMatches[0]
+		if checkEmbedsSuppressed(evt.Message.Content, first.Start, first.End) {
+			return
+		}
+		handleProblemURL(ctx, first.URL)
+	}()
 }
 
 // Fetches the problem page and responds on the Discord channel with some basic info on the problem.
@@ -44,21 +38,17 @@ func maybeHandleProblemURL(ctx bot.Context, evt *disgord.MessageCreate) {
 func handleProblemURL(ctx bot.Context, problemURL string) {
 	ctx.Logger.Info("Processing problem URL: ", problemURL)
 
-	embed, err := getProblemEmbed(problemURL)
+	problemInfo, err := fetch.Problem(ctx.Ctx, problemURL)
 	if err != nil {
-		switch err.(type) {
-		case *scrapeFetchErr:
-			ctx.SendErrorMsg(err.Error(), timedMsgTTL)
-		default:
-			ctx.SendInternalErrorMsg(timedMsgTTL)
-		}
-		ctx.Logger.Error(fmt.Errorf("Problem error: %w", err))
+		err = fmt.Errorf("Error fetching problem from %v: %w", problemURL, err)
+		ctx.Logger.Error(err)
+		ctx.SendErrorMsg(err.Error(), timedErrorMsgTTL)
 		return
 	}
 
 	// Allow the author to delete the preview.
 	_, err = ctx.SendWithDelBtn(bot.OnePageWithDelParams{
-		Embed:           embed,
+		Embed:           makeProblemEmbed(problemInfo),
 		DeactivateAfter: time.Minute,
 		DelCallback: func(evt *disgord.MessageReactionAdd) {
 			// This will fail without manage messages permission, that's fine.
@@ -77,34 +67,12 @@ func handleProblemURL(ctx bot.Context, problemURL string) {
 	bot.SuppressEmbeds(ctx.Ctx, ctx.Session, ctx.Message)
 }
 
-func getProblemEmbed(problemURL string) (embed *disgord.Embed, err error) {
-	doc, err := scraperGetDoc(problemURL)
-	if err != nil {
-		return
-	}
-	if embed, err = makeProblemEmbed(problemURL, doc); err != nil {
-		err = fmt.Errorf("Error building embed for %q: %w", problemURL, err)
-	}
-	return
-}
-
-func makeProblemEmbed(problemURL string, doc *goquery.Document) (*disgord.Embed, error) {
-	problemName := doc.FindMatcher(problemNameSelec).Text()
-	contestName := doc.FindMatcher(contestNameSelec).First().Text()
-	contestStatusSelec := doc.FindMatcher(contestStatusSelec).Text()
-
-	contestStr := contestName
-	if contestStatusSelec != "" {
-		contestStr += " [" + contestStatusSelec + "]"
-	}
-
-	embed := &disgord.Embed{
-		Title: problemName,
-		URL:   problemURL,
+func makeProblemEmbed(p *fetch.ProblemInfo) *disgord.Embed {
+	return &disgord.Embed{
+		Title: p.Name,
+		URL:   p.URL,
 		Author: &disgord.EmbedAuthor{
-			Name: contestStr,
+			Name: fmt.Sprintf("%s [%s]", p.ContestName, p.ContestStatus),
 		},
 	}
-
-	return embed, nil
 }

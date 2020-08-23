@@ -37,8 +37,7 @@ func main() {
 	)
 
 	installPingFeature(b)
-	installCommentFeature(b)
-	installBlogFeature(b)
+	installBlogAndCommentFeature(b)
 	installProblemFeature(b)
 	installStatusFeature(b)
 
