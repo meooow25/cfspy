@@ -6,26 +6,11 @@ import (
 )
 
 var (
-	cfBlogURLRe         = regexp.MustCompile(`https?://codeforces.com/blog/entry/(\d+)\??\S*`)
+	queryAndFragment    = `/?\??[\w\-~!\*'\(\);:@&=\+\$,/\?%#\[\]]*`
+	cfBlogURLRe         = regexp.MustCompile(`https?://codeforces.com/blog/entry/(\d+)` + queryAndFragment)
 	cfCommentFragmentRe = regexp.MustCompile(`comment-(\d+)`)
-	cfProblemURLRe      = regexp.MustCompile(`https?://codeforces.com/(?:(?:contest|gym)/(\d+)/problem|problemset/problem/(\d+)|problemsets/acmsguru/problem/(\d+))/(\S+)\??\S*`)
+	cfProblemURLRe      = regexp.MustCompile(`https?://codeforces.com/(?:(?:contest|gym)/(\d+)/problem|problemset/problem/(\d+)|problemsets/acmsguru/problem/(\d+))/(\w+)` + queryAndFragment)
 )
-
-// BlogURLMatch contains matched information for a blog URL.
-type BlogURLMatch struct {
-	URL        string
-	BlogID     string
-	CommentID  string
-	Start, End int
-}
-
-// ProblemURLMatch contains matched information for a problem URL.
-type ProblemURLMatch struct {
-	URL        string
-	ContestID  string
-	ProblemID  string
-	Start, End int
-}
 
 // ParseBlogURLs parses Codeforces blog URLS from the given string.
 func ParseBlogURLs(s string) []BlogURLMatch {
@@ -37,10 +22,9 @@ func ParseBlogURLs(s string) []BlogURLMatch {
 			continue
 		}
 		match := BlogURLMatch{
-			URL:    urlMatch,
-			BlogID: s[idx[2]:idx[3]],
-			Start:  idx[0],
-			End:    idx[1],
+			URL:        urlMatch,
+			BlogID:     s[idx[2]:idx[3]],
+			Suppressed: checkEmbedsSuppressed(s, idx[0], idx[1]),
 		}
 		commentMatch := cfCommentFragmentRe.FindStringSubmatch(parsedURL.Fragment)
 		if len(commentMatch) > 0 {
@@ -60,10 +44,9 @@ func ParseProblemURLs(s string) []ProblemURLMatch {
 			continue
 		}
 		match := ProblemURLMatch{
-			URL:       urlMatch,
-			ProblemID: s[idx[8]:idx[9]],
-			Start:     idx[0],
-			End:       idx[1],
+			URL:        urlMatch,
+			ProblemID:  s[idx[8]:idx[9]],
+			Suppressed: checkEmbedsSuppressed(s, idx[0], idx[1]),
 		}
 		for i := 2; i < 8; i += 2 {
 			if idx[i] != -1 {
@@ -74,4 +57,10 @@ func ParseProblemURLs(s string) []ProblemURLMatch {
 		matches = append(matches, match)
 	}
 	return matches
+}
+
+// Checks whether the given substring is surrounded by <>. Used to check if a link embed is
+// suppressed.
+func checkEmbedsSuppressed(s string, start, end int) bool {
+	return start > 0 && s[start-1] == '<' && end < len(s) && s[end] == '>'
 }

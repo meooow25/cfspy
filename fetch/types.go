@@ -2,6 +2,22 @@ package fetch
 
 import "time"
 
+// BlogURLMatch contains matched information for a blog URL.
+type BlogURLMatch struct {
+	URL        string
+	BlogID     string
+	CommentID  string
+	Suppressed bool
+}
+
+// ProblemURLMatch contains matched information for a problem URL.
+type ProblemURLMatch struct {
+	URL        string
+	ContestID  string
+	ProblemID  string
+	Suppressed bool
+}
+
 // BlogInfo contains blog information.
 type BlogInfo struct {
 	Title        string

@@ -29,7 +29,7 @@ func maybeHandleBlogURL(ctx bot.Context, evt *disgord.MessageCreate) {
 			return
 		}
 		first := blogURLMatches[0]
-		if checkEmbedsSuppressed(evt.Message.Content, first.Start, first.End) {
+		if first.Suppressed {
 			return
 		}
 		if first.CommentID != "" {
