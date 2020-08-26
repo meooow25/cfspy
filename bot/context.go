@@ -58,8 +58,8 @@ func (ctx *Context) SendIncorrectUsageMsg() (*disgord.Message, error) {
 	return ctx.Send(ctx.Command.IncorrectUsageMsg())
 }
 
-// SendErrorMsg sends a timed error message with the bot's support URL if it exists.
-func (ctx *Context) SendErrorMsg(msg string, deleteAfter time.Duration) (*disgord.Message, error) {
+// MakeErrorEmbed prepares an error embed with the bot's support URL if it exists.
+func (ctx *Context) MakeErrorEmbed(msg string) *disgord.Embed {
 	embed := disgord.Embed{
 		Color:       alertAmber,
 		Description: msg,
@@ -68,7 +68,7 @@ func (ctx *Context) SendErrorMsg(msg string, deleteAfter time.Duration) (*disgor
 		embed.Description += "\n_If this is a reproducible bug, please [report it](" +
 			ctx.Bot.Info.SupportURL + ")._"
 	}
-	return ctx.SendTimed(deleteAfter, embed)
+	return &embed
 }
 
 // SendPaginated sends a paginated message in the current channel.

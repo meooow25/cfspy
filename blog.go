@@ -51,7 +51,7 @@ func handleBlogURL(ctx bot.Context, blogURL string) {
 	if err != nil {
 		err = fmt.Errorf("Error fetching blog from %v: %w", blogURL, err)
 		ctx.Logger.Error(err)
-		ctx.SendErrorMsg(err.Error(), timedErrorMsgTTL)
+		ctx.SendTimed(timedErrorMsgTTL, ctx.MakeErrorEmbed(err.Error()))
 		return
 	}
 
@@ -108,7 +108,7 @@ func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 	if err != nil {
 		err = fmt.Errorf("Error fetching comment from %v: %w", commentURL, err)
 		ctx.Logger.Error(err)
-		ctx.SendErrorMsg(err.Error(), timedErrorMsgTTL)
+		ctx.SendTimed(timedErrorMsgTTL, ctx.MakeErrorEmbed(err.Error()))
 		return
 	}
 
@@ -117,7 +117,8 @@ func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 		GetPage: func(revision int) (string, *disgord.Embed) {
 			commentInfo, err := infoGetter(revision)
 			if err != nil {
-				return fmt.Sprintf("Failed to fetch revision %v", revision), nil
+				return "", ctx.MakeErrorEmbed(
+					fmt.Errorf("Failed to fetch revision %v: %w", revision, err).Error())
 			}
 			return "", makeCommentEmbed(commentInfo)
 		},

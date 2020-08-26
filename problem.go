@@ -42,7 +42,7 @@ func handleProblemURL(ctx bot.Context, problemURL string) {
 	if err != nil {
 		err = fmt.Errorf("Error fetching problem from %v: %w", problemURL, err)
 		ctx.Logger.Error(err)
-		ctx.SendErrorMsg(err.Error(), timedErrorMsgTTL)
+		ctx.SendTimed(timedErrorMsgTTL, ctx.MakeErrorEmbed(err.Error()))
 		return
 	}
 
