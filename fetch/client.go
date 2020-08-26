@@ -89,6 +89,14 @@ func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
 	return &redirectErr{From: via[len(via)-1].URL, To: req.URL}
 }
 
+type reponseNotHTMLErr struct {
+	ContentType string
+}
+
+func (err *reponseNotHTMLErr) Error() string {
+	return fmt.Sprintf("Expected text/html, got %v", err.ContentType)
+}
+
 // These are for bypassing a cookie check introduced by Codeforces.
 // See https://github.com/meooow25/cfspy/issues/4
 
@@ -196,6 +204,10 @@ func fetch(ctx context.Context, url string, client *http.Client) (*goquery.Docum
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("%v", resp.Status)
+	}
+	contentType := resp.Header.Get("Content-Type")
+	if contentType != "" && !strings.HasPrefix(contentType, "text/html") {
+		return nil, &reponseNotHTMLErr{contentType}
 	}
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
