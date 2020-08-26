@@ -18,29 +18,29 @@ type problemTest struct {
 }
 
 var blogTests = []blogTest{
-	{"Hello, world!", "Hello, world!", nil},
-	{"Home page", "https://codeforces.com/", nil},
-	{"Single", "https://codeforces.com/blog/entry/123",
+	{"helloWorld", "Hello, world!", nil},
+	{"homePage", "https://codeforces.com/", nil},
+	{"single", "https://codeforces.com/blog/entry/123",
 		[]BlogURLMatch{
 			{URL: "https://codeforces.com/blog/entry/123", BlogID: "123"},
 		},
 	},
-	{"Single with text", "Visit https://codeforces.com/blog/entry/123.",
+	{"singleWithText", "Visit https://codeforces.com/blog/entry/123.",
 		[]BlogURLMatch{
 			{URL: "https://codeforces.com/blog/entry/123", BlogID: "123"},
 		},
 	},
-	{"Single suppressed", "<https://codeforces.com/blog/entry/123>",
+	{"singleSuppressed", "<https://codeforces.com/blog/entry/123>",
 		[]BlogURLMatch{
 			{URL: "https://codeforces.com/blog/entry/123", BlogID: "123", Suppressed: true},
 		},
 	},
-	{"Single with params", "https://codeforces.com/blog/entry/123?locale=ru#comment-456&key=value",
+	{"singleWithParams", "https://codeforces.com/blog/entry/123?locale=ru#comment-456&key=value",
 		[]BlogURLMatch{
 			{URL: "https://codeforces.com/blog/entry/123?locale=ru#comment-456&key=value", BlogID: "123", CommentID: "456"},
 		},
 	},
-	{"Multiple",
+	{"multiple",
 		"See https://codeforces.com/blog/entry/123 and https://codeforces.com/blog/entry/456. " +
 			"Also see https://codeforces.com/blog/entry/789#comment-101112 this comment.\n" +
 			"See this suppressed link <https://codeforces.com/blog/entry/131415>.",
@@ -54,39 +54,39 @@ var blogTests = []blogTest{
 }
 
 var problemTests = []problemTest{
-	{"Hello, world!", "Hello, world!", nil},
-	{"Home page", "https://codeforces.com/", nil},
-	{"Single contest", "https://codeforces.com/contest/123/problem/B",
+	{"helloWorld", "Hello, world!", nil},
+	{"homePage", "https://codeforces.com/", nil},
+	{"singleContest", "https://codeforces.com/contest/123/problem/B",
 		[]ProblemURLMatch{
 			{URL: "https://codeforces.com/contest/123/problem/B", ContestID: "123", ProblemID: "B"},
 		},
 	},
-	{"Single gym", "https://codeforces.com/gym/123456/problem/C",
+	{"singleGym", "https://codeforces.com/gym/123456/problem/C",
 		[]ProblemURLMatch{
 			{URL: "https://codeforces.com/gym/123456/problem/C", ContestID: "123456", ProblemID: "C"},
 		},
 	},
-	{"Single acmsguru", "https://codeforces.com/problemsets/acmsguru/problem/99999/123",
+	{"singleAcmsguru", "https://codeforces.com/problemsets/acmsguru/problem/99999/123",
 		[]ProblemURLMatch{
 			{URL: "https://codeforces.com/problemsets/acmsguru/problem/99999/123", ContestID: "99999", ProblemID: "123"},
 		},
 	},
-	{"Single with text", "Visit https://codeforces.com/contest/123/problem/B.",
+	{"singleWithText", "Visit https://codeforces.com/contest/123/problem/B.",
 		[]ProblemURLMatch{
 			{URL: "https://codeforces.com/contest/123/problem/B", ContestID: "123", ProblemID: "B"},
 		},
 	},
-	{"Single suppressed", "<https://codeforces.com/contest/123/problem/B>",
+	{"singleSuppressed", "<https://codeforces.com/contest/123/problem/B>",
 		[]ProblemURLMatch{
 			{URL: "https://codeforces.com/contest/123/problem/B", ContestID: "123", ProblemID: "B", Suppressed: true},
 		},
 	},
-	{"Single with params", "https://codeforces.com/contest/123/problem/B?locale=ru#key=value",
+	{"singleWithParams", "https://codeforces.com/contest/123/problem/B?locale=ru#key=value",
 		[]ProblemURLMatch{
 			{URL: "https://codeforces.com/contest/123/problem/B?locale=ru#key=value", ContestID: "123", ProblemID: "B"},
 		},
 	},
-	{"Multiple",
+	{"multiple",
 		"See https://codeforces.com/contest/123/problem/B and https://codeforces.com/gym/123456/problem/C. " +
 			"See this suppressed link <https://codeforces.com/problemsets/acmsguru/problem/99999/123>.",
 		[]ProblemURLMatch{
