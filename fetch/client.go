@@ -77,8 +77,7 @@ func (j *restrictedJar) SetCookies(u *url.URL, cookies []*http.Cookie) {
 }
 
 type redirectErr struct {
-	From *url.URL
-	To   *url.URL
+	From, To *url.URL
 }
 
 func (err *redirectErr) Error() string {
