@@ -10,15 +10,14 @@ import (
 	"github.com/andersfylling/disgord"
 )
 
-// PageGetter is a type alias for a function that returns a page given the page number.
-type PageGetter = func(int) (string, *disgord.Embed)
+// PageGetter is a function type that returns a page given the page number.
+type PageGetter func(int) (string, *disgord.Embed)
 
-// DelCallbackType is a type alias for the callback function invoked on delete.
-type DelCallbackType = func(*disgord.MessageReactionAdd)
+// DelCallbackType is the callback function type invoked on delete.
+type DelCallbackType func(*disgord.MessageReactionAdd)
 
-// AllowPredicateType is a type alias for the predicate that returns whether the operation on react
-// is allowed.
-type AllowPredicateType = func(*disgord.MessageReactionAdd) bool
+// AllowPredicateType is the predicate type that returns whether the operation on react is allowed.
+type AllowPredicateType func(*disgord.MessageReactionAdd) bool
 
 // PaginateParams aggregates the params required for a paginated message.
 type PaginateParams struct {
@@ -203,10 +202,11 @@ func validateAndUpdate(params *PaginateParams, session disgord.Session) error {
 	}
 	allowCheck := params.AllowOp
 	params.AllowOp = func(evt *disgord.MessageReactionAdd) bool {
-		if user, err := session.GetUser(evt.Ctx, evt.UserID); err == nil {
-			return !user.Bot && allowCheck(evt)
+		user, err := session.GetUser(evt.Ctx, evt.UserID)
+		if err != nil {
+			return false
 		}
-		return false
+		return !user.Bot && allowCheck(evt)
 	}
 	return nil
 }

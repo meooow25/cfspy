@@ -2,7 +2,6 @@ package bot
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/andersfylling/disgord"
@@ -59,27 +58,17 @@ func (ctx *Context) SendIncorrectUsageMsg() (*disgord.Message, error) {
 	return ctx.Send(ctx.Command.IncorrectUsageMsg())
 }
 
-// SendInternalErrorMsg sends a timed error message with the bot's support URL if it exists.
-func (ctx *Context) SendInternalErrorMsg(deleteAfter time.Duration) (*disgord.Message, error) {
+// MakeErrorEmbed prepares an error embed with the bot's support URL if it exists.
+func (ctx *Context) MakeErrorEmbed(msg string) *disgord.Embed {
 	embed := disgord.Embed{
-		Author: &disgord.EmbedAuthor{Name: "Internal error :("},
-		Color:  alertAmber,
-	}
-	if ctx.Bot.Info.SupportURL != "" {
-		desc := "If this issue is reproducible, please report it [here](%s)"
-		embed.Description = fmt.Sprintf(desc, ctx.Bot.Info.SupportURL)
-	}
-	return ctx.SendTimed(deleteAfter, embed)
-}
-
-// SendErrorMsg sends a timed error message.
-func (ctx *Context) SendErrorMsg(msg string, deleteAfter time.Duration) (*disgord.Message, error) {
-	embed := disgord.Embed{
-		Author:      &disgord.EmbedAuthor{Name: "Error"},
 		Color:       alertAmber,
 		Description: msg,
 	}
-	return ctx.SendTimed(deleteAfter, embed)
+	if ctx.Bot.Info.SupportURL != "" {
+		embed.Description += "\n_If this is a reproducible bug, please [report it](" +
+			ctx.Bot.Info.SupportURL + ")._"
+	}
+	return &embed
 }
 
 // SendPaginated sends a paginated message in the current channel.
