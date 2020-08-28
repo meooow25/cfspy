@@ -39,6 +39,7 @@ func main() {
 	installPingFeature(b)
 	installBlogAndCommentFeature(b)
 	installProblemFeature(b)
+	installSubmissionFeature(b)
 	installStatusFeature(b)
 
 	b.Client.StayConnectedUntilInterrupted(context.Background())
