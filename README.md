@@ -9,6 +9,7 @@ Embed link previews for Codeforces URLs on Discord are usually unhelpful because
 To improve that, CFSpy can
 - Watch for blog links and show some basic information about the blog.
 - Watch for comment links and show the comment.
+- Watch for problem links and show some basic information about the problem.
 
 To answer the common question _"Is Codeforces down?"_, there is a command to ping codeforces.com.
 
