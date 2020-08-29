@@ -71,9 +71,7 @@ func (j *restrictedJar) SetCookies(u *url.URL, cookies []*http.Cookie) {
 			allowed = append(allowed, cookie)
 		}
 	}
-	if len(allowed) > 0 {
-		j.Jar.SetCookies(u, allowed)
-	}
+	j.Jar.SetCookies(u, allowed)
 }
 
 type redirectErr struct {
