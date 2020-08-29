@@ -7,9 +7,9 @@ import (
 
 var (
 	queryAndFragment    = `/?\??[\w\-~!\*'\(\);:@&=\+\$,/\?%#\[\]]*`
-	cfBlogURLRe         = regexp.MustCompile(`https?://codeforces.com/blog/entry/(\d+)` + queryAndFragment)
+	cfBlogURLRe         = regexp.MustCompile(`https?://codeforces.com/blog/entry/\d+` + queryAndFragment)
 	cfCommentFragmentRe = regexp.MustCompile(`comment-(\d+)`)
-	cfProblemURLRe      = regexp.MustCompile(`https?://codeforces.com/(?:(?:contest|gym)/(\d+)/problem|problemset/problem/(\d+)|problemsets/acmsguru/problem/(\d+))/(\w+)` + queryAndFragment)
+	cfProblemURLRe      = regexp.MustCompile(`https?://codeforces.com/(?:(?:contest|gym)/\d+/problem|problemset/problem/\d+|problemsets/acmsguru/problem/\d+)/\w+` + queryAndFragment)
 )
 
 // ParseBlogURLs parses Codeforces blog URLS from the given string.
@@ -23,7 +23,6 @@ func ParseBlogURLs(s string) []BlogURLMatch {
 		}
 		match := BlogURLMatch{
 			URL:        urlMatch,
-			BlogID:     s[idx[2]:idx[3]],
 			Suppressed: checkEmbedsSuppressed(s, idx[0], idx[1]),
 		}
 		commentMatch := cfCommentFragmentRe.FindStringSubmatch(parsedURL.Fragment)
@@ -45,14 +44,7 @@ func ParseProblemURLs(s string) []ProblemURLMatch {
 		}
 		match := ProblemURLMatch{
 			URL:        urlMatch,
-			ProblemID:  s[idx[8]:idx[9]],
 			Suppressed: checkEmbedsSuppressed(s, idx[0], idx[1]),
-		}
-		for i := 2; i < 8; i += 2 {
-			if idx[i] != -1 {
-				match.ContestID = s[idx[i]:idx[i+1]]
-				break
-			}
 		}
 		matches = append(matches, match)
 	}

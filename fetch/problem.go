@@ -15,7 +15,7 @@ var (
 	contestStatusSelec       = cascadia.MustCompile(".contest-state-phase")
 )
 
-// Problem info
+// Problem fetches problem information. The given URL must be a valid problem URL.
 // TODO: Handle URLs like https://codeforces.com/gym/101002/K, which redirect to a page with the pdf
 // of statements.
 func Problem(ctx context.Context, url string) (*ProblemInfo, error) {
@@ -38,5 +38,6 @@ func Problem(ctx context.Context, url string) (*ProblemInfo, error) {
 	}
 	p.ContestName = doc.FindMatcher(contestNameSelec).First().Text()
 	p.ContestStatus = doc.FindMatcher(contestStatusSelec).Text()
+	p.URL = url
 	return &p, nil
 }

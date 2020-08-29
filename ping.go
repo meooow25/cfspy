@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -9,9 +10,10 @@ import (
 	"github.com/meooow25/cfspy/bot"
 )
 
-const cfHomeURL = "https://codeforces.com"
-
-var pingCfClient = http.Client{Timeout: 5 * time.Second}
+const (
+	cfHomeURL = "https://codeforces.com"
+	timeout   = 5 * time.Second
+)
 
 func onPingCf(ctx bot.Context) {
 	go func() {
@@ -20,13 +22,20 @@ func onPingCf(ctx bot.Context) {
 			return
 		}
 
+		timeoutCtx, cancel := context.WithTimeout(ctx.Ctx, timeout)
+		defer cancel()
+		req, err := http.NewRequestWithContext(timeoutCtx, http.MethodHead, cfHomeURL, nil)
+		if err != nil {
+			ctx.Logger.Error(err) // No reason for new request to fail.
+			return
+		}
+
 		start := time.Now()
-		resp, err := pingCfClient.Head(cfHomeURL)
+		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			err := err.(*url.Error)
 			if err.Timeout() {
-				ctx.Send(fmt.Sprintf(
-					"Connecting to <%v> timed out after %v", cfHomeURL, pingCfClient.Timeout))
+				ctx.Send(fmt.Sprintf("Connecting to <%v> timed out after %v", cfHomeURL, timeout))
 			} else {
 				ctx.Send(fmt.Sprintf("Error: %v", err))
 			}
