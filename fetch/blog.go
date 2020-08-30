@@ -194,6 +194,7 @@ func getCommentContent(comment *goquery.Selection) (string, []string) {
 					return &content
 				}
 				text := fmt.Sprintf("[%v](%v)", content, withCodeforcesHost(href))
+				text = md.AddSpaceIfNessesary(selec, text)
 				return &text
 			},
 		},
@@ -214,9 +215,6 @@ func getCommentContent(comment *goquery.Selection) (string, []string) {
 	)
 	converter.Use(plugin.Strikethrough("~~"))
 
-	// TODO: html-to-markdown removes pure whitespace text, which causes adjacent inline elements
-	// (such as links) to stick together. Maybe file an issue.
-	// https://github.com/JohannesKaufmann/html-to-markdown/blob/master/commonmark.go
 	markdown := converter.Convert(comment.FindMatcher(contentSelec))
 
 	// Replace LaTeX delimiter $$$ with $ because it looks ugly.
