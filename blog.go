@@ -167,6 +167,9 @@ func makeCommentEmbed(c *fetch.CommentInfo) *disgord.Embed {
 		},
 		Color: c.AuthorColor,
 	}
+	if len(c.Images) > 0 {
+		embed.Image = &disgord.EmbedImage{URL: c.Images[0]}
+	}
 	updateEmbedIfCommentTooLong(embed)
 	return embed
 }
