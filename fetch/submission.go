@@ -30,8 +30,7 @@ func Submission(ctx context.Context, url string) (*SubmissionInfo, error) {
 	infoRow := doc.FindMatcher(infoRowSelec).Eq(1).FindMatcher(infoCellSelec)
 
 	s.Type = strings.TrimSuffix(strings.TrimSpace(infoRow.Eq(1).Contents().First().Text()), ":")
-	s.AuthorHandle = infoRow.Eq(1).FindMatcher(handleSelec).Text()
-	s.AuthorColor = parseHandleColor(infoRow.Eq(1))
+	s.AuthorHandle, s.AuthorColor = parseHandleAndColor(infoRow.Eq(1))
 	s.Problem = infoRow.Eq(2).FindMatcher(problemSelec).Text()
 	s.Language = strings.TrimSpace(infoRow.Eq(3).Text())
 	s.Verdict = strings.TrimSpace(infoRow.Eq(4).Text())
