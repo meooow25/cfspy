@@ -12,7 +12,7 @@ import (
 	"github.com/meooow25/cfspy/fetch"
 )
 
-var languageNameToCode = map[string]string{
+var languageNameToExt = map[string]string{
 	// Currently available in the filter options on the status page of contests.
 	"GNU C11":               "c",
 	"Clang++17 Diagnostics": "cpp",
@@ -33,7 +33,7 @@ var languageNameToCode = map[string]string{
 	"Delphi":                "pas",
 	"FPC":                   "pas",
 	"PascalABC.NET":         "pas",
-	"Perl":                  "perl",
+	"Perl":                  "pl",
 	"Python 2":              "py",
 	"Python 3":              "py",
 	"Pypy 2":                "py",
@@ -99,6 +99,10 @@ func handleSubmissionURL(ctx bot.Context, match *fetch.SubmissionURLMatch) {
 		if err != nil {
 			ctx.SendTimed(timedErrorMsgTTL, ctx.MakeErrorEmbed(err.Error()))
 			return
+		}
+		if bot.ContentTooLong(content) {
+			content, embed = "", makeSubmissionEmbed(submissionInfo)
+			embed.Description = "Selected lines too large to display"
 		}
 	}
 
@@ -170,7 +174,7 @@ func makeCodeSnippet(code, language string, begin, end int) (string, error) {
 		return "", errors.New("Selected lines are empty")
 	}
 
-	return "```" + languageNameToCode[language] + "\n" + strings.Join(lines, "\n") + "```", nil
+	return "```" + languageNameToExt[language] + "\n" + strings.Join(lines, "\n") + "```", nil
 }
 
 func clamp(x, low, high int) int {
