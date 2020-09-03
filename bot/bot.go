@@ -14,6 +14,7 @@ type Bot struct {
 	Client      *disgord.Client
 	Info        Info
 	commands    map[string]*Command
+	commandList []*Command
 	helpCommand *Command
 }
 
@@ -77,6 +78,7 @@ func (bot *Bot) OnMessageCreate(handler func(Context, *disgord.MessageCreate)) {
 // AddCommand adds a Command to the bot.
 func (bot *Bot) AddCommand(command *Command) {
 	bot.commands[command.ID] = command
+	bot.commandList = append(bot.commandList, command)
 }
 
 func (bot *Bot) maybeHandleCommand(s disgord.Session, evt *disgord.MessageCreate) {
@@ -145,19 +147,21 @@ func (bot *Bot) addPrefix(command *Command) string {
 
 func (bot *Bot) buildHelpEmbed() *disgord.Embed {
 	var fields []*disgord.EmbedField
-	for _, command := range bot.commands {
+	for _, command := range bot.commandList {
 		fields = append(fields, &disgord.EmbedField{
-			Name:  command.FullUsage(),
-			Value: command.Desc,
+			Name:   command.FullUsage(),
+			Value:  command.Desc,
+			Inline: true,
 		})
 	}
 	fields = append(fields, &disgord.EmbedField{
-		Name:  bot.helpCommand.FullUsage(),
-		Value: bot.helpCommand.Desc,
+		Name:   bot.helpCommand.FullUsage(),
+		Value:  bot.helpCommand.Desc,
+		Inline: true,
 	})
 	embed := disgord.Embed{
 		Title:       bot.Info.Name,
-		Description: bot.Info.Desc,
+		Description: bot.Info.Desc + "\nSupported commands:",
 		Fields:      fields,
 	}
 	return &embed
