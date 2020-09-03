@@ -89,8 +89,8 @@ func handleSubmissionURL(ctx bot.Context, match *fetch.SubmissionURLMatch) {
 		return
 	}
 
-	content := ""
-	var embed *disgord.Embed = nil
+	var content string
+	var embed *disgord.Embed
 	if match.LineBegin == 0 {
 		embed = makeSubmissionEmbed(submissionInfo)
 	} else {

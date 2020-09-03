@@ -10,7 +10,7 @@ To improve that, CFSpy can
 - Watch for blog links and show some basic information about the blog.
 - Watch for comment links and show the comment.
 - Watch for problem links and show some basic information about the problem.
-- Watch for submission links and show some basic information about the submission or show a snippet from the submission. Sharing a snippet requires line numbers, for which you may install this [userscript](https://greasyfork.org/en/scripts/403747-cf-linemaster).
+- Watch for submission links and show some basic information about the submission or show a snippet from the submission. Showing a snippet requires line numbers, for which you may install this [userscript](https://greasyfork.org/en/scripts/403747-cf-linemaster).
 
 To answer the common question _"Is Codeforces down?"_, there is a command to ping codeforces.com.
 
