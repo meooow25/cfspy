@@ -31,5 +31,5 @@ $ TOKEN=<your_bot_token> cfspy
 ```
 
 ## Thanks
-[aryanc403](https://github.com/aryanc403) for the original idea :bulb:
-[git-the-lines](https://github.com/dolphingarlic/git-the-lines) which was the inspiration for submission snippets
+- [aryanc403](https://github.com/aryanc403) for the original idea :bulb:  
+- [git-the-lines](https://github.com/dolphingarlic/git-the-lines) which was the inspiration for submission snippets
