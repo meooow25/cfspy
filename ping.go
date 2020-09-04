@@ -62,17 +62,22 @@ func onPing(ctx bot.Context) {
 	}()
 }
 
-// Installs the ping and cfping commands.
-func installPingFeature(b *bot.Bot) {
-	b.Client.Logger().Info("Setting up ping feature")
-	b.AddCommand(&bot.Command{
-		ID:      "ping",
-		Desc:    "Checks the latency of the Discord REST API",
-		Handler: onPing,
-	})
+// Installs the pingcf command.
+func installPingCfCommand(b *bot.Bot) {
+	b.Client.Logger().Info("Setting up pingcf command")
 	b.AddCommand(&bot.Command{
 		ID:      "pingcf",
 		Desc:    "Checks the latency of codeforces.com",
 		Handler: onPingCf,
+	})
+}
+
+// Installs the ping command.
+func installPingCommand(b *bot.Bot) {
+	b.Client.Logger().Info("Setting up ping command")
+	b.AddCommand(&bot.Command{
+		ID:      "ping",
+		Desc:    "Checks the latency of the Discord REST API",
+		Handler: onPing,
 	})
 }

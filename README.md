@@ -10,11 +10,12 @@ To improve that, CFSpy can
 - Watch for blog links and show some basic information about the blog.
 - Watch for comment links and show the comment.
 - Watch for problem links and show some basic information about the problem.
+- Watch for submission links and show some basic information about the submission or show a snippet from the submission. Showing a snippet requires line numbers, for which you may install this [userscript](https://greasyfork.org/en/scripts/403747-cf-linemaster).
 
 To answer the common question _"Is Codeforces down?"_, there is a command to ping codeforces.com.
 
-## Screenshot
-![screenshot](https://i.imgur.com/WAcdoPP.png)
+## Sample
+![screenshot](https://i.imgur.com/XCbaFyi.png)
 
 ## Use it
 
@@ -30,4 +31,5 @@ $ TOKEN=<your_bot_token> cfspy
 ```
 
 ## Thanks
-[aryanc403](https://github.com/aryanc403) for the original idea :bulb:
+[aryanc403](https://github.com/aryanc403) for the original idea :bulb:  
+[git-the-lines](https://github.com/dolphingarlic/git-the-lines) which was the inspiration for submission snippets

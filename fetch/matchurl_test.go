@@ -17,6 +17,12 @@ type problemTest struct {
 	expected []ProblemURLMatch
 }
 
+type submissionTest struct {
+	name     string
+	text     string
+	expected []SubmissionURLMatch
+}
+
 var blogTests = []blogTest{
 	{"helloWorld", "Hello, world!", nil},
 	{"homePage", "https://codeforces.com/", nil},
@@ -97,13 +103,47 @@ var problemTests = []problemTest{
 	},
 }
 
+var submissionTests = []submissionTest{
+	{"helloWorld", "Hello, world!", nil},
+	{"homePage", "https://codeforces.com/", nil},
+	{"singleSubmission", "https://codeforces.com/contest/123/submission/123456",
+		[]SubmissionURLMatch{
+			{URL: "https://codeforces.com/contest/123/submission/123456"},
+		},
+	},
+	{"singleGym", "https://codeforces.com/gym/123456/submission/54321",
+		[]SubmissionURLMatch{
+			{URL: "https://codeforces.com/gym/123456/submission/54321"},
+		},
+	},
+	{"singleWithText", "Visit https://codeforces.com/contest/123/submission/123456.",
+		[]SubmissionURLMatch{
+			{URL: "https://codeforces.com/contest/123/submission/123456"},
+		},
+	},
+	{"singleSuppressed", "<https://codeforces.com/contest/123/submission/123456>",
+		[]SubmissionURLMatch{
+			{URL: "https://codeforces.com/contest/123/submission/123456", Suppressed: true},
+		},
+	},
+	{"singleWithParams", "https://codeforces.com/contest/123/submission/123456?locale=ru#key=value",
+		[]SubmissionURLMatch{
+			{URL: "https://codeforces.com/contest/123/submission/123456?locale=ru#key=value"},
+		},
+	},
+	{"multiple",
+		"See https://codeforces.com/contest/123/submission/123456 and <https://codeforces.com/gym/123456/submission/54321>. ",
+		[]SubmissionURLMatch{
+			{URL: "https://codeforces.com/contest/123/submission/123456"},
+			{URL: "https://codeforces.com/gym/123456/submission/54321", Suppressed: true},
+		},
+	},
+}
+
 func TestParseBlogURLs(t *testing.T) {
 	for _, test := range blogTests {
 		t.Run(test.name, func(t *testing.T) {
-			m := ParseBlogURLs(test.text)
-			if !reflect.DeepEqual(m, test.expected) {
-				t.Errorf("Expected %v, found %v", test.expected, m)
-			}
+			checkEqual(t, test.expected, ParseBlogURLs(test.text))
 		})
 	}
 }
@@ -111,10 +151,21 @@ func TestParseBlogURLs(t *testing.T) {
 func TestParseProblemURLs(t *testing.T) {
 	for _, test := range problemTests {
 		t.Run(test.name, func(t *testing.T) {
-			m := ParseProblemURLs(test.text)
-			if !reflect.DeepEqual(m, test.expected) {
-				t.Errorf("Expected %v, found %v", test.expected, m)
-			}
+			checkEqual(t, test.expected, ParseProblemURLs(test.text))
 		})
+	}
+}
+
+func TestParseSubmissionURLs(t *testing.T) {
+	for _, test := range submissionTests {
+		t.Run(test.name, func(t *testing.T) {
+			checkEqual(t, test.expected, ParseSubmissionURLs(test.text))
+		})
+	}
+}
+
+func checkEqual(t *testing.T, expected, got interface{}) {
+	if !reflect.DeepEqual(expected, got) {
+		t.Errorf("Expected %v, got %v", expected, got)
 	}
 }

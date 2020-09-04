@@ -15,6 +15,14 @@ type ProblemURLMatch struct {
 	Suppressed bool
 }
 
+// SubmissionURLMatch contains matched information for a submission URL.
+type SubmissionURLMatch struct {
+	URL        string
+	LineBegin  int
+	LineEnd    int
+	Suppressed bool
+}
+
 // BlogInfo contains blog information.
 type BlogInfo struct {
 	Title        string
@@ -47,4 +55,17 @@ type ProblemInfo struct {
 	ContestName   string
 	ContestStatus string
 	URL           string
+}
+
+// SubmissionInfo contains submission information.
+type SubmissionInfo struct {
+	AuthorHandle string
+	AuthorColor  int
+	Problem      string
+	Language     string
+	Verdict      string
+	Type         string
+	SentTime     time.Time
+	Content      string
+	URL          string
 }

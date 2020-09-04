@@ -25,21 +25,24 @@ func main() {
 
 	b := bot.New(
 		bot.Info{
-			Name:   "CFSpy",
-			Token:  token,
-			Prefix: "c;",
-			Desc: "Codeforces Spy watches for Codeforces comment, blog and problem links and " +
-				"shows a preview.\n" +
-				"Supported commands:",
+			Name:       "CFSpy",
+			Token:      token,
+			Prefix:     "c;",
+			Desc:       "Codeforces Spy watches for Codeforces links and shows a preview.",
 			SupportURL: supportURL,
 			Logger:     logger,
 		},
 	)
 
-	installPingFeature(b)
+	installPingCfCommand(b)
+	installFeatureInfoCommand(b)
+	installPingCommand(b)
+
+	installStatusFeature(b)
+
 	installBlogAndCommentFeature(b)
 	installProblemFeature(b)
-	installStatusFeature(b)
+	installSubmissionFeature(b)
 
 	b.Client.StayConnectedUntilInterrupted(context.Background())
 

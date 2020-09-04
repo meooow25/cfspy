@@ -16,7 +16,6 @@ import (
 
 var (
 	titleSelec         = cascadia.MustCompile(".title")
-	handleSelec        = cascadia.MustCompile("a.rated-user")
 	timeSelec          = cascadia.MustCompile(".info .format-humantime")
 	moscowTZ           = time.FixedZone("Europe/Moscow", int(3*time.Hour/time.Second))
 	commentAvatarSelec = cascadia.MustCompile(".avatar")
@@ -31,22 +30,6 @@ var (
 	revisionCountAttr  = "revisioncount"
 	revisionSpanSelec  = cascadia.MustCompile("span[" + revisionCountAttr + "]")
 	csrfTokenSelec     = cascadia.MustCompile(`meta[name="X-Csrf-Token"]`)
-
-	// From https://sta.codeforces.com/s/50332/css/community.css
-	colorClsMap = map[string]int{
-		"user-black":     0x000000,
-		"user-legendary": 0x000000,
-		"user-red":       0xFF0000,
-		"user-fire":      0xFF0000,
-		"user-yellow":    0xBBBB00,
-		"user-violet":    0xAA00AA,
-		"user-orange":    0xFF8C00,
-		"user-blue":      0x0000FF,
-		"user-cyan":      0x03A89E,
-		"user-green":     0x008000,
-		"user-gray":      0x808080,
-		"user-admin":     0x000000,
-	}
 )
 
 // Blog fetches blog information. The given URL must be a valid blog URL.
@@ -60,14 +43,13 @@ func Blog(ctx context.Context, url string) (*BlogInfo, error) {
 	b.URL = url
 	b.Title = doc.FindMatcher(titleSelec).First().Text()
 	blogDiv := doc.FindMatcher(blogSelec)
-	b.AuthorHandle = blogDiv.FindMatcher(handleSelec).First().Text()
+	b.AuthorHandle, b.AuthorColor = parseHandleAndColor(blogDiv)
 	if b.CreationTime, err = parseTime(blogDiv); err != nil {
 		return nil, err
 	}
 	if b.Rating, err = strconv.Atoi(blogDiv.FindMatcher(blogRatingSelec).Text()); err != nil {
 		return nil, err
 	}
-	b.AuthorColor = parseHandleColor(blogDiv)
 
 	// If the author commented under the blog get the pic, otherwise fetch from the API.
 	if authorCommentAvatars := blogDiv.FindMatcher(commentAvatarSelec).FilterFunction(
@@ -117,12 +99,11 @@ func Comment(
 	if base.CreationTime, err = parseTime(comment); err != nil {
 		return
 	}
-	base.AuthorHandle = avatarDiv.FindMatcher(handleSelec).First().Text()
+	base.AuthorHandle, base.AuthorColor = parseHandleAndColor(avatarDiv)
 	base.AuthorAvatar = parseImg(avatarDiv)
 	if base.Rating, err = strconv.Atoi(comment.FindMatcher(commentRatingSelec).Text()); err != nil {
 		return
 	}
-	base.AuthorColor = parseHandleColor(avatarDiv)
 
 	csrf := doc.FindMatcher(csrfTokenSelec).AttrOr("content", "?!")
 	revisionCount = parseCommentRevision(comment)
@@ -221,17 +202,6 @@ func getCommentContent(comment *goquery.Selection) (string, []string) {
 	// TODO: Maybe Unicode symbols can be used in simple cases.
 	markdown = strings.ReplaceAll(markdown, "$$$", "$")
 	return markdown, imgURLs
-}
-
-func parseHandleColor(selec *goquery.Selection) int {
-	clss := strings.Fields(
-		selec.FindMatcher(handleSelec).AttrOr("class", "?!"))
-	for _, cls := range clss {
-		if col, ok := colorClsMap[cls]; ok {
-			return col
-		}
-	}
-	return 0x000000
 }
 
 func parseTime(selec *goquery.Selection) (t time.Time, err error) {
