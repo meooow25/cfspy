@@ -144,7 +144,7 @@ func scraperGetDocBrowser(ctx context.Context, url string) (*goquery.Document, e
 	return scraperGetDocInternal(ctx, url, cfScraperBrowser)
 }
 
-var errorMessageRe = regexp.MustCompile(`Codeforces.showMessage\("(.*)"\)`)
+var errorMessageRe = regexp.MustCompile(`Codeforces.showMessage\("(.*)"\);\s*Codeforces\.reformatTimes`)
 
 func scraperGetDocInternal(ctx context.Context, url string, client *http.Client) (*goquery.Document, error) {
 	doc, err := fetch(ctx, url, client)
