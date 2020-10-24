@@ -20,9 +20,6 @@ func installBlogAndCommentFeature(bot *bot.Bot) {
 }
 
 func maybeHandleBlogURL(ctx bot.Context, evt *disgord.MessageCreate) {
-	if evt.Message.Author.Bot {
-		return
-	}
 	go func() {
 		blogURLMatches := fetch.ParseBlogURLs(evt.Message.Content)
 		if len(blogURLMatches) == 0 {

@@ -17,9 +17,6 @@ func installProblemFeature(bot *bot.Bot) {
 }
 
 func maybeHandleProblemURL(ctx bot.Context, evt *disgord.MessageCreate) {
-	if evt.Message.Author.Bot {
-		return
-	}
 	go func() {
 		problemURLMatches := fetch.ParseProblemURLs(evt.Message.Content)
 		if len(problemURLMatches) == 0 {
