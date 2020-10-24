@@ -33,6 +33,10 @@ var (
 )
 
 // Blog fetches blog information. The given URL must be a valid blog URL.
+//
+// Scrapes instead of using the API because a preview will be added but the blog content is not
+// available through the API.
+// TODO: Use blog content.
 func Blog(ctx context.Context, url string) (*BlogInfo, error) {
 	doc, err := scraperGetDoc(ctx, url)
 	if err != nil {
@@ -77,6 +81,11 @@ type CommentInfoGetter func(revision int) (*CommentInfo, error)
 // Comment fetches comment information. The given URL must be a valid comment URL. A
 // CommentInfoGetter is returned. The last revision is immediately available, other revisions are
 // fetched lazily when the CommentInfoGetter is called.
+//
+// Scrapes instead of using the API because
+// - It's just easier, the comment and author details are together.
+// - Some comments in Russian locale seems to be missing from the API.
+// - Scraping allows access to different revisions.
 func Comment(
 	ctx context.Context,
 	url string,
