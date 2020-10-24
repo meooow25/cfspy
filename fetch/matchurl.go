@@ -19,14 +19,16 @@ var (
 func ParseBlogURLs(s string) []BlogURLMatch {
 	var matches []BlogURLMatch
 	for _, idx := range blogURLRe.FindAllStringSubmatchIndex(s, -1) {
+		if checkEmbedsSuppressed(s, idx[0], idx[1]) {
+			continue
+		}
 		urlMatch := s[idx[0]:idx[1]]
 		parsedURL, err := url.Parse(urlMatch)
 		if err != nil {
 			continue
 		}
 		match := BlogURLMatch{
-			URL:        urlMatch,
-			Suppressed: checkEmbedsSuppressed(s, idx[0], idx[1]),
+			URL: urlMatch,
 		}
 		commentMatch := commentFragmentRe.FindStringSubmatch(parsedURL.Fragment)
 		if len(commentMatch) > 0 {
@@ -41,13 +43,15 @@ func ParseBlogURLs(s string) []BlogURLMatch {
 func ParseProblemURLs(s string) []ProblemURLMatch {
 	var matches []ProblemURLMatch
 	for _, idx := range problemURLRe.FindAllStringSubmatchIndex(s, -1) {
+		if checkEmbedsSuppressed(s, idx[0], idx[1]) {
+			continue
+		}
 		urlMatch := s[idx[0]:idx[1]]
 		if _, err := url.Parse(urlMatch); err != nil {
 			continue
 		}
 		match := ProblemURLMatch{
-			URL:        urlMatch,
-			Suppressed: checkEmbedsSuppressed(s, idx[0], idx[1]),
+			URL: urlMatch,
 		}
 		matches = append(matches, match)
 	}
@@ -58,14 +62,16 @@ func ParseProblemURLs(s string) []ProblemURLMatch {
 func ParseSubmissionURLs(s string) []SubmissionURLMatch {
 	var matches []SubmissionURLMatch
 	for _, idx := range submissionURLRe.FindAllStringSubmatchIndex(s, -1) {
+		if checkEmbedsSuppressed(s, idx[0], idx[1]) {
+			continue
+		}
 		urlMatch := s[idx[0]:idx[1]]
 		parsedURL, err := url.Parse(urlMatch)
 		if err != nil {
 			continue
 		}
 		match := SubmissionURLMatch{
-			URL:        urlMatch,
-			Suppressed: checkEmbedsSuppressed(s, idx[0], idx[1]),
+			URL: urlMatch,
 		}
 		lineNumsMatch := lineNumFragmentRe.FindStringSubmatch(parsedURL.Fragment)
 		if len(lineNumsMatch) > 0 {

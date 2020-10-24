@@ -23,9 +23,6 @@ func maybeHandleProblemURL(ctx bot.Context, evt *disgord.MessageCreate) {
 			return
 		}
 		first := problemURLMatches[0]
-		if first.Suppressed {
-			return
-		}
 		handleProblemURL(ctx, first.URL)
 	}()
 }

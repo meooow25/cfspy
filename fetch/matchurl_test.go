@@ -37,9 +37,7 @@ var blogTests = []blogTest{
 		},
 	},
 	{"singleSuppressed", "<https://codeforces.com/blog/entry/123>",
-		[]BlogURLMatch{
-			{URL: "https://codeforces.com/blog/entry/123", Suppressed: true},
-		},
+		nil,
 	},
 	{"singleWithParams", "https://codeforces.com/blog/entry/123?locale=ru#comment-456&key=value",
 		[]BlogURLMatch{
@@ -54,7 +52,6 @@ var blogTests = []blogTest{
 			{URL: "https://codeforces.com/blog/entry/123"},
 			{URL: "https://codeforces.com/blog/entry/456"},
 			{URL: "https://codeforces.com/blog/entry/789#comment-101112", CommentID: "101112"},
-			{URL: "https://codeforces.com/blog/entry/131415", Suppressed: true},
 		},
 	},
 }
@@ -83,9 +80,7 @@ var problemTests = []problemTest{
 		},
 	},
 	{"singleSuppressed", "<https://codeforces.com/contest/123/problem/B>",
-		[]ProblemURLMatch{
-			{URL: "https://codeforces.com/contest/123/problem/B", Suppressed: true},
-		},
+		nil,
 	},
 	{"singleWithParams", "https://codeforces.com/contest/123/problem/B?locale=ru#key=value",
 		[]ProblemURLMatch{
@@ -98,7 +93,6 @@ var problemTests = []problemTest{
 		[]ProblemURLMatch{
 			{URL: "https://codeforces.com/contest/123/problem/B"},
 			{URL: "https://codeforces.com/gym/123456/problem/C"},
-			{URL: "https://codeforces.com/problemsets/acmsguru/problem/99999/123", Suppressed: true},
 		},
 	},
 }
@@ -122,9 +116,7 @@ var submissionTests = []submissionTest{
 		},
 	},
 	{"singleSuppressed", "<https://codeforces.com/contest/123/submission/123456>",
-		[]SubmissionURLMatch{
-			{URL: "https://codeforces.com/contest/123/submission/123456", Suppressed: true},
-		},
+		nil,
 	},
 	{"singleWithParams", "https://codeforces.com/contest/123/submission/123456?locale=ru#key=value",
 		[]SubmissionURLMatch{
@@ -135,7 +127,6 @@ var submissionTests = []submissionTest{
 		"See https://codeforces.com/contest/123/submission/123456 and <https://codeforces.com/gym/123456/submission/54321>. ",
 		[]SubmissionURLMatch{
 			{URL: "https://codeforces.com/contest/123/submission/123456"},
-			{URL: "https://codeforces.com/gym/123456/submission/54321", Suppressed: true},
 		},
 	},
 }

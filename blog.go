@@ -26,9 +26,6 @@ func maybeHandleBlogURL(ctx bot.Context, evt *disgord.MessageCreate) {
 			return
 		}
 		first := blogURLMatches[0]
-		if first.Suppressed {
-			return
-		}
 		if first.CommentID != "" {
 			handleCommentURL(ctx, first.URL, first.CommentID)
 		} else {

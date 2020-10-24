@@ -4,23 +4,20 @@ import "time"
 
 // BlogURLMatch contains matched information for a blog URL.
 type BlogURLMatch struct {
-	URL        string
-	CommentID  string
-	Suppressed bool
+	URL       string
+	CommentID string
 }
 
 // ProblemURLMatch contains matched information for a problem URL.
 type ProblemURLMatch struct {
-	URL        string
-	Suppressed bool
+	URL string
 }
 
 // SubmissionURLMatch contains matched information for a submission URL.
 type SubmissionURLMatch struct {
-	URL        string
-	LineBegin  int
-	LineEnd    int
-	Suppressed bool
+	URL       string
+	LineBegin int
+	LineEnd   int
 }
 
 // BlogInfo contains blog information.
