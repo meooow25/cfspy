@@ -61,18 +61,12 @@ func installSubmissionFeature(bot *bot.Bot) {
 }
 
 func maybeHandleSubmissionURL(ctx bot.Context, evt *disgord.MessageCreate) {
-	if evt.Message.Author.Bot {
-		return
-	}
 	go func() {
 		submissionURLMatches := fetch.ParseSubmissionURLs(evt.Message.Content)
 		if len(submissionURLMatches) == 0 {
 			return
 		}
 		first := submissionURLMatches[0]
-		if first.Suppressed {
-			return
-		}
 		handleSubmissionURL(ctx, &first)
 	}()
 }

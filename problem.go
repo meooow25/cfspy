@@ -17,18 +17,12 @@ func installProblemFeature(bot *bot.Bot) {
 }
 
 func maybeHandleProblemURL(ctx bot.Context, evt *disgord.MessageCreate) {
-	if evt.Message.Author.Bot {
-		return
-	}
 	go func() {
 		problemURLMatches := fetch.ParseProblemURLs(evt.Message.Content)
 		if len(problemURLMatches) == 0 {
 			return
 		}
 		first := problemURLMatches[0]
-		if first.Suppressed {
-			return
-		}
 		handleProblemURL(ctx, first.URL)
 	}()
 }

@@ -20,18 +20,12 @@ func installBlogAndCommentFeature(bot *bot.Bot) {
 }
 
 func maybeHandleBlogURL(ctx bot.Context, evt *disgord.MessageCreate) {
-	if evt.Message.Author.Bot {
-		return
-	}
 	go func() {
 		blogURLMatches := fetch.ParseBlogURLs(evt.Message.Content)
 		if len(blogURLMatches) == 0 {
 			return
 		}
 		first := blogURLMatches[0]
-		if first.Suppressed {
-			return
-		}
 		if first.CommentID != "" {
 			handleCommentURL(ctx, first.URL, first.CommentID)
 		} else {
@@ -41,9 +35,6 @@ func maybeHandleBlogURL(ctx bot.Context, evt *disgord.MessageCreate) {
 }
 
 // Fetches the blog page and responds on the Discord channel with some basic info on the blog.
-// Scrapes instead of using the API because a preview will be added but the blog content is not
-// available through the API.
-// TODO: Send blog content preview.
 func handleBlogURL(ctx bot.Context, blogURL string) {
 	ctx.Logger.Info("Processing blog URL: ", blogURL)
 
@@ -97,10 +88,7 @@ func makeBlogEmbed(b *fetch.BlogInfo) *disgord.Embed {
 }
 
 // Fetches the comment from the blog page, converts it to markdown and responds on the Discord
-// channel. Scrapes instead of using the API because
-// - It's just easier, the comment and author details are together.
-// - Some comments in Russian locale seems to be missing from the API.
-// - Scraping allows access to different revisions.
+// channel.
 func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 	ctx.Logger.Info("Processing comment URL: ", commentURL)
 

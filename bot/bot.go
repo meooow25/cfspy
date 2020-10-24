@@ -63,6 +63,9 @@ func New(info Info) *Bot {
 // OnMessageCreate attaches a handler that is called on the message create event.
 func (bot *Bot) OnMessageCreate(handler func(Context, *disgord.MessageCreate)) {
 	wrapped := func(s disgord.Session, evt *disgord.MessageCreate) {
+		if evt.Message.Author == nil || evt.Message.Author.Bot {
+			return
+		}
 		ctx := Context{
 			Bot:     bot,
 			Session: s,
