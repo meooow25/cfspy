@@ -144,7 +144,7 @@ func scraperGetDocBrowser(ctx context.Context, url string) (*goquery.Document, e
 	return scraperGetDocInternal(ctx, url, cfScraperBrowser)
 }
 
-var errorMessageRe = regexp.MustCompile(`Codeforces.showMessage\("(.*)"\);\s*Codeforces\.reformatTimes`)
+var errorMsgRe = regexp.MustCompile(`Codeforces.showMessage\("(.*)"\);\s*Codeforces\.reformatTimes`)
 
 func scraperGetDocInternal(ctx context.Context, url string, client *http.Client) (*goquery.Document, error) {
 	doc, err := fetch(ctx, url, client)
@@ -152,18 +152,22 @@ func scraperGetDocInternal(ctx context.Context, url string, client *http.Client)
 		return nil, err
 	}
 	scripts := doc.FindMatcher(scriptSelec)
-	// Instead of serving a 404 page if the resourse is missing, Codeforces redirects to the
-	// last visited page and shows an error message. Don't ask me why.
-	if match := errorMessageRe.FindStringSubmatch(scripts.Text()); match != nil {
+	if scripts.Length() <= 2 {
+		// Got RCPC page, set cookie and refetch
+		if err = setRCPCCookieOnClient(scripts.Text(), client); err != nil {
+			return nil, fmt.Errorf("Set RCPC cookie failed: %w", err)
+		}
+		if doc, err = fetch(ctx, url, client); err != nil {
+			return nil, err
+		}
+		scripts = doc.FindMatcher(scriptSelec)
+	}
+	// Instead of serving a 404 page if the resourse is missing, Codeforces redirects to the last
+	// visited page and shows an error message. Don't ask me why.
+	if match := errorMsgRe.FindStringSubmatch(scripts.Text()); match != nil {
 		return nil, errors.New(match[1])
 	}
-	if scripts.Length() > 2 { // Got the right page, setting RCPC not needed.
-		return doc, nil
-	}
-	if err = setRCPCCookieOnClient(scripts.Text(), client); err != nil {
-		return nil, fmt.Errorf("Set RCPC cookie failed: %w", err)
-	}
-	return fetch(ctx, url, client)
+	return doc, nil
 }
 
 func fetch(ctx context.Context, url string, client *http.Client) (*goquery.Document, error) {
