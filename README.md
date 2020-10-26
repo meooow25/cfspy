@@ -15,7 +15,7 @@ To improve that, CFSpy can
 - Watch for problem links and show some basic information about the problem.
 - Watch for submission links and show some basic information about the submission or show a snippet from the submission. Showing a snippet requires line numbers, for which you may install this [userscript](https://greasyfork.org/en/scripts/403747-cf-linemaster).
 
-To answer the common question _"Is Codeforces down?"_, there is a command to ping codeforces.com.
+To answer the common question _"Is Codeforces down?"_, there is a command to ping `codeforces.com`.
 
 ## Sample
 ![screenshot](https://i.imgur.com/XCbaFyi.png)
@@ -23,7 +23,7 @@ To answer the common question _"Is Codeforces down?"_, there is a command to pin
 ## Use it
 
 #### Invite the bot to your server
-[Click here](https://discord.com/api/oauth2/authorize?client_id=713443232834650152&permissions=8192&scope=bot) to authorize the bot. CFSpy requires the "`Manage messages`" permission to remove the default embeds.
+[Click here](https://discord.com/api/oauth2/authorize?client_id=713443232834650152&permissions=8192&scope=bot) to authorize the bot. CFSpy requires the `Manage messages` permission to remove the default embeds.
 
 #### Or run your own instance
 1. To set up a Discord bot, follow [these steps](https://discordpy.readthedocs.io/en/latest/discord.html).
