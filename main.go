@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"os"
 
 	"github.com/meooow25/cfspy/bot"
@@ -21,7 +22,11 @@ func init() {
 }
 
 func main() {
-	logger.Info("CFSpy starting")
+	serverCountFeature := flag.Bool("scf", false, "install the server count feature")
+	flag.Parse()
+
+	logger.Info("------------ CFSpy starting ------------")
+	defer logger.Info("------------ CFSpy stopped ------------")
 
 	b := bot.New(
 		bot.Info{
@@ -44,7 +49,9 @@ func main() {
 	installProblemFeature(b)
 	installSubmissionFeature(b)
 
-	b.Client.StayConnectedUntilInterrupted(context.Background())
+	if *serverCountFeature {
+		installServerCountFeature(b)
+	}
 
-	logger.Info("CFSpy stopped")
+	b.Client.StayConnectedUntilInterrupted(context.Background())
 }
