@@ -1,4 +1,7 @@
 # CFSpy
+
+[![go-badge](https://img.shields.io/static/v1?label=Built%20with&color=00acd7&style=for-the-badge&message=Go)](https://golang.org/) [![server-count-badge](https://img.shields.io/badge/dynamic/json?label=Servers&logo=discord&logoColor=white&color=7289DA&style=for-the-badge&query=%24.serverCount&url=https%3A%2F%2Fgist.githubusercontent.com%2Fmeooow25%2Fe550658ac19cc0cdd515a414afea23bb%2Fraw%2Fserver-count.json)](https://discord.com/api/oauth2/authorize?client_id=713443232834650152&permissions=8192&scope=bot)
+
 A simple Codeforces utility bot for Discord
 
 #### Who is this for?
