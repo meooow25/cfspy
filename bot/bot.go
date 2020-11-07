@@ -20,12 +20,11 @@ type Bot struct {
 
 // Info wraps some bot info.
 type Info struct {
+	disgord.Config
 	Name       string
-	Token      string
 	Prefix     string
 	Desc       string
 	SupportURL string
-	Logger     disgord.Logger
 }
 
 // Command represents a bot command.
@@ -42,12 +41,7 @@ var argsRe = regexp.MustCompile(`"([^"]+)"|([^\s]+)`)
 // New creates a new bot with the given BotInfo.
 func New(info Info) *Bot {
 	bot := Bot{
-		Client: disgord.New(
-			disgord.Config{
-				BotToken: info.Token,
-				Logger:   info.Logger,
-			},
-		),
+		Client:   disgord.New(info.Config),
 		Info:     info,
 		commands: make(map[string]*Command),
 	}
@@ -56,7 +50,7 @@ func New(info Info) *Bot {
 		Desc:    "Shows the bot help message",
 		Handler: bot.sendHelp,
 	}
-	bot.Client.On(disgord.EvtMessageCreate, bot.maybeHandleCommand)
+	bot.Client.Gateway().MessageCreate(bot.maybeHandleCommand)
 	return &bot
 }
 
@@ -70,12 +64,11 @@ func (bot *Bot) OnMessageCreate(handler func(Context, *disgord.MessageCreate)) {
 			Bot:     bot,
 			Session: s,
 			Message: evt.Message,
-			Ctx:     evt.Ctx,
 			Logger:  s.Logger(),
 		}
 		handler(ctx, evt)
 	}
-	bot.Client.On(disgord.EvtMessageCreate, wrapped)
+	bot.Client.Gateway().MessageCreate(wrapped)
 }
 
 // AddCommand adds a Command to the bot.
@@ -103,7 +96,6 @@ func (bot *Bot) maybeHandleCommand(s disgord.Session, evt *disgord.MessageCreate
 		Session: s,
 		Message: msg,
 		Args:    args,
-		Ctx:     evt.Ctx,
 		Logger:  s.Logger(),
 	}
 	if command, ok := bot.commands[commandID]; ok {

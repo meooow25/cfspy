@@ -25,6 +25,6 @@ func setStatus(s disgord.Session) {
 // resume.
 func installStatusFeature(b *bot.Bot) {
 	b.Client.Logger().Info("Setting up status feature")
-	b.Client.On(disgord.EvtReady, setStatus)
-	b.Client.On(disgord.EvtResumed, setStatus)
+	b.Client.Gateway().BotReady(func() { setStatus(b.Client) })
+	b.Client.Gateway().Resumed(func(_ disgord.Session, _ *disgord.Resumed) { setStatus(b.Client) })
 }

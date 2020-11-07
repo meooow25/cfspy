@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"math"
@@ -75,7 +76,7 @@ func maybeHandleSubmissionURL(ctx bot.Context, evt *disgord.MessageCreate) {
 func handleSubmissionURL(ctx bot.Context, match *fetch.SubmissionURLMatch) {
 	ctx.Logger.Info("Processing submission URL: ", match.URL)
 
-	submissionInfo, err := fetch.Submission(ctx.Ctx, match.URL)
+	submissionInfo, err := fetch.Submission(context.Background(), match.URL)
 	if err != nil {
 		err = fmt.Errorf("Error fetching submission from %v: %w", match.URL, err)
 		ctx.Logger.Error(err)
@@ -107,7 +108,7 @@ func handleSubmissionURL(ctx bot.Context, match *fetch.SubmissionURLMatch) {
 		DeactivateAfter: time.Minute,
 		DelCallback: func(evt *disgord.MessageReactionAdd) {
 			// This will fail without manage messages permission, that's fine.
-			bot.UnsuppressEmbeds(evt.Ctx, ctx.Session, ctx.Message)
+			bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
 		},
 		AllowOp: func(evt *disgord.MessageReactionAdd) bool {
 			return evt.UserID == ctx.Message.Author.ID
@@ -119,7 +120,7 @@ func handleSubmissionURL(ctx bot.Context, match *fetch.SubmissionURLMatch) {
 	}
 
 	// This will fail without manage messages permission, that's fine.
-	bot.SuppressEmbeds(ctx.Ctx, ctx.Session, ctx.Message)
+	bot.SuppressEmbeds(ctx.Session, ctx.Message)
 }
 
 func makeSubmissionEmbed(s *fetch.SubmissionInfo) *disgord.Embed {

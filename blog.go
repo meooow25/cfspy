@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"time"
@@ -38,7 +39,7 @@ func maybeHandleBlogURL(ctx bot.Context, evt *disgord.MessageCreate) {
 func handleBlogURL(ctx bot.Context, blogURL string) {
 	ctx.Logger.Info("Processing blog URL: ", blogURL)
 
-	blogInfo, err := fetch.Blog(ctx.Ctx, blogURL)
+	blogInfo, err := fetch.Blog(context.Background(), blogURL)
 	if err != nil {
 		err = fmt.Errorf("Error fetching blog from %v: %w", blogURL, err)
 		ctx.Logger.Error(err)
@@ -52,7 +53,7 @@ func handleBlogURL(ctx bot.Context, blogURL string) {
 		DeactivateAfter: time.Minute,
 		DelCallback: func(evt *disgord.MessageReactionAdd) {
 			// This will fail without manage messages permission, that's fine.
-			bot.UnsuppressEmbeds(evt.Ctx, ctx.Session, ctx.Message)
+			bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
 		},
 		AllowOp: func(evt *disgord.MessageReactionAdd) bool {
 			return evt.UserID == ctx.Message.Author.ID
@@ -64,7 +65,7 @@ func handleBlogURL(ctx bot.Context, blogURL string) {
 	}
 
 	// This will fail without manage messages permission, that's fine.
-	bot.SuppressEmbeds(ctx.Ctx, ctx.Session, ctx.Message)
+	bot.SuppressEmbeds(ctx.Session, ctx.Message)
 }
 
 func makeBlogEmbed(b *fetch.BlogInfo) *disgord.Embed {
@@ -92,7 +93,7 @@ func makeBlogEmbed(b *fetch.BlogInfo) *disgord.Embed {
 func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 	ctx.Logger.Info("Processing comment URL: ", commentURL)
 
-	revisionCount, infoGetter, err := fetch.Comment(ctx.Ctx, commentURL, commentID)
+	revisionCount, infoGetter, err := fetch.Comment(context.Background(), commentURL, commentID)
 	if err != nil {
 		err = fmt.Errorf("Error fetching comment from %v: %w", commentURL, err)
 		ctx.Logger.Error(err)
@@ -116,7 +117,7 @@ func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 		DelBtn:          true,
 		DelCallback: func(evt *disgord.MessageReactionAdd) {
 			// This will fail without manage messages permission, that's fine.
-			bot.UnsuppressEmbeds(evt.Ctx, ctx.Session, ctx.Message)
+			bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
 		},
 		AllowOp: func(evt *disgord.MessageReactionAdd) bool {
 			return evt.UserID == ctx.Message.Author.ID
@@ -128,7 +129,7 @@ func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 	}
 
 	// This will fail without manage messages permission, that's fine.
-	bot.SuppressEmbeds(ctx.Ctx, ctx.Session, ctx.Message)
+	bot.SuppressEmbeds(ctx.Session, ctx.Message)
 }
 
 func makeCommentEmbed(c *fetch.CommentInfo) *disgord.Embed {

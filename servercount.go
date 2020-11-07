@@ -34,7 +34,7 @@ func updateServerCount(s disgord.Session, gc *github.Client) {
 	}
 	curContent := *gist.Files[gistFilename].Content
 
-	guilds, err := s.GetCurrentUserGuilds(ctx, nil)
+	guilds, err := s.CurrentUser().GetGuilds(nil)
 	if err != nil {
 		s.Logger().Error("Error fetching guilds: ", err)
 		return
