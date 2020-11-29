@@ -81,6 +81,7 @@ func SendPaginated(
 	if err != nil {
 		return nil, err
 	}
+
 	if params.DelBtn {
 		msg.React(ctx, session, delSymbol)
 	}
@@ -88,11 +89,20 @@ func SendPaginated(
 		msg.React(ctx, session, prevSymbol)
 		msg.React(ctx, session, nextSymbol)
 	}
+	cleanupReacts := func() {
+		if params.DelBtn {
+			msg.Unreact(ctx, session, delSymbol)
+		}
+		if params.NumPages > 1 {
+			msg.Unreact(ctx, session, prevSymbol)
+			msg.Unreact(ctx, session, nextSymbol)
+		}
+	}
 
 	// This mutex guards against concurrent attempts to update the currently shown page.
 	var currentPageLock sync.Mutex
 
-	ctxWidgetActive, cancelWidget := context.WithTimeout(ctx, params.DeactivateAfter)
+	ctxWidgetActive, cancelWidgetCtx := context.WithTimeout(ctx, params.DeactivateAfter)
 
 	showPage := func(delta int) {
 		currentPageLock.Lock()
@@ -109,10 +119,11 @@ func SendPaginated(
 		}
 	}
 
+	widgetDeleted := make(chan struct{})
 	reactMap := map[string]func(*disgord.MessageReactionAdd){
 		delSymbol: func(evt *disgord.MessageReactionAdd) {
 			go QueryBuilderFor(session, msg).WithContext(ctx).Delete()
-			cancelWidget()
+			close(widgetDeleted)
 			params.DelCallback(evt)
 		},
 		prevSymbol: func(evt *disgord.MessageReactionAdd) {
@@ -132,6 +143,7 @@ func SendPaginated(
 	session.Gateway().WithCtrl(ctrl).MessageReactionAddChan(reactionAddCh)
 
 	go func() {
+		defer cancelWidgetCtx()
 		for {
 			select {
 			case evt := <-reactionAddCh:
@@ -141,21 +153,14 @@ func SendPaginated(
 				if handler, ok := reactMap[evt.PartialEmoji.Name]; ok && params.AllowOp(evt) {
 					go handler(evt)
 				}
+			case <-widgetDeleted:
+				ctrl.CloseChannel()
+				return
 			case <-ctxWidgetActive.Done():
 				ctrl.CloseChannel()
-				if ctxWidgetActive.Err() == context.Canceled { // The message is being deleted
-					return
+				if ctxWidgetActive.Err() == context.DeadlineExceeded {
+					cleanupReacts()
 				}
-				if params.DelBtn {
-					msg.Unreact(ctx, session, delSymbol)
-				}
-				if params.NumPages > 1 {
-					msg.Unreact(ctx, session, prevSymbol)
-					msg.Unreact(ctx, session, nextSymbol)
-				}
-				return
-			case <-ctx.Done():
-				ctrl.CloseChannel()
 				return
 			}
 		}
