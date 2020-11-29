@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -32,7 +33,7 @@ func maybeHandleProblemURL(ctx bot.Context, evt *disgord.MessageCreate) {
 func handleProblemURL(ctx bot.Context, problemURL string) {
 	ctx.Logger.Info("Processing problem URL: ", problemURL)
 
-	problemInfo, err := fetch.Problem(ctx.Ctx, problemURL)
+	problemInfo, err := fetch.Problem(context.Background(), problemURL)
 	if err != nil {
 		err = fmt.Errorf("Error fetching problem from %v: %w", problemURL, err)
 		ctx.Logger.Error(err)
@@ -46,7 +47,7 @@ func handleProblemURL(ctx bot.Context, problemURL string) {
 		DeactivateAfter: time.Minute,
 		DelCallback: func(evt *disgord.MessageReactionAdd) {
 			// This will fail without manage messages permission, that's fine.
-			bot.UnsuppressEmbeds(evt.Ctx, ctx.Session, ctx.Message)
+			bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
 		},
 		AllowOp: func(evt *disgord.MessageReactionAdd) bool {
 			return evt.UserID == ctx.Message.Author.ID
@@ -58,7 +59,7 @@ func handleProblemURL(ctx bot.Context, problemURL string) {
 	}
 
 	// This will fail without manage messages permission, that's fine.
-	bot.SuppressEmbeds(ctx.Ctx, ctx.Session, ctx.Message)
+	bot.SuppressEmbeds(ctx.Session, ctx.Message)
 }
 
 func makeProblemEmbed(p *fetch.ProblemInfo) *disgord.Embed {

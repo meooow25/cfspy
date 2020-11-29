@@ -34,7 +34,7 @@ func updateServerCount(s disgord.Session, gc *github.Client) {
 	}
 	curContent := *gist.Files[gistFilename].Content
 
-	guilds, err := s.GetCurrentUserGuilds(ctx, nil)
+	guilds, err := s.CurrentUser().GetGuilds(nil)
 	if err != nil {
 		s.Logger().Error("Error fetching guilds: ", err)
 		return
@@ -79,5 +79,5 @@ func installServerCountFeature(b *bot.Bot) {
 		panic("GIST_ID env var missing")
 	}
 
-	b.Client.On(disgord.EvtReady, startServerCountTask)
+	b.Client.Gateway().BotReady(func() { startServerCountTask(b.Client) })
 }

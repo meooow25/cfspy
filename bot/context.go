@@ -17,13 +17,12 @@ type Context struct {
 	Message *disgord.Message
 	Command *Command
 	Args    []string
-	Ctx     context.Context
 	Logger  disgord.Logger
 }
 
 // Send sends a message in the current channel.
 func (ctx *Context) Send(data ...interface{}) (*disgord.Message, error) {
-	return ctx.Session.SendMsg(ctx.Ctx, ctx.Message.ChannelID, data...)
+	return ctx.Message.Reply(context.Background(), ctx.Session, data...)
 }
 
 // SendTimed sends a message and deletes it after a delay. Ignores any error if the delete fails.
@@ -40,17 +39,17 @@ func (ctx *Context) SendTimed(
 
 // EditMsg edits a message to set the given string as content.
 func (ctx *Context) EditMsg(msg *disgord.Message, content string) (*disgord.Message, error) {
-	return ctx.Session.SetMsgContent(ctx.Ctx, msg.ChannelID, msg.ID, content)
+	return QueryBuilderFor(ctx.Session, msg).SetContent(content)
 }
 
 // DeleteMsg deletes the given message.
 func (ctx *Context) DeleteMsg(msg *disgord.Message) error {
-	return ctx.Session.DeleteFromDiscord(ctx.Ctx, msg)
+	return QueryBuilderFor(ctx.Session, msg).Delete()
 }
 
 // React reacts on the given message with the given emoji.
 func (ctx *Context) React(msg *disgord.Message, emoji interface{}) error {
-	return msg.React(ctx.Ctx, ctx.Session, emoji)
+	return msg.React(context.Background(), ctx.Session, emoji)
 }
 
 // SendIncorrectUsageMsg sends the incorrect usage message for the current command.
@@ -73,10 +72,10 @@ func (ctx *Context) MakeErrorEmbed(msg string) *disgord.Embed {
 
 // SendPaginated sends a paginated message in the current channel.
 func (ctx *Context) SendPaginated(params PaginateParams) (*disgord.Message, error) {
-	return SendPaginated(ctx.Ctx, params, ctx.Session, ctx.Message.ChannelID)
+	return SendPaginated(context.Background(), params, ctx.Session, ctx.Message.ChannelID)
 }
 
 // SendWithDelBtn sends a message and adds a delete button to it.
 func (ctx *Context) SendWithDelBtn(params OnePageWithDelParams) (*disgord.Message, error) {
-	return SendWithDelBtn(ctx.Ctx, params, ctx.Session, ctx.Message.ChannelID)
+	return SendWithDelBtn(context.Background(), params, ctx.Session, ctx.Message.ChannelID)
 }

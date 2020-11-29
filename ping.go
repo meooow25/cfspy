@@ -22,7 +22,7 @@ func onPingCf(ctx bot.Context) {
 			return
 		}
 
-		timeoutCtx, cancel := context.WithTimeout(ctx.Ctx, timeout)
+		timeoutCtx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 		req, err := http.NewRequestWithContext(timeoutCtx, http.MethodHead, cfHomeURL, nil)
 		if err != nil {

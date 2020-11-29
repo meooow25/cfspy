@@ -77,10 +77,11 @@ func SendPaginated(
 
 	currentPage := params.PageToShowFirst
 	content, embed := params.GetPage(currentPage)
-	msg, err := session.SendMsg(ctx, channelID, content, embed)
+	msg, err := session.WithContext(ctx).SendMsg(channelID, content, embed)
 	if err != nil {
 		return nil, err
 	}
+
 	if params.DelBtn {
 		msg.React(ctx, session, delSymbol)
 	}
@@ -88,44 +89,61 @@ func SendPaginated(
 		msg.React(ctx, session, prevSymbol)
 		msg.React(ctx, session, nextSymbol)
 	}
+	cleanupReacts := func() {
+		if params.DelBtn {
+			msg.Unreact(ctx, session, delSymbol)
+		}
+		if params.NumPages > 1 {
+			msg.Unreact(ctx, session, prevSymbol)
+			msg.Unreact(ctx, session, nextSymbol)
+		}
+	}
 
 	// This mutex guards against concurrent attempts to update the currently shown page.
 	var currentPageLock sync.Mutex
 
-	showPage := func(ctx context.Context, delta int) {
+	ctxWidgetActive, cancelWidgetCtx := context.WithTimeout(ctx, params.DeactivateAfter)
+
+	showPage := func(delta int) {
 		currentPageLock.Lock()
 		defer currentPageLock.Unlock()
 		newPage := currentPage + delta
 		if newPage < 1 || newPage > params.NumPages {
 			return
 		}
-		currentPage = newPage
-		content, embed := params.GetPage(currentPage)
-		session.UpdateMessage(ctx, channelID, msg.ID).SetContent(content).SetEmbed(embed).Execute()
+		content, embed := params.GetPage(newPage)
+		_, err := QueryBuilderFor(session, msg).WithContext(ctxWidgetActive).Update().
+			SetContent(content).SetEmbed(embed).Execute()
+		if err == nil {
+			currentPage = newPage
+		}
 	}
 
-	ctx, cancel := context.WithCancel(ctx)
+	widgetDeleted := make(chan struct{})
 	reactMap := map[string]func(*disgord.MessageReactionAdd){
 		delSymbol: func(evt *disgord.MessageReactionAdd) {
-			go session.DeleteFromDiscord(evt.Ctx, msg)
-			cancel()
+			go QueryBuilderFor(session, msg).WithContext(ctx).Delete()
+			close(widgetDeleted)
 			params.DelCallback(evt)
 		},
 		prevSymbol: func(evt *disgord.MessageReactionAdd) {
-			go session.DeleteUserReaction(evt.Ctx, channelID, msg.ID, evt.UserID, prevSymbol)
-			showPage(evt.Ctx, -1)
+			go QueryBuilderFor(session, msg).WithContext(ctxWidgetActive).
+				Reaction(prevSymbol).DeleteUser(evt.UserID)
+			showPage(-1)
 		},
 		nextSymbol: func(evt *disgord.MessageReactionAdd) {
-			go session.DeleteUserReaction(evt.Ctx, channelID, msg.ID, evt.UserID, nextSymbol)
-			showPage(evt.Ctx, +1)
+			go QueryBuilderFor(session, msg).WithContext(ctxWidgetActive).
+				Reaction(nextSymbol).DeleteUser(evt.UserID)
+			showPage(+1)
 		},
 	}
 
 	reactionAddCh := make(chan *disgord.MessageReactionAdd)
 	ctrl := &disgord.Ctrl{Channel: reactionAddCh}
-	session.On(disgord.EvtMessageReactionAdd, reactionAddCh, ctrl)
+	session.Gateway().WithCtrl(ctrl).MessageReactionAddChan(reactionAddCh)
 
 	go func() {
+		defer cancelWidgetCtx()
 		for {
 			select {
 			case evt := <-reactionAddCh:
@@ -135,18 +153,14 @@ func SendPaginated(
 				if handler, ok := reactMap[evt.PartialEmoji.Name]; ok && params.AllowOp(evt) {
 					go handler(evt)
 				}
-			case <-time.After(params.DeactivateAfter):
+			case <-widgetDeleted:
 				ctrl.CloseChannel()
-				if params.DelBtn {
-					session.DeleteOwnReaction(ctx, channelID, msg.ID, delSymbol)
-				}
-				if params.NumPages > 1 {
-					session.DeleteOwnReaction(ctx, channelID, msg.ID, prevSymbol)
-					session.DeleteOwnReaction(ctx, channelID, msg.ID, nextSymbol)
-				}
 				return
-			case <-ctx.Done():
+			case <-ctxWidgetActive.Done():
 				ctrl.CloseChannel()
+				if ctxWidgetActive.Err() == context.DeadlineExceeded {
+					cleanupReacts()
+				}
 				return
 			}
 		}
@@ -202,7 +216,7 @@ func validateAndUpdate(params *PaginateParams, session disgord.Session) error {
 	}
 	allowCheck := params.AllowOp
 	params.AllowOp = func(evt *disgord.MessageReactionAdd) bool {
-		user, err := session.GetUser(evt.Ctx, evt.UserID)
+		user, err := session.User(evt.UserID).Get()
 		if err != nil {
 			return false
 		}
