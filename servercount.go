@@ -79,5 +79,5 @@ func installServerCountFeature(b *bot.Bot) {
 		panic("GIST_ID env var missing")
 	}
 
-	b.Client.On(disgord.EvtReady, startServerCountTask)
+	b.Client.Gateway().BotReady(func() { startServerCountTask(b.Client) })
 }

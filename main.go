@@ -61,7 +61,7 @@ func main() {
 		installServerCountFeature(b)
 	}
 
-	b.Client.StayConnectedUntilInterrupted()
+	b.Client.Gateway().StayConnectedUntilInterrupted()
 }
 
 func relevantEvents() []string {
