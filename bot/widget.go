@@ -222,13 +222,5 @@ func validateAndUpdate(params *PaginateParams, session disgord.Session) error {
 	if params.AllowOp == nil {
 		params.AllowOp = func(*disgord.MessageReactionAdd) bool { return true }
 	}
-	allowCheck := params.AllowOp
-	params.AllowOp = func(evt *disgord.MessageReactionAdd) bool {
-		user, err := session.User(evt.UserID).Get()
-		if err != nil {
-			return false
-		}
-		return !user.Bot && allowCheck(evt)
-	}
 	return nil
 }
