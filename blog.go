@@ -47,25 +47,25 @@ func handleBlogURL(ctx bot.Context, blogURL string) {
 		return
 	}
 
-	// Allow the author to delete the preview.
-	_, err = ctx.SendWithDelBtn(bot.OnePageWithDelParams{
-		Embed:           makeBlogEmbed(blogInfo),
+	err = ctx.SendWithDelBtn(bot.OnePageWithDelParams{
+		Embed: makeBlogEmbed(blogInfo),
+		MsgCallback: func(*disgord.Message) {
+			// This will fail without manage messages permission, that's fine.
+			bot.SuppressEmbeds(ctx.Session, ctx.Message)
+		},
 		DeactivateAfter: time.Minute,
 		DelCallback: func(evt *disgord.MessageReactionAdd) {
 			// This will fail without manage messages permission, that's fine.
 			bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
 		},
 		AllowOp: func(evt *disgord.MessageReactionAdd) bool {
+			// Allow only the author to control the widget.
 			return evt.UserID == ctx.Message.Author.ID
 		},
 	})
 	if err != nil {
 		ctx.Logger.Error(fmt.Errorf("Error sending blog info: %w", err))
-		return
 	}
-
-	// This will fail without manage messages permission, that's fine.
-	bot.SuppressEmbeds(ctx.Session, ctx.Message)
 }
 
 func makeBlogEmbed(b *fetch.BlogInfo) *disgord.Embed {
@@ -101,8 +101,7 @@ func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 		return
 	}
 
-	// Allow the author to delete the preview or choose the revision.
-	_, err = ctx.SendPaginated(bot.PaginateParams{
+	err = ctx.SendPaginated(bot.PaginateParams{
 		GetPage: func(revision int) (string, *disgord.Embed) {
 			commentInfo, err := infoGetter(revision)
 			if err != nil {
@@ -113,6 +112,10 @@ func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 		},
 		NumPages:        revisionCount,
 		PageToShowFirst: revisionCount,
+		MsgCallback: func(*disgord.Message) {
+			// This will fail without manage messages permission, that's fine.
+			bot.SuppressEmbeds(ctx.Session, ctx.Message)
+		},
 		DeactivateAfter: time.Minute,
 		DelBtn:          true,
 		DelCallback: func(evt *disgord.MessageReactionAdd) {
@@ -120,16 +123,13 @@ func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 			bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
 		},
 		AllowOp: func(evt *disgord.MessageReactionAdd) bool {
+			// Allow only the author to control the widget.
 			return evt.UserID == ctx.Message.Author.ID
 		},
 	})
 	if err != nil {
 		ctx.Logger.Error(fmt.Errorf("Error sending comment preview: %w", err))
-		return
 	}
-
-	// This will fail without manage messages permission, that's fine.
-	bot.SuppressEmbeds(ctx.Session, ctx.Message)
 }
 
 func makeCommentEmbed(c *fetch.CommentInfo) *disgord.Embed {
