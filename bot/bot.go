@@ -3,7 +3,6 @@ package bot
 import (
 	"fmt"
 	"regexp"
-	"strings"
 
 	"github.com/andersfylling/disgord"
 )
@@ -50,16 +49,15 @@ func New(info Info) *Bot {
 		Desc:    "Shows the bot help message",
 		Handler: bot.sendHelp,
 	}
-	bot.Client.Gateway().MessageCreate(bot.maybeHandleCommand)
+	bot.Client.Gateway().
+		WithMiddleware(filterMsgCreateNotBot, filterMsgCreatePrefix(bot.Info.Prefix)).
+		MessageCreate(bot.maybeHandleCommand)
 	return &bot
 }
 
 // OnMessageCreate attaches a handler that is called on the message create event.
 func (bot *Bot) OnMessageCreate(handler func(Context, *disgord.MessageCreate)) {
 	wrapped := func(s disgord.Session, evt *disgord.MessageCreate) {
-		if evt.Message.Author == nil || evt.Message.Author.Bot {
-			return
-		}
 		ctx := Context{
 			Bot:     bot,
 			Session: s,
@@ -68,7 +66,7 @@ func (bot *Bot) OnMessageCreate(handler func(Context, *disgord.MessageCreate)) {
 		}
 		handler(ctx, evt)
 	}
-	bot.Client.Gateway().MessageCreate(wrapped)
+	bot.Client.Gateway().WithMiddleware(filterMsgCreateNotBot).MessageCreate(wrapped)
 }
 
 // AddCommand adds a Command to the bot.
@@ -79,12 +77,6 @@ func (bot *Bot) AddCommand(command *Command) {
 
 func (bot *Bot) maybeHandleCommand(s disgord.Session, evt *disgord.MessageCreate) {
 	msg := evt.Message
-	if msg.Author == nil || msg.Author.Bot {
-		return
-	}
-	if !strings.HasPrefix(msg.Content, bot.Info.Prefix) {
-		return
-	}
 	argsNested := argsRe.FindAllStringSubmatch(msg.Content, -1)
 	args := make([]string, len(argsNested))
 	for i := range argsNested {

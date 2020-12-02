@@ -150,14 +150,14 @@ func SendPaginated(
 
 	reactionAddCh := make(chan *disgord.MessageReactionAdd)
 	ctrl := &disgord.Ctrl{Channel: reactionAddCh}
-	session.Gateway().WithCtrl(ctrl).MessageReactionAddChan(reactionAddCh)
+	session.Gateway().
+		WithMiddleware(filterReactionAddForMsg(msg.ID)).
+		WithCtrl(ctrl).
+		MessageReactionAddChan(reactionAddCh)
 
 	for {
 		select {
 		case evt := <-reactionAddCh:
-			if evt.MessageID != msg.ID {
-				break
-			}
 			if handler, ok := reactMap[evt.PartialEmoji.Name]; ok && params.AllowOp(evt) {
 				go handler(evt)
 			}
