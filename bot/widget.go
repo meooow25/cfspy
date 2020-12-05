@@ -24,8 +24,7 @@ type AllowPredicateType func(*disgord.MessageReactionAdd) bool
 
 // PaginateParams aggregates the params required for a paginated message.
 type PaginateParams struct {
-	// Should return the page corresponding to the given page number. Will not be called
-	// concurrently.
+	// Should return the page corresponding to the given page number.
 	GetPage PageGetter
 
 	NumPages        int
@@ -133,8 +132,8 @@ func SendPaginated(
 	reactMap := map[string]func(*disgord.MessageReactionAdd){
 		delSymbol: func(evt *disgord.MessageReactionAdd) {
 			QueryBuilderFor(session, msg).WithContext(ctxWidgetActive).Delete()
-			cancelWidgetCtx()
 			params.DelCallback(evt)
+			cancelWidgetCtx()
 		},
 		prevSymbol: func(evt *disgord.MessageReactionAdd) {
 			go QueryBuilderFor(session, msg).WithContext(ctxWidgetActive).

@@ -45,12 +45,12 @@ func handleProblemURL(ctx bot.Context, problemURL string) {
 		Embed: makeProblemEmbed(problemInfo),
 		MsgCallback: func(*disgord.Message) {
 			// This will fail without manage messages permission, that's fine.
-			bot.SuppressEmbeds(ctx.Session, ctx.Message)
+			go bot.SuppressEmbeds(ctx.Session, ctx.Message)
 		},
 		DeactivateAfter: time.Minute,
 		DelCallback: func(evt *disgord.MessageReactionAdd) {
 			// This will fail without manage messages permission, that's fine.
-			bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
+			go bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
 		},
 		AllowOp: func(evt *disgord.MessageReactionAdd) bool {
 			// Allow only the author to control the widget.

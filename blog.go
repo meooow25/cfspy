@@ -51,12 +51,12 @@ func handleBlogURL(ctx bot.Context, blogURL string) {
 		Embed: makeBlogEmbed(blogInfo),
 		MsgCallback: func(*disgord.Message) {
 			// This will fail without manage messages permission, that's fine.
-			bot.SuppressEmbeds(ctx.Session, ctx.Message)
+			go bot.SuppressEmbeds(ctx.Session, ctx.Message)
 		},
 		DeactivateAfter: time.Minute,
 		DelCallback: func(evt *disgord.MessageReactionAdd) {
 			// This will fail without manage messages permission, that's fine.
-			bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
+			go bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
 		},
 		AllowOp: func(evt *disgord.MessageReactionAdd) bool {
 			// Allow only the author to control the widget.
@@ -114,13 +114,13 @@ func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 		PageToShowFirst: revisionCount,
 		MsgCallback: func(*disgord.Message) {
 			// This will fail without manage messages permission, that's fine.
-			bot.SuppressEmbeds(ctx.Session, ctx.Message)
+			go bot.SuppressEmbeds(ctx.Session, ctx.Message)
 		},
 		DeactivateAfter: time.Minute,
 		DelBtn:          true,
 		DelCallback: func(evt *disgord.MessageReactionAdd) {
 			// This will fail without manage messages permission, that's fine.
-			bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
+			go bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
 		},
 		AllowOp: func(evt *disgord.MessageReactionAdd) bool {
 			// Allow only the author to control the widget.
