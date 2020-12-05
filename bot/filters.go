@@ -15,13 +15,15 @@ func filterMsgCreateNotBot(evt interface{}) interface{} {
 	return evt
 }
 
-// Returns a filter for MessageCreate events, which allows messages with the given prefix only.
-func filterMsgCreatePrefix(prefix string) func(evt interface{}) interface{} {
+// Returns a filter for MessageCreate events, which allows messages with the given prefix only and
+// also strips the prefix from the message.
+func filterMsgCreateStripPrefix(prefix string) func(evt interface{}) interface{} {
 	return func(evt interface{}) interface{} {
 		evtMsgCreate := evt.(*disgord.MessageCreate)
 		if !strings.HasPrefix(evtMsgCreate.Message.Content, prefix) {
 			return nil
 		}
+		evtMsgCreate.Message.Content = evtMsgCreate.Message.Content[len(prefix):]
 		return evt
 	}
 }
