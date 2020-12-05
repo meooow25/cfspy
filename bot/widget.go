@@ -13,6 +13,9 @@ import (
 // PageGetter is a function type that returns a page given the page number.
 type PageGetter func(int) (string, *disgord.Embed)
 
+// MsgCallbackType is the callback function type invoked on message create.
+type MsgCallbackType func(*disgord.Message)
+
 // DelCallbackType is the callback function type invoked on delete.
 type DelCallbackType func(*disgord.MessageReactionAdd)
 
@@ -21,12 +24,14 @@ type AllowPredicateType func(*disgord.MessageReactionAdd) bool
 
 // PaginateParams aggregates the params required for a paginated message.
 type PaginateParams struct {
-	// Should return the page corresponding to the given page number. Will not be called
-	// concurrently.
+	// Should return the page corresponding to the given page number.
 	GetPage PageGetter
 
 	NumPages        int
 	PageToShowFirst int
+
+	// Optional callback invoked when the message is created.
+	MsgCallback MsgCallbackType
 
 	// After this duration the message will not be monitored.
 	DeactivateAfter time.Duration
@@ -47,6 +52,9 @@ type OnePageWithDelParams struct {
 	// The content and embed of the message to send.
 	Content string
 	Embed   *disgord.Embed
+
+	// Optional callback invoked when the message is created.
+	MsgCallback MsgCallbackType
 
 	// After this duration the message will not be monitored.
 	DeactivateAfter time.Duration
@@ -70,17 +78,18 @@ func SendPaginated(
 	params PaginateParams,
 	session disgord.Session,
 	channelID disgord.Snowflake,
-) (*disgord.Message, error) {
+) error {
 	if err := validateAndUpdate(&params, session); err != nil {
-		return nil, err
+		return err
 	}
 
 	currentPage := params.PageToShowFirst
 	content, embed := params.GetPage(currentPage)
 	msg, err := session.WithContext(ctx).SendMsg(channelID, content, embed)
 	if err != nil {
-		return nil, err
+		return err
 	}
+	params.MsgCallback(msg)
 
 	if params.DelBtn {
 		msg.React(ctx, session, delSymbol)
@@ -103,6 +112,7 @@ func SendPaginated(
 	var currentPageLock sync.Mutex
 
 	ctxWidgetActive, cancelWidgetCtx := context.WithTimeout(ctx, params.DeactivateAfter)
+	defer cancelWidgetCtx()
 
 	showPage := func(delta int) {
 		currentPageLock.Lock()
@@ -119,12 +129,11 @@ func SendPaginated(
 		}
 	}
 
-	widgetDeleted := make(chan struct{})
 	reactMap := map[string]func(*disgord.MessageReactionAdd){
 		delSymbol: func(evt *disgord.MessageReactionAdd) {
-			go QueryBuilderFor(session, msg).WithContext(ctx).Delete()
-			close(widgetDeleted)
+			QueryBuilderFor(session, msg).WithContext(ctxWidgetActive).Delete()
 			params.DelCallback(evt)
+			cancelWidgetCtx()
 		},
 		prevSymbol: func(evt *disgord.MessageReactionAdd) {
 			go QueryBuilderFor(session, msg).WithContext(ctxWidgetActive).
@@ -140,32 +149,26 @@ func SendPaginated(
 
 	reactionAddCh := make(chan *disgord.MessageReactionAdd)
 	ctrl := &disgord.Ctrl{Channel: reactionAddCh}
-	session.Gateway().WithCtrl(ctrl).MessageReactionAddChan(reactionAddCh)
+	session.Gateway().
+		WithMiddleware(filterReactionAddForMsg(msg.ID)).
+		WithCtrl(ctrl).
+		MessageReactionAddChan(reactionAddCh)
 
-	go func() {
-		defer cancelWidgetCtx()
-		for {
-			select {
-			case evt := <-reactionAddCh:
-				if evt.MessageID != msg.ID {
-					break
-				}
-				if handler, ok := reactMap[evt.PartialEmoji.Name]; ok && params.AllowOp(evt) {
-					go handler(evt)
-				}
-			case <-widgetDeleted:
-				ctrl.CloseChannel()
-				return
-			case <-ctxWidgetActive.Done():
-				ctrl.CloseChannel()
-				if ctxWidgetActive.Err() == context.DeadlineExceeded {
-					cleanupReacts()
-				}
-				return
+	for {
+		select {
+		case evt := <-reactionAddCh:
+			if handler, ok := reactMap[evt.PartialEmoji.Name]; ok && params.AllowOp(evt) {
+				go handler(evt)
 			}
+		case <-ctxWidgetActive.Done():
+			ctrl.CloseChannel()
+			if ctxWidgetActive.Err() == context.DeadlineExceeded && ctx.Err() == nil {
+				cleanupReacts()
+				return nil
+			}
+			return ctx.Err()
 		}
-	}()
-	return msg, nil
+	}
 }
 
 // SendWithDelBtn sends a message and adds a delete button to it.
@@ -174,7 +177,7 @@ func SendWithDelBtn(
 	params OnePageWithDelParams,
 	session disgord.Session,
 	channelID disgord.Snowflake,
-) (*disgord.Message, error) {
+) error {
 	return SendPaginated(
 		ctx,
 		PaginateParams{
@@ -183,6 +186,7 @@ func SendWithDelBtn(
 			},
 			NumPages:        1,
 			PageToShowFirst: 1,
+			MsgCallback:     params.MsgCallback,
 			DeactivateAfter: params.DeactivateAfter,
 			DelBtn:          true,
 			DelCallback:     params.DelCallback,
@@ -205,6 +209,9 @@ func validateAndUpdate(params *PaginateParams, session disgord.Session) error {
 			"PageToShowFirst must be between 1 and %v, found %v",
 			params.NumPages, params.PageToShowFirst)
 	}
+	if params.MsgCallback == nil {
+		params.MsgCallback = func(*disgord.Message) {}
+	}
 	if params.DeactivateAfter < time.Second {
 		return fmt.Errorf("DeactivateAfter must be at least 1s, found %v", params.DeactivateAfter)
 	}
@@ -213,14 +220,6 @@ func validateAndUpdate(params *PaginateParams, session disgord.Session) error {
 	}
 	if params.AllowOp == nil {
 		params.AllowOp = func(*disgord.MessageReactionAdd) bool { return true }
-	}
-	allowCheck := params.AllowOp
-	params.AllowOp = func(evt *disgord.MessageReactionAdd) bool {
-		user, err := session.User(evt.UserID).Get()
-		if err != nil {
-			return false
-		}
-		return !user.Bot && allowCheck(evt)
 	}
 	return nil
 }

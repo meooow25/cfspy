@@ -3,9 +3,9 @@ package bot
 import (
 	"fmt"
 	"regexp"
-	"strings"
 
 	"github.com/andersfylling/disgord"
+	"github.com/andersfylling/disgord/std"
 )
 
 // Bot is a simple wrapper over a disgord Client. It is not protected by a mutex. Is is ok to
@@ -50,16 +50,16 @@ func New(info Info) *Bot {
 		Desc:    "Shows the bot help message",
 		Handler: bot.sendHelp,
 	}
-	bot.Client.Gateway().MessageCreate(bot.maybeHandleCommand)
+	bot.Client.Gateway().
+		WithMiddleware(
+			filterMsgCreateNotBot, std.CopyMsgEvt, filterMsgCreateStripPrefix(bot.Info.Prefix)).
+		MessageCreate(bot.maybeHandleCommand)
 	return &bot
 }
 
 // OnMessageCreate attaches a handler that is called on the message create event.
 func (bot *Bot) OnMessageCreate(handler func(Context, *disgord.MessageCreate)) {
 	wrapped := func(s disgord.Session, evt *disgord.MessageCreate) {
-		if evt.Message.Author == nil || evt.Message.Author.Bot {
-			return
-		}
 		ctx := Context{
 			Bot:     bot,
 			Session: s,
@@ -68,7 +68,7 @@ func (bot *Bot) OnMessageCreate(handler func(Context, *disgord.MessageCreate)) {
 		}
 		handler(ctx, evt)
 	}
-	bot.Client.Gateway().MessageCreate(wrapped)
+	bot.Client.Gateway().WithMiddleware(filterMsgCreateNotBot).MessageCreate(wrapped)
 }
 
 // AddCommand adds a Command to the bot.
@@ -78,33 +78,23 @@ func (bot *Bot) AddCommand(command *Command) {
 }
 
 func (bot *Bot) maybeHandleCommand(s disgord.Session, evt *disgord.MessageCreate) {
-	msg := evt.Message
-	if msg.Author == nil || msg.Author.Bot {
-		return
-	}
-	if !strings.HasPrefix(msg.Content, bot.Info.Prefix) {
-		return
-	}
-	argsNested := argsRe.FindAllStringSubmatch(msg.Content, -1)
-	args := make([]string, len(argsNested))
-	for i := range argsNested {
-		args[i] = argsNested[i][0]
-	}
-	commandID := args[0][len(bot.Info.Prefix):]
 	ctx := Context{
 		Bot:     bot,
 		Session: s,
-		Message: msg,
-		Args:    args,
+		Message: evt.Message,
 		Logger:  s.Logger(),
 	}
-	if command, ok := bot.commands[commandID]; ok {
+	if ctx.Args = argsRe.FindAllString(evt.Message.Content, -1); ctx.Args == nil {
+		bot.rejectCommand(ctx, "")
+		return
+	}
+	commandID := ctx.Args[0]
+	var ok bool
+	if ctx.Command, ok = bot.commands[commandID]; ok {
 		ctx.Logger.Info("Dispatching command: ", commandID)
-		ctx.Command = command
-		command.Handler(ctx)
+		ctx.Command.Handler(ctx)
 	} else if commandID == bot.helpCommand.ID {
 		ctx.Logger.Info("Dispatching help command")
-		ctx.Command = bot.helpCommand
 		bot.helpCommand.Handler(ctx)
 	} else {
 		bot.rejectCommand(ctx, commandID)
