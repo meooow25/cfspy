@@ -18,7 +18,7 @@ To improve that, CFSpy can
 To answer the common question _"Is Codeforces down?"_, there is a command to ping `codeforces.com`.
 
 ## Sample
-![screenshot](https://i.imgur.com/XCbaFyi.png)
+![screenshot](https://i.imgur.com/oBTlBKz.png)
 
 ## Use it
 
@@ -29,7 +29,7 @@ To answer the common question _"Is Codeforces down?"_, there is a command to pin
 1. To set up a Discord bot, follow [these steps](https://discordpy.readthedocs.io/en/latest/discord.html).
 2. With [Go](https://golang.org/) installed, run
 ```
-$ GO111MODULE=on go get -u github.com/meooow25/cfspy
+$ GO111MODULE=on go get github.com/meooow25/cfspy@latest
 $ TOKEN=<your_bot_token> cfspy
 ```
 
