@@ -5,7 +5,7 @@
 A simple Codeforces utility bot for Discord
 
 #### Who is this for?
-If you have a Discord server where discuss [Codeforces](https://codeforces.com), you could use this bot.
+If you have a Discord server where you discuss [Codeforces](https://codeforces.com), you could use this bot.
 
 ## Features
 Embed link previews for Codeforces URLs on Discord are usually not helpful, because Codeforces does not have the meta tags that Discord looks for.
@@ -29,7 +29,7 @@ To answer the common question _"Is Codeforces down?"_, there is a command to pin
 1. To set up a Discord bot, follow [these steps](https://discordpy.readthedocs.io/en/latest/discord.html).
 2. With [Go](https://golang.org/) installed, run
 ```
-$ go get -u github.com/meooow25/cfspy
+$ GO111MODULE=on go get -u github.com/meooow25/cfspy
 $ TOKEN=<your_bot_token> cfspy
 ```
 
