@@ -25,6 +25,10 @@ func Submission(ctx context.Context, url string) (*SubmissionInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	return parseSubmission(url, doc)
+}
+
+func parseSubmission(url string, doc *goquery.Document) (*SubmissionInfo, error) {
 
 	// Rows are
 	// # | Author | Problem | Lang | Verdict | Time | Memory | Sent | Judged | <Compare>
@@ -48,8 +52,8 @@ func Submission(ctx context.Context, url string) (*SubmissionInfo, error) {
 	s.Problem = infoRow.Eq(2).FindMatcher(problemSelec).Text()
 	s.Language = strings.TrimSpace(infoRow.Eq(3).Text())
 	s.Verdict = strings.TrimSpace(infoRow.Eq(4).Text())
-	s.SentTime, err = parseSubmissionTime(infoRow.Eq(7).Text())
-	if err != nil {
+	var err error
+	if s.SentTime, err = parseSubmissionTime(infoRow.Eq(7).Text()); err != nil {
 		return nil, err
 	}
 	s.Content = doc.FindMatcher(sourceSelec).Text()
