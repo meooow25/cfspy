@@ -87,7 +87,7 @@ func handleSubmissionURL(ctx bot.Context, match *fetch.SubmissionURLMatch) {
 	var content string
 	var embed *disgord.Embed
 	if match.LineBegin == 0 {
-		embed = makeSubmissionEmbed(submissionInfo)
+		embed = makeSubmissionEmbed(submissionInfo, ctx.Logger)
 	} else {
 		content, err = makeCodeSnippet(
 			submissionInfo.Content, submissionInfo.Language, match.LineBegin, match.LineEnd)
@@ -96,7 +96,7 @@ func handleSubmissionURL(ctx bot.Context, match *fetch.SubmissionURLMatch) {
 			return
 		}
 		if bot.ContentTooLong(content) {
-			content, embed = "", makeSubmissionEmbed(submissionInfo)
+			content, embed = "", makeSubmissionEmbed(submissionInfo, ctx.Logger)
 			embed.Description = "Selected lines too large to display"
 		}
 	}
@@ -123,16 +123,39 @@ func handleSubmissionURL(ctx bot.Context, match *fetch.SubmissionURLMatch) {
 	}
 }
 
-func makeSubmissionEmbed(s *fetch.SubmissionInfo) *disgord.Embed {
+func makeSubmissionEmbed(s *fetch.SubmissionInfo, logger disgord.Logger) *disgord.Embed {
 	prefix := ""
 	if s.Verdict == "Accepted" {
 		prefix = "✅ "
 	}
+	var author string
+	var color int
+	switch {
+	case s.Author != nil:
+		author = s.Author.Handle
+		color = s.Author.Color
+	case s.AuthorGhost != "":
+		author = s.AuthorGhost + " 👻"
+		color = 0x999999 // Same color as text on CF
+	case s.AuthorTeam != nil:
+		var handles []string
+		for _, author := range s.AuthorTeam.Authors {
+			handles = append(handles, author.Handle)
+		}
+		author = s.AuthorTeam.Name + ": " + strings.Join(handles, ", ")
+		color = 0x666666 // Darker than ghosts
+	default:
+		logger.Error("No author details in submission info: ", s.URL)
+	}
+	language := s.Language
+	if language == "Unknown" { // Happens for ghosts
+		language = "Unknown language"
+	}
 	return &disgord.Embed{
-		Title:       "Submission for " + s.Problem + " by " + s.AuthorHandle,
+		Title:       "Submission for " + s.Problem + " by " + author,
 		URL:         s.URL,
-		Color:       s.AuthorColor,
-		Description: prefix + s.Verdict + " • " + s.Type + " • " + s.Language,
+		Color:       color,
+		Description: prefix + s.Verdict + " • " + s.Type + " • " + language,
 		Timestamp:   disgord.Time{Time: s.SentTime},
 	}
 }

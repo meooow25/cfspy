@@ -7,6 +7,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.6.0
 	github.com/andersfylling/disgord v0.23.1
 	github.com/andybalholm/cascadia v1.2.0
+	github.com/go-test/deep v1.0.7
 	github.com/google/go-github/v32 v32.1.0
 	github.com/sirupsen/logrus v1.7.0
 	github.com/togatoga/goforces v0.0.0-20200804081705-45bb4957d135

@@ -54,15 +54,30 @@ type ProblemInfo struct {
 	URL           string
 }
 
+// SubmissionInfoAuthor contains submission author information.
+type SubmissionInfoAuthor struct {
+	Handle string
+	Color  int
+}
+
+// SubmissionInfoTeam contains submission author team information.
+type SubmissionInfoTeam struct {
+	Name    string
+	Authors []*SubmissionInfoAuthor
+}
+
 // SubmissionInfo contains submission information.
 type SubmissionInfo struct {
-	AuthorHandle string
-	AuthorColor  int
-	Problem      string
-	Language     string
-	Verdict      string
-	Type         string
-	SentTime     time.Time
-	Content      string
-	URL          string
+	// These are mutually exclusive.
+	Author      *SubmissionInfoAuthor
+	AuthorTeam  *SubmissionInfoTeam
+	AuthorGhost string
+
+	Problem  string
+	Language string
+	Verdict  string
+	Type     string
+	SentTime time.Time
+	Content  string
+	URL      string
 }

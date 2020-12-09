@@ -29,11 +29,13 @@ var (
 
 func parseHandleAndColor(selec *goquery.Selection) (handle string, color int) {
 	handleA := selec.FindMatcher(handleSelec).First()
-	handle = handleA.Text()
-	for _, cls := range strings.Fields(handleA.AttrOr("class", "?!")) {
+	return handleA.Text(), userColor(handleA)
+}
+
+func userColor(userSelec *goquery.Selection) (color int) {
+	for _, cls := range strings.Fields(userSelec.AttrOr("class", "?!")) {
 		if col, ok := colorClsMap[cls]; ok {
-			color = col
-			break
+			return col
 		}
 	}
 	return
