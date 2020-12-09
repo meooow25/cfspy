@@ -14,6 +14,7 @@ func testParseSubmission(t *testing.T, filename string, want *SubmissionInfo) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer f.Close()
 	doc, err := goquery.NewDocumentFromReader(f)
 	if err != nil {
 		t.Fatal(err)
@@ -23,7 +24,7 @@ func testParseSubmission(t *testing.T, filename string, want *SubmissionInfo) {
 		t.Fatal(err)
 	}
 	if diff := deep.Equal(got, want); diff != nil {
-		t.Error(diff)
+		t.Fatal(diff)
 	}
 }
 
