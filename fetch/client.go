@@ -241,3 +241,28 @@ func fetchCommentBrowser(
 	}
 	return jsonResp.Content, nil
 }
+
+// Fetches the avatar URL for a handle using the Codeforces API.
+func fetchAvatar(ctx context.Context, handle string) (string, error) {
+	infos, err := cfAPI.GetUserInfo(ctx, []string{handle})
+	if err != nil {
+		return "", err
+	}
+	return infos[0].Avatar, nil
+}
+
+// Fetcher is a Codeforces info fetcher.
+type Fetcher struct {
+	FetchPage            func(ctx context.Context, url string) (*goquery.Document, error)
+	FetchPageBrowser     func(ctx context.Context, url string) (*goquery.Document, error)
+	FetchCommentRevision func(ctx context.Context, commentID string, revision int, csrfToken string) (string, error)
+	FetchAvatar          func(ctx context.Context, handle string) (string, error)
+}
+
+// DefaultFetcher is the default fetcher that fetches data from Codeforces web and API.
+var DefaultFetcher = Fetcher{
+	FetchPage:            scraperGetDoc,
+	FetchPageBrowser:     scraperGetDocBrowser,
+	FetchCommentRevision: fetchCommentBrowser,
+	FetchAvatar:          fetchAvatar,
+}

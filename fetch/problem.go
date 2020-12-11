@@ -15,18 +15,22 @@ var (
 	contestStatusSelec       = cascadia.MustCompile(".contest-state-phase")
 )
 
+// Problem fetches problem information using the DefaultFetcher.
+func Problem(ctx context.Context, url string) (*ProblemInfo, error) {
+	return DefaultFetcher.Problem(ctx, url)
+}
+
 // Problem fetches problem information. The given URL must be a valid problem URL.
 // TODO: Handle URLs like https://codeforces.com/gym/101002/K, which redirect to a page with the pdf
 // of statements.
-func Problem(ctx context.Context, url string) (*ProblemInfo, error) {
-	doc, err := scraperGetDoc(ctx, url)
+func (f *Fetcher) Problem(ctx context.Context, url string) (*ProblemInfo, error) {
+	doc, err := f.FetchPage(ctx, url)
 	if err != nil {
 		return nil, err
 	}
 
 	var p ProblemInfo
-	p.Name = doc.FindMatcher(problemNameSelec).Text()
-	if p.Name == "" {
+	if p.Name = doc.FindMatcher(problemNameSelec).Text(); p.Name == "" {
 		// Fallback for acmsguru. The name can be in a <div> or a <p>. "center" can be in lower or
 		// caps.
 		p.Name = doc.FindMatcher(problemNameAcmsguruSelec).
@@ -35,6 +39,7 @@ func Problem(ctx context.Context, url string) (*ProblemInfo, error) {
 			}).
 			First().
 			Text()
+		p.Name = strings.TrimSpace(p.Name)
 	}
 	p.ContestName = doc.FindMatcher(contestNameSelec).First().Text()
 	p.ContestStatus = doc.FindMatcher(contestStatusSelec).Text()
