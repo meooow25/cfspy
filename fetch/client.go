@@ -248,7 +248,7 @@ func fetchAvatar(ctx context.Context, handle string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return infos[0].Avatar, nil
+	return withCodeforcesHost(infos[0].Avatar), nil
 }
 
 // Fetcher is a Codeforces info fetcher.
