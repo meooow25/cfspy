@@ -27,6 +27,9 @@ func TestParseBlogURLs(t *testing.T) {
 		{"singleSuppressed", "<https://codeforces.com/blog/entry/123>",
 			nil,
 		},
+		{"singleSpoilered", "||https://codeforces.com/blog/entry/123||",
+			nil,
+		},
 		{"singleWithParams", "https://codeforces.com/blog/entry/123?locale=ru#comment-456&key=value",
 			[]*BlogURLMatch{
 				{URL: "https://codeforces.com/blog/entry/123?locale=ru#comment-456&key=value", CommentID: "456"},
@@ -35,7 +38,8 @@ func TestParseBlogURLs(t *testing.T) {
 		{"multiple",
 			"See https://codeforces.com/blog/entry/123 and https://codeforces.com/blog/entry/456. " +
 				"Also see https://codeforces.com/blog/entry/789#comment-101112 this comment.\n" +
-				"See this suppressed link <https://codeforces.com/blog/entry/131415>.",
+				"See this suppressed link <https://codeforces.com/blog/entry/131415> and this " +
+				"spoilered link ||https://codeforces.com/blog/entry/232425||.",
 			[]*BlogURLMatch{
 				{URL: "https://codeforces.com/blog/entry/123"},
 				{URL: "https://codeforces.com/blog/entry/456"},
@@ -81,6 +85,9 @@ func TestParseProblemURLs(t *testing.T) {
 		{"singleSuppressed", "<https://codeforces.com/contest/123/problem/B>",
 			nil,
 		},
+		{"singleSpoilered", "||https://codeforces.com/contest/123/problem/B||",
+			nil,
+		},
 		{"singleWithParams", "https://codeforces.com/contest/123/problem/B?locale=ru#key=value",
 			[]*ProblemURLMatch{
 				{URL: "https://codeforces.com/contest/123/problem/B?locale=ru#key=value"},
@@ -88,7 +95,8 @@ func TestParseProblemURLs(t *testing.T) {
 		},
 		{"multiple",
 			"See https://codeforces.com/contest/123/problem/B and https://codeforces.com/gym/123456/problem/C. " +
-				"See this suppressed link <https://codeforces.com/problemsets/acmsguru/problem/99999/123>.",
+				"See this suppressed link <https://codeforces.com/problemsets/acmsguru/problem/99999/123> and " +
+				"this spoilered link ||https://codeforces.com/problemsets/acmsguru/problem/99999/456||.",
 			[]*ProblemURLMatch{
 				{URL: "https://codeforces.com/contest/123/problem/B"},
 				{URL: "https://codeforces.com/gym/123456/problem/C"},
@@ -128,13 +136,17 @@ func TestParseSubmissionURLs(t *testing.T) {
 		{"singleSuppressed", "<https://codeforces.com/contest/123/submission/123456>",
 			nil,
 		},
+		{"singleSpoilered", "||https://codeforces.com/contest/123/submission/123456||",
+			nil,
+		},
 		{"singleWithParams", "https://codeforces.com/contest/123/submission/123456?locale=ru#key=value",
 			[]*SubmissionURLMatch{
 				{URL: "https://codeforces.com/contest/123/submission/123456?locale=ru#key=value"},
 			},
 		},
 		{"multiple",
-			"See https://codeforces.com/contest/123/submission/123456 and <https://codeforces.com/gym/123456/submission/54321>. ",
+			"See https://codeforces.com/contest/123/submission/123456 and <https://codeforces.com/gym/123456/submission/54321> " +
+				"and ||https://codeforces.com/gym/123456/submission/54321||. ",
 			[]*SubmissionURLMatch{
 				{URL: "https://codeforces.com/contest/123/submission/123456"},
 			},
