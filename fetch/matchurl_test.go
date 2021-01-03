@@ -1,8 +1,9 @@
 package fetch
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/go-test/deep"
 )
 
 type blogTest struct {
@@ -156,7 +157,7 @@ func TestParseSubmissionURLs(t *testing.T) {
 }
 
 func checkEqual(t *testing.T, expected, got interface{}) {
-	if !reflect.DeepEqual(expected, got) {
-		t.Errorf("Expected %v, got %v", expected, got)
+	if diff := deep.Equal(expected, got); diff != nil {
+		t.Fatal(diff)
 	}
 }
