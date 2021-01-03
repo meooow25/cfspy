@@ -210,7 +210,7 @@ func fetchCommentBrowser(
 	commentID string,
 	revision int,
 	csrfToken string,
-) (string, error) {
+) (*goquery.Document, error) {
 	formData := url.Values{
 		"action":     {"revision"},
 		"commentId":  {commentID},
@@ -229,22 +229,22 @@ func fetchCommentBrowser(
 
 	resp, err := cfScraperBrowser.Do(req)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
-		return "", fmt.Errorf("%v", resp.Status)
+		return nil, fmt.Errorf("%v", resp.Status)
 	}
 	var jsonResp struct {
 		Content string `json:"content"`
 	}
 	if err = json.NewDecoder(resp.Body).Decode(&jsonResp); err != nil {
-		return "", fmt.Errorf("JSON decode error: %w", err)
+		return nil, fmt.Errorf("JSON decode error: %w", err)
 	}
 	if jsonResp.Content == "" {
-		return "", errors.New("'content' not present in JSON response")
+		return nil, errors.New("'content' not present in JSON response")
 	}
-	return jsonResp.Content, nil
+	return goquery.NewDocumentFromReader(strings.NewReader(jsonResp.Content))
 }
 
 // Fetches the avatar URL for a handle using the Codeforces API.
@@ -260,7 +260,7 @@ func fetchAvatar(ctx context.Context, handle string) (string, error) {
 type Fetcher struct {
 	FetchPage            func(ctx context.Context, url string) (*goquery.Document, error)
 	FetchPageBrowser     func(ctx context.Context, url string) (*goquery.Document, error)
-	FetchCommentRevision func(ctx context.Context, commentID string, revision int, csrfToken string) (string, error)
+	FetchCommentRevision func(ctx context.Context, commentID string, revision int, csrfToken string) (*goquery.Document, error)
 	FetchAvatar          func(ctx context.Context, handle string) (string, error)
 }
 

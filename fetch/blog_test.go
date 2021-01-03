@@ -3,9 +3,11 @@ package fetch
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/go-test/deep"
 )
 
@@ -61,11 +63,11 @@ const commentRevFmt = `<div class="ttypography"><p>comment revision %v</p></div>
 func testParseComment(t *testing.T, filename string, commentID string, want *CommentInfo) {
 	f := Fetcher{
 		FetchPageBrowser: pageFetcherFor(filename, "testurl"),
-		FetchCommentRevision: func(_ context.Context, gotCommentID string, revision int, _ string) (string, error) {
+		FetchCommentRevision: func(_ context.Context, gotCommentID string, revision int, _ string) (*goquery.Document, error) {
 			if gotCommentID != commentID {
 				t.Fatalf("got %v, want %v", gotCommentID, commentID)
 			}
-			return fmt.Sprintf(commentRevFmt, revision), nil
+			return goquery.NewDocumentFromReader(strings.NewReader(fmt.Sprintf(commentRevFmt, revision)))
 		},
 	}
 	gotRevCnt, getter, err := f.Comment(context.Background(), "testurl", commentID)

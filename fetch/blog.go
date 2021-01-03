@@ -141,11 +141,7 @@ func (f *Fetcher) Comment(
 				"Expected revision between 1 and %v, got %v", base.RevisionCount, revision)
 		}
 		if _, ok := cache[revision]; !ok {
-			html, err := f.FetchCommentRevision(ctx, commentID, revision, csrf)
-			if err != nil {
-				return nil, err
-			}
-			doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
+			doc, err := f.FetchCommentRevision(ctx, commentID, revision, csrf)
 			if err != nil {
 				return nil, err
 			}
