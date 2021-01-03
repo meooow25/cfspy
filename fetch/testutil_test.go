@@ -18,11 +18,10 @@ func loadHtmlTestFile(filename string) (*goquery.Document, error) {
 }
 
 func pageFetcherFor(filename string, wantURL string) func(context.Context, string) (*goquery.Document, error) {
-	doc, err := loadHtmlTestFile(filename)
 	return func(_ context.Context, url string) (*goquery.Document, error) {
 		if url != wantURL {
 			return nil, fmt.Errorf("got %v, want %v", url, wantURL)
 		}
-		return doc, err
+		return loadHtmlTestFile(filename)
 	}
 }
