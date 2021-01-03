@@ -167,9 +167,8 @@ func parseCommentRevision(comment *goquery.Selection) int {
 	return cnt
 }
 
-func getCommentContent(comment *goquery.Selection) (string, []string) {
+func getCommentContent(comment *goquery.Selection) (markdown string, imgURLs []string) {
 	converter := md.NewConverter("", true, nil)
-	var imgURLs []string
 	converter.AddRules(
 		md.Rule{
 			Filter: []string{"img"},
@@ -203,12 +202,12 @@ func getCommentContent(comment *goquery.Selection) (string, []string) {
 		md.Rule{
 			Filter: []string{"div"},
 			Replacement: func(content string, selec *goquery.Selection, opt *md.Options) *string {
-				toHide := selec.HasClass(spoilerContentCls)
+				hide := selec.HasClass(spoilerContentCls)
 				if parSpoilers := selec.ParentsMatcher(spoilerSelec); parSpoilers.Length() > 0 {
 					// Nested spoiler, only hide the top level spoiler.
-					toHide = false
+					hide = false
 				}
-				if toHide {
+				if hide {
 					content = "\n\n||" + strings.TrimSpace(content) + "||\n\n"
 				}
 				return &content
@@ -217,7 +216,7 @@ func getCommentContent(comment *goquery.Selection) (string, []string) {
 	)
 	converter.Use(plugin.Strikethrough("~~"))
 
-	markdown := converter.Convert(comment.FindMatcher(contentSelec))
+	markdown = converter.Convert(comment.FindMatcher(contentSelec))
 
 	// Replace LaTeX delimiter $$$ with $ because it looks ugly.
 	// TODO: Maybe Unicode symbols can be used in simple cases.
