@@ -167,6 +167,10 @@ func scraperGetDocInternal(ctx context.Context, url string, client *http.Client)
 	if match := errorMsgRe.FindStringSubmatch(scripts.Text()); match != nil {
 		return nil, errors.New(match[1])
 	}
+	// If the page is not public, Codeforces redirects to the login page.
+	if doc.Url.Path == "/enter" {
+		return nil, errors.New("Login is required to access this page")
+	}
 	return doc, nil
 }
 
@@ -193,6 +197,7 @@ func fetch(ctx context.Context, url string, client *http.Client) (*goquery.Docum
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing HTML from %v: %w", url, err)
 	}
+	doc.Url = resp.Request.URL
 	return doc, nil
 }
 

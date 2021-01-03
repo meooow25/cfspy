@@ -95,7 +95,8 @@ func (bot *Bot) maybeHandleCommand(s disgord.Session, evt *disgord.MessageCreate
 		ctx.Command.Handler(ctx)
 	} else if commandID == bot.helpCommand.ID {
 		ctx.Logger.Info("Dispatching help command")
-		bot.helpCommand.Handler(ctx)
+		ctx.Command = bot.helpCommand
+		ctx.Command.Handler(ctx)
 	} else {
 		bot.rejectCommand(ctx, commandID)
 	}

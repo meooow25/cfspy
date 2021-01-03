@@ -67,6 +67,8 @@ func main() {
 func relevantEvents() []string {
 	// https://discord.com/developers/docs/topics/gateway#list-of-intents
 	return []string{
+		disgord.EvtReady,
+		disgord.EvtResumed,
 		// Guilds intent
 		disgord.EvtGuildCreate,
 		disgord.EvtGuildUpdate,

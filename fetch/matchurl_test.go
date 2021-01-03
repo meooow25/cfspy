@@ -156,6 +156,23 @@ func TestParseSubmissionURLs(t *testing.T) {
 	}
 }
 
+func TestRemoveSpoilers(t *testing.T) {
+	tests := []struct {
+		input string
+		want  string
+	}{
+		{"no spoiler", "no spoiler"},
+		{"||some spoiler||", ""},
+		{"partial ||spoiler|| text", "partial  text"},
+		{"a || b || c || d || e", "a  c  e"},
+		{"complete ||spoiler|| incomplete ||spoiler", "complete  incomplete ||spoiler"},
+		{"!||s|p|o|i|l|e|r||!", "!!"},
+	}
+	for _, test := range tests {
+		checkEqual(t, test.want, removeSpoilers(test.input))
+	}
+}
+
 func checkEqual(t *testing.T, expected, got interface{}) {
 	if diff := deep.Equal(expected, got); diff != nil {
 		t.Fatal(diff)
