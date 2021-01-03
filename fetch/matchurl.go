@@ -16,8 +16,8 @@ var (
 )
 
 // ParseBlogURLs parses Codeforces blog URLS from the given string.
-func ParseBlogURLs(s string) []BlogURLMatch {
-	var matches []BlogURLMatch
+func ParseBlogURLs(s string) []*BlogURLMatch {
+	var matches []*BlogURLMatch
 	for _, idx := range blogURLRe.FindAllStringSubmatchIndex(s, -1) {
 		if checkEmbedsSuppressed(s, idx[0], idx[1]) {
 			continue
@@ -34,14 +34,14 @@ func ParseBlogURLs(s string) []BlogURLMatch {
 		if len(commentMatch) > 0 {
 			match.CommentID = commentMatch[1]
 		}
-		matches = append(matches, match)
+		matches = append(matches, &match)
 	}
 	return matches
 }
 
 // ParseProblemURLs parses Codeforces problem URLS from the given string.
-func ParseProblemURLs(s string) []ProblemURLMatch {
-	var matches []ProblemURLMatch
+func ParseProblemURLs(s string) []*ProblemURLMatch {
+	var matches []*ProblemURLMatch
 	for _, idx := range problemURLRe.FindAllStringSubmatchIndex(s, -1) {
 		if checkEmbedsSuppressed(s, idx[0], idx[1]) {
 			continue
@@ -53,14 +53,14 @@ func ParseProblemURLs(s string) []ProblemURLMatch {
 		match := ProblemURLMatch{
 			URL: urlMatch,
 		}
-		matches = append(matches, match)
+		matches = append(matches, &match)
 	}
 	return matches
 }
 
 // ParseSubmissionURLs parses Codeforces submission URLs from the given string.
-func ParseSubmissionURLs(s string) []SubmissionURLMatch {
-	var matches []SubmissionURLMatch
+func ParseSubmissionURLs(s string) []*SubmissionURLMatch {
+	var matches []*SubmissionURLMatch
 	for _, idx := range submissionURLRe.FindAllStringSubmatchIndex(s, -1) {
 		if checkEmbedsSuppressed(s, idx[0], idx[1]) {
 			continue
@@ -84,7 +84,7 @@ func ParseSubmissionURLs(s string) []SubmissionURLMatch {
 				match.LineBegin, match.LineEnd = match.LineEnd, match.LineBegin
 			}
 		}
-		matches = append(matches, match)
+		matches = append(matches, &match)
 	}
 	return matches
 }

@@ -68,7 +68,7 @@ func maybeHandleSubmissionURL(ctx bot.Context, evt *disgord.MessageCreate) {
 			return
 		}
 		first := submissionURLMatches[0]
-		handleSubmissionURL(ctx, &first)
+		handleSubmissionURL(ctx, first)
 	}()
 }
 
