@@ -128,6 +128,6 @@ func TestParseComment(t *testing.T) {
 		}
 		testParseComment(t, "blog_entry_80031.html", "661717", want)
 	})
-
-	// TODO: Add a test for cmment with images
 }
+
+// TODO: Add tests for various comment contents (formattings, spoilers, images, etc)
