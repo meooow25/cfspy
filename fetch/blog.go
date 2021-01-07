@@ -32,20 +32,25 @@ var (
 	csrfTokenSelec     = cascadia.MustCompile(`meta[name="X-Csrf-Token"]`)
 )
 
+// Blog fetches blog information using the DefaultFetcher.
+func Blog(ctx context.Context, url string) (*BlogInfo, error) {
+	return DefaultFetcher.Blog(ctx, url)
+}
+
 // Blog fetches blog information. The given URL must be a valid blog URL.
 //
 // Scrapes instead of using the API because a preview will be added but the blog content is not
 // available through the API.
 // TODO: Use blog content.
-func Blog(ctx context.Context, url string) (*BlogInfo, error) {
-	doc, err := scraperGetDoc(ctx, url)
+func (f *Fetcher) Blog(ctx context.Context, url string) (*BlogInfo, error) {
+	doc, err := f.FetchPage(ctx, url)
 	if err != nil {
 		return nil, err
 	}
 
 	var b BlogInfo
 	b.URL = url
-	b.Title = doc.FindMatcher(titleSelec).First().Text()
+	b.Title = strings.TrimSpace(doc.FindMatcher(titleSelec).First().Text())
 	blogDiv := doc.FindMatcher(blogSelec)
 	b.AuthorHandle, b.AuthorColor = parseHandleAndColor(blogDiv)
 	if b.CreationTime, err = parseTime(blogDiv); err != nil {
@@ -65,14 +70,21 @@ func Blog(ctx context.Context, url string) (*BlogInfo, error) {
 	} else {
 		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
-		infos, err := cfAPI.GetUserInfo(ctx, []string{b.AuthorHandle})
-		if err != nil {
+		if b.AuthorAvatar, err = f.FetchAvatar(ctx, b.AuthorHandle); err != nil {
 			return nil, err
 		}
-		b.AuthorAvatar = withCodeforcesHost(infos[0].Avatar)
 	}
 
 	return &b, nil
+}
+
+// Comment fetches comment information using the DefaultFetcher.
+func Comment(
+	ctx context.Context,
+	url string,
+	commentID string,
+) (revisionCount int, getter CommentInfoGetter, err error) {
+	return DefaultFetcher.Comment(ctx, url, commentID)
 }
 
 // CommentInfoGetter is a function that returns the comment info for a given revision.
@@ -86,12 +98,12 @@ type CommentInfoGetter func(revision int) (*CommentInfo, error)
 // - It's just easier, the comment and author details are together.
 // - Some comments in Russian locale seems to be missing from the API.
 // - Scraping allows access to different revisions.
-func Comment(
+func (f *Fetcher) Comment(
 	ctx context.Context,
 	url string,
 	commentID string,
 ) (revisionCount int, getter CommentInfoGetter, err error) {
-	doc, err := scraperGetDocBrowser(ctx, url)
+	doc, err := f.FetchPageBrowser(ctx, url)
 	if err != nil {
 		return
 	}
@@ -103,7 +115,7 @@ func Comment(
 
 	var base CommentInfo
 	base.URL = url
-	base.BlogTitle = doc.FindMatcher(titleSelec).First().Text()
+	base.BlogTitle = strings.TrimSpace(doc.FindMatcher(titleSelec).First().Text())
 	avatarDiv := comment.FindMatcher(commentAvatarSelec)
 	if base.CreationTime, err = parseTime(comment); err != nil {
 		return
@@ -129,11 +141,7 @@ func Comment(
 				"Expected revision between 1 and %v, got %v", base.RevisionCount, revision)
 		}
 		if _, ok := cache[revision]; !ok {
-			html, err := fetchCommentBrowser(ctx, commentID, revision, csrf)
-			if err != nil {
-				return nil, err
-			}
-			doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
+			doc, err := f.FetchCommentRevision(ctx, commentID, revision, csrf)
 			if err != nil {
 				return nil, err
 			}
@@ -155,9 +163,8 @@ func parseCommentRevision(comment *goquery.Selection) int {
 	return cnt
 }
 
-func getCommentContent(comment *goquery.Selection) (string, []string) {
+func getCommentContent(comment *goquery.Selection) (markdown string, imgURLs []string) {
 	converter := md.NewConverter("", true, nil)
-	var imgURLs []string
 	converter.AddRules(
 		md.Rule{
 			Filter: []string{"img"},
@@ -191,12 +198,12 @@ func getCommentContent(comment *goquery.Selection) (string, []string) {
 		md.Rule{
 			Filter: []string{"div"},
 			Replacement: func(content string, selec *goquery.Selection, opt *md.Options) *string {
-				toHide := selec.HasClass(spoilerContentCls)
+				hide := selec.HasClass(spoilerContentCls)
 				if parSpoilers := selec.ParentsMatcher(spoilerSelec); parSpoilers.Length() > 0 {
 					// Nested spoiler, only hide the top level spoiler.
-					toHide = false
+					hide = false
 				}
-				if toHide {
+				if hide {
 					content = "\n\n||" + strings.TrimSpace(content) + "||\n\n"
 				}
 				return &content
@@ -205,7 +212,7 @@ func getCommentContent(comment *goquery.Selection) (string, []string) {
 	)
 	converter.Use(plugin.Strikethrough("~~"))
 
-	markdown := converter.Convert(comment.FindMatcher(contentSelec))
+	markdown = converter.Convert(comment.FindMatcher(contentSelec))
 
 	// Replace LaTeX delimiter $$$ with $ because it looks ugly.
 	// TODO: Maybe Unicode symbols can be used in simple cases.

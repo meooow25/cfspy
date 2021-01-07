@@ -5,22 +5,18 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	urlpkg "net/url"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
-// Utility to download, clean, and save a submission page
+// Utility to download, clean, and save a Codeforces page
 func main() {
-	subURL := flag.String("url", "", "submission URL")
+	url := flag.String("url", "", "Codeforces URL")
 	flag.Parse()
 
-	// https://codeforces.com/contest/<cid>/submission/<sid>
-	pieces := strings.Split(*subURL, "/")
-	contestID := pieces[4]
-	submissionID := pieces[6]
-
-	resp, err := http.Get(*subURL)
+	resp, err := http.Get(*url)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,5 +55,8 @@ func main() {
 	}
 	html = strings.Join(lines[:i], "\n")
 
-	ioutil.WriteFile(contestID+"_"+submissionID+".html", []byte(html), 0644)
+	u, _ := urlpkg.Parse(*url)
+	filename := strings.ReplaceAll(u.Path[1:], "/", "_") + ".html"
+
+	ioutil.WriteFile(filename, []byte(html), 0644)
 }

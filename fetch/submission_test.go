@@ -1,25 +1,18 @@
 package fetch
 
 import (
-	"os"
+	"context"
 	"testing"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/go-test/deep"
 )
 
 func testParseSubmission(t *testing.T, filename string, want *SubmissionInfo) {
-	f, err := os.Open("testdata/" + filename)
-	if err != nil {
-		t.Fatal(err)
+	f := Fetcher{
+		FetchPage: pageFetcherFor(filename, "testurl"),
 	}
-	defer f.Close()
-	doc, err := goquery.NewDocumentFromReader(f)
-	if err != nil {
-		t.Fatal(err)
-	}
-	got, err := parseSubmission("testurl", doc)
+	got, err := f.Submission(context.Background(), "testurl")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +36,7 @@ func TestParseSubmission(t *testing.T) {
 			URL:      "testurl",
 			Content:  "x=input()\n",
 		}
-		testParseSubmission(t, "1267_66681791.html", want)
+		testParseSubmission(t, "contest_1267_submission_66681791.html", want)
 	})
 
 	t.Run("ghost", func(t *testing.T) {
@@ -56,7 +49,7 @@ func TestParseSubmission(t *testing.T) {
 			SentTime:    time.Date(2019, 12, 02, 11, 25, 44, 0, time.UTC),
 			URL:         "testurl",
 		}
-		testParseSubmission(t, "1267_66173991.html", want)
+		testParseSubmission(t, "contest_1267_submission_66173991.html", want)
 	})
 
 	t.Run("team", func(t *testing.T) {
@@ -94,6 +87,6 @@ int main()
 }
 `,
 		}
-		testParseSubmission(t, "1267_66109629.html", want)
+		testParseSubmission(t, "contest_1267_submission_66109629.html", want)
 	})
 }

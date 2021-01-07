@@ -1,0 +1,1845 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"><html lang="en"><head>
+    <title>EDU: Segment Tree, part 1 - Codeforces</title>
+    <!--CombineResourcesFilter-->
+    <!-- MathJax -->
+    <!-- /MathJax -->
+    <!--/CombineResourcesFilter-->
+    <!--[if IE]>
+    <style>
+        #sidebar {
+            padding-left: 1em;
+            margin: 1em 1em 1em 0;
+        }
+    </style>
+    <![endif]-->
+</head>
+<body class=" "><span style="display:none;" class="csrf-token" data-csrf="2e3cd40e50c312e1033062e9a8ba85c5"> </span>
+<!-- .notificationTextCleaner used in Codeforces.showAnnouncements() -->
+<div class="notificationTextCleaner" style="font-size: 0"></div>
+<div class="button-up" style="display: none; opacity: 0.7; width: 50px; height:100%; position: fixed; left: 0; top: 0; cursor: pointer; text-align: center; line-height: 35px; color: #d3dbe4; font-weight: bold; font-size: 3.0rem;"><i class="icon-circle-arrow-up"></i></div>
+<div class="verdictPrototypeDiv" style="display: none;"></div>
+<!-- Codeforces JavaScripts. -->
+<div id="body">
+<div class="side-bell" style="visibility: hidden; display: none; opacity: 0.7; width: 40px; position: fixed; right: 0; top: 0; cursor: pointer; text-align: center; line-height: 35px; color: #d3dbe4; font-weight: bold; font-size: 1.5rem;">
+    <span class="icon-stack" style="width: 100%;">
+        <i class="icon-circle icon-stack-base"></i>
+        <i class="icon-bell-alt icon-light"></i>
+    </span>
+    <br/>
+    <span class="side-bell__count" style="position: relative; top: -10px;"></span>
+</div>
+<div id="header" style="position: relative;">
+    <div style="float:left;">
+            <a href="/"><img style="height: 50px; margin-top: 10px;" title="Make Codeforces, not Coronaforces" alt="Make Codeforces not Coronaforces" src="//sta.codeforces.com/s/95669/images/codeforces-vs-coronavirus-65.png"/></a>
+    </div>
+    <div class="lang-chooser">
+        <div style="text-align: right;">
+            <a href="?locale=en"><img src="//sta.codeforces.com/s/95669/images/flags/24/gb.png" title="In English" alt="In English"/></a>
+            <a href="?locale=ru"><img src="//sta.codeforces.com/s/95669/images/flags/24/ru.png" title="По-русски" alt="По-русски"/></a>
+        </div>
+        <div>
+                        <a href="/enter?back=%2Fblog%2Fentry%2F80031">Enter</a>
+                     | 
+                        <a href="/register">Register</a>
+        </div>
+    </div>
+    <br style="clear: both;"/>
+</div>
+    <div class="roundbox menu-box" style="">
+            <div class="roundbox-lt"> </div>
+            <div class="roundbox-rt"> </div>
+            <div class="roundbox-lb"> </div>
+            <div class="roundbox-rb"> </div>
+    <div class="menu-list-container">
+    <ul class="menu-list main-menu-list">
+                <li class=""><a href="/">Home</a></li>
+                <li class=""><a href="/top">Top</a></li>
+                <li class=""><a href="/contests">Contests</a></li>
+                <li class=""><a href="/gyms">Gym</a></li>
+                <li class=""><a href="/problemset">Problemset</a></li>
+                <li class=""><a href="/groups">Groups</a></li>
+                <li class=""><a href="/ratings">Rating</a></li>
+                <li class=""><a href="/edu/courses"><span class="edu-menu-item">Edu</span></a></li>
+                <li class=""><a href="/apiHelp">API</a></li>
+                <li class=""><a href="/calendar">Calendar</a></li>
+                <li class=""><a href="/help">Help</a></li>
+    </ul>
+        <form method="post" action="/search"><input type="hidden" name="csrf_token" value="2e3cd40e50c312e1033062e9a8ba85c5"/>
+            <input class="search" name="query" data-isplaceholder="true" value=""/>
+        </form>
+    <br style="clear: both;"/>
+</div>
+    </div>
+            <br style="height: 3em; clear: both;"/>
+        <div style="position: relative;">
+                        <div id="sidebar">
+    <div class="roundbox sidebox" style="">
+            <div class="roundbox-lt"> </div>
+            <div class="roundbox-rt"> </div>
+        <div class="caption titled">→ Pay attention
+            <div class="top-links">
+            </div>
+        </div>
+<div style="padding: 0.5em;">
+        <div style="text-align:center;border-bottom: 1px solid rgb(185, 185, 185);margin:0 -0.5em 0.5em -0.5em;padding: 0 1em 0.5em 1em;">
+            <span class="contest-state-phase">Before contest</span><br/><a href="/contests/1462">Codeforces Round #690 (Div. 3)</a><br/><span class="countdown" home="//sta.codeforces.com/s/95669" noredirection="true" textbeforeredirect=""><span title="92:30:55">4 days</span></span>
+        </div>
+        <div style="text-align:center;">
+            <div class="socials" style="text-align: left;">
+                <div style="margin-top: 0.85em;position: relative;">
+        <div id="fb-root"></div>
+        <div class="fb-like" data-href="//codeforces.com/contests/1462" data-send="false" data-width="256" data-show-faces="false" data-font="arial" data-ref="1511455"></div>
+        </div>
+</div>
+        </div>
+</div>
+    </div>
+    <div class="roundbox sidebox" style="">
+            <div class="roundbox-lt"> </div>
+            <div class="roundbox-rt"> </div>
+        <div class="caption titled">→ Streams
+            <div class="top-links">
+            </div>
+        </div>
+            <div class="_StreamsSidebarFrame_frame">
+                    <div class="_StreamsSidebarFrame_stream">
+                        <div class="_StreamsSidebarFrame_name">
+        <p class="_englishName _name">
+            <a href="/stream/89">Round #689 (Div. 2) post-contest discussion</a>
+        </p>
+                        </div>
+                        <div class="_StreamsSidebarFrame_user">
+                            By <a href="/profile/neal" title="International Grandmaster neal" class="rated-user user-red">neal</a>
+                        </div>
+                            <div class="_StreamsSidebarFrame_active _StreamsSidebarFrame_timeMark">
+                                <span>Stream is running</span>
+                            </div>
+                    </div>
+                    <div class="_StreamsSidebarFrame_stream">
+                        <div class="_StreamsSidebarFrame_name">
+        <p class="_englishName _name">
+            <a href="/stream/97">Medium Level Graph Problems (see my blog for mashup link)</a>
+        </p>
+                        </div>
+                        <div class="_StreamsSidebarFrame_user">
+                            By <a href="/profile/demoralizer" title="Grandmaster demoralizer" class="rated-user user-red">demoralizer</a>
+                        </div>
+                            <div class="_StreamsSidebarFrame_countdown _StreamsSidebarFrame_timeMark">
+                                Before stream
+                                <span class="countdown" noredirection="true">20:55:55</span>
+                            </div>
+                    </div>
+                    <div class="_StreamsSidebarFrame_stream">
+                        <div class="_StreamsSidebarFrame_name">
+        <p class="_englishName _name">
+            <a href="/stream/86">North America ICPC Practice ft. Kuroni</a>
+        </p>
+                        </div>
+                        <div class="_StreamsSidebarFrame_user">
+                            By <a href="/profile/Monogon" title="Grandmaster Monogon" class="rated-user user-red">Monogon</a>
+                        </div>
+                            <div class="_StreamsSidebarFrame_countdown _StreamsSidebarFrame_timeMark">
+                                Before stream
+                                <span class="countdown" noredirection="true">23:55:55</span>
+                            </div>
+                    </div>
+                    <div class="_StreamsSidebarFrame_stream">
+                        <div class="_StreamsSidebarFrame_name">
+        <p class="_englishName _name">
+            <a href="/stream/90">North America ICPC Practice ft. Monogon</a>
+        </p>
+                        </div>
+                        <div class="_StreamsSidebarFrame_user">
+                            By <a href="/profile/Kuroni" title="International Grandmaster Kuroni" class="rated-user user-red">Kuroni</a>
+                        </div>
+                            <div class="_StreamsSidebarFrame_countdown _StreamsSidebarFrame_timeMark">
+                                Before stream
+                                <span class="countdown" noredirection="true">23:55:55</span>
+                            </div>
+                    </div>
+                    <div class="_StreamsSidebarFrame_stream">
+                        <div class="_StreamsSidebarFrame_name">
+        <p class="_englishName _name">
+            <a href="/stream/91">Number Theory Problems (see my blog for mashup)</a>
+        </p>
+                        </div>
+                        <div class="_StreamsSidebarFrame_user">
+                            By <a href="/profile/AnandOza" title="Grandmaster AnandOza" class="rated-user user-red">AnandOza</a>
+                        </div>
+                            <div class="_StreamsSidebarFrame_countdown _StreamsSidebarFrame_timeMark">
+                                Before stream
+                                <span class="countdown" noredirection="true">30:55:55</span>
+                            </div>
+                    </div>
+            </div>
+            <div class="bottom-links">
+                <table style="width:100%;">
+                    <tbody>
+                        <tr>
+                            <td style="text-align:left;">
+                            </td>
+                            <td style="text-align:right;">
+                                    <a href="/streams">View all →</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+    </div>
+<div class="roundbox sidebox top-contributed" style="">
+<div class="roundbox-lt"> </div>
+<div class="roundbox-rt"> </div>
+<div class="caption titled">→ Top rated
+<div class="top-links">
+</div>
+</div>
+<table class="rtable ">
+<tbody>
+<tr>
+<th class="left" style="width:2.25em;">#</th>
+<th class="">User</th>
+<th class="" style="width:5em;">Rating</th>
+</tr>
+<tr>
+<td class="left dark">1</td>
+<td class=" dark"><a href="/profile/tourist" title="Legendary Grandmaster tourist" class="rated-user user-legendary"><span class="legendary-user-first-letter">t</span>ourist</a></td>
+<td class=" dark">3712</td>
+</tr>
+<tr>
+<td class="left ">2</td>
+<td class=""><a href="/profile/Benq" title="Legendary Grandmaster Benq" class="rated-user user-legendary"><span class="legendary-user-first-letter">B</span>enq</a></td>
+<td class="">3633</td>
+</tr>
+<tr>
+<td class="left dark">3</td>
+<td class=" dark"><a href="/profile/ecnerwala" title="Legendary Grandmaster ecnerwala" class="rated-user user-legendary"><span class="legendary-user-first-letter">e</span>cnerwala</a></td>
+<td class=" dark">3629</td>
+</tr>
+<tr>
+<td class="left ">4</td>
+<td class=""><a href="/profile/Um_nik" title="Legendary Grandmaster Um_nik" class="rated-user user-legendary"><span class="legendary-user-first-letter">U</span>m_nik</a></td>
+<td class="">3429</td>
+</tr>
+<tr>
+<td class="left dark">5</td>
+<td class=" dark"><a href="/profile/ksun48" title="Legendary Grandmaster ksun48" class="rated-user user-legendary"><span class="legendary-user-first-letter">k</span>sun48</a></td>
+<td class=" dark">3424</td>
+</tr>
+<tr>
+<td class="left ">6</td>
+<td class=""><a href="/profile/Radewoosh" title="Legendary Grandmaster Radewoosh" class="rated-user user-legendary"><span class="legendary-user-first-letter">R</span>adewoosh</a></td>
+<td class="">3382</td>
+</tr>
+<tr>
+<td class="left dark">7</td>
+<td class=" dark"><a href="/profile/maroonrk" title="Legendary Grandmaster maroonrk" class="rated-user user-legendary"><span class="legendary-user-first-letter">m</span>aroonrk</a></td>
+<td class=" dark">3334</td>
+</tr>
+<tr>
+<td class="left ">8</td>
+<td class=""><a href="/profile/ainta" title="Legendary Grandmaster ainta" class="rated-user user-legendary"><span class="legendary-user-first-letter">a</span>inta</a></td>
+<td class="">3318</td>
+</tr>
+<tr>
+<td class="left dark">9</td>
+<td class=" dark"><a href="/profile/jiangly" title="Legendary Grandmaster jiangly" class="rated-user user-legendary"><span class="legendary-user-first-letter">j</span>iangly</a></td>
+<td class=" dark">3307</td>
+</tr>
+<tr>
+<td class="left bottom">10</td>
+<td class="bottom"><a href="/profile/yosupo" title="Legendary Grandmaster yosupo" class="rated-user user-legendary"><span class="legendary-user-first-letter">y</span>osupo</a></td>
+<td class="bottom">3243</td>
+</tr>
+</tbody>
+</table>
+<div class="bottom-links">
+<table style="width:100%;">
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="/ratings/countries">Countries</a> |
+<a href="/ratings/cities">Cities</a> |
+<a href="/ratings/organizations">Organizations</a>
+</td>
+<td style="text-align:right;">
+<a href="/ratings">View all →</a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div><div class="roundbox sidebox top-contributed" style="">
+            <div class="roundbox-lt"> </div>
+            <div class="roundbox-rt"> </div>
+        <div class="caption titled">→ Top contributors
+            <div class="top-links">
+            </div>
+        </div>
+        <table class="rtable ">
+            <tbody>
+                <tr>
+                            <th class="left" style="width:2.25em;">#</th>
+                            <th class="">User</th>
+                            <th class="" style="width:5em;">Contrib.</th>
+                </tr>
+                    <tr>
+                                <td class="left  dark">1</td>
+                                <td class=" dark"><a href="/profile/Monogon" title="Grandmaster Monogon" class="rated-user user-red">Monogon</a></td>
+                                <td class=" dark">206</td>
+                    </tr>
+                    <tr>
+                                <td class="left ">2</td>
+                                <td class=""><a href="/profile/Errichto" title="Legendary Grandmaster Errichto" class="rated-user user-legendary"><span class="legendary-user-first-letter">E</span>rrichto</a></td>
+                                <td class="">204</td>
+                    </tr>
+                    <tr>
+                                <td class="left  dark">3</td>
+                                <td class=" dark"><a href="/profile/SecondThread" title="International Grandmaster SecondThread" class="rated-user user-red">SecondThread</a></td>
+                                <td class=" dark">201</td>
+                    </tr>
+                    <tr>
+                                <td class="left ">4</td>
+                                <td class=""><a href="/profile/vovuh" title="Master vovuh" class="rated-user user-orange">vovuh</a></td>
+                                <td class="">189</td>
+                    </tr>
+                    <tr>
+                                <td class="left  dark">5</td>
+                                <td class=" dark"><a href="/profile/Um_nik" title="Legendary Grandmaster Um_nik" class="rated-user user-legendary"><span class="legendary-user-first-letter">U</span>m_nik</a></td>
+                                <td class=" dark">187</td>
+                    </tr>
+                    <tr>
+                                <td class="left ">6</td>
+                                <td class=""><a href="/profile/pikmike" title="Grandmaster pikmike" class="rated-user user-red">pikmike</a></td>
+                                <td class="">184</td>
+                    </tr>
+                    <tr>
+                                <td class="left  dark">6</td>
+                                <td class=" dark"><a href="/profile/antontrygubO_o" title="International Grandmaster antontrygubO_o" class="rated-user user-red">antontrygubO_o</a></td>
+                                <td class=" dark">184</td>
+                    </tr>
+                    <tr>
+                                <td class="left ">8</td>
+                                <td class=""><a href="/profile/Ashishgup" title="Grandmaster Ashishgup" class="rated-user user-red">Ashishgup</a></td>
+                                <td class="">175</td>
+                    </tr>
+                    <tr>
+                                <td class="left  dark">9</td>
+                                <td class=" dark"><a href="/profile/pashka" title="International Grandmaster pashka" class="rated-user user-red">pashka</a></td>
+                                <td class=" dark">169</td>
+                    </tr>
+                    <tr>
+                                <td class="left bottom">10</td>
+                                <td class="bottom"><a href="/profile/-is-this-fft-" title="Grandmaster -is-this-fft-" class="rated-user user-red">-is-this-fft-</a></td>
+                                <td class="bottom">166</td>
+                    </tr>
+            </tbody>
+        </table>
+            <div class="bottom-links">
+                <table style="width:100%;">
+                    <tbody>
+                        <tr>
+                            <td style="text-align:left;">
+                            </td>
+                            <td style="text-align:right;">
+                                    <a href="/top-contributed">View all →</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+    </div>
+    <div class="roundbox sidebox" style="">
+            <div class="roundbox-lt"> </div>
+            <div class="roundbox-rt"> </div>
+        <div class="caption titled">→ Find user
+            <div class="top-links">
+            </div>
+        </div>
+        <form class="handleForm" method="post"><input type="hidden" name="csrf_token" value="2e3cd40e50c312e1033062e9a8ba85c5"/>
+            <div style="padding:1em;text-align:right;">
+                <label style="padding-right:1em;">Handle:
+                    <input style="width:12em;" type="text" class="handleBox"/>
+                </label>
+            </div>
+            <div style="padding: 0 1em 1em 1em;text-align:right;">
+                <input style="height:1.65em;padding:0 0.75em;" type="submit" value="Find"/>
+            </div>
+        </form>
+    </div>
+<div class="roundbox sidebox" style="">
+            <div class="roundbox-lt"> </div>
+            <div class="roundbox-rt"> </div>
+        <div class="caption titled">→ Recent actions
+            <div class="top-links">
+            </div>
+        </div>
+        <div class="recent-actions">
+            <ul>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/AleXman111" title="Candidate Master AleXman111" class="rated-user user-violet">AleXman111</a>        →
+        <a href="/blog/entry/85491">Codeforces Round #689 (Div. 2). Editorial</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/Vladik" title="Master Vladik" class="rated-user user-orange">Vladik</a>        →
+        <a href="/blog/entry/85463">Codeforces Round #689 (Div. 2), based on Zed Code Competition 2020</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/beginner1010" title="Expert beginner1010" class="rated-user user-blue">beginner1010</a>        →
+        <a href="/blog/entry/76087">Cool Code Snippet for Debugging</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/mohammedehab2002" title="Grandmaster mohammedehab2002" class="rated-user user-red">mohammedehab2002</a>        →
+        <a href="/blog/entry/85137">[GYM] ECPC 2019 Kickoff</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/NercNews" title="Unrated, NercNews" class="rated-user user-black">NercNews</a>        →
+        <a href="/blog/entry/85241">ICPC NERC Huawei Challenge — Cloud Scheduling Challenge</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/geranazavr555" title="Headquarters, geranazavr555" class="rated-user user-admin">geranazavr555</a>        →
+        <a href="/blog/entry/83939">Streams on Codeforces</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/Lewin" title="Grandmaster Lewin" class="rated-user user-red">Lewin</a>        →
+        <a href="/blog/entry/18842">Codeforces Round #309 Editorial</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/SpentoO" title="Unrated, SpentoO" class="rated-user user-black">SpentoO</a>        →
+        <a href="/blog/entry/85492">How many hours do you solve problems every day?</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/Osama_Alkhodairy" title="Master Osama_Alkhodairy" class="rated-user user-orange">Osama_Alkhodairy</a>        →
+        <a href="/blog/entry/72950">Codeforces Round #613 (Div. 2) Editorial</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/demoralizer" title="Grandmaster demoralizer" class="rated-user user-red">demoralizer</a>        →
+        <a href="/blog/entry/85374">Educational Graph Mashup | Attempt it before I stream my participation to it</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/plourde27" title="Master plourde27" class="rated-user user-orange">plourde27</a>        →
+        <a href="/blog/entry/85472">Invitation to the CodeRams Algorithm Contest #1</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/AnandOza" title="Grandmaster AnandOza" class="rated-user user-red">AnandOza</a>        →
+        <a href="/blog/entry/85475">Upcoming Number Theory Stream (ft. a Mashup)</a>
+  <img alt="Text created or updated" title="Text created or updated" src="//sta.codeforces.com/s/95669/images/icons/x-update-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/upen_g" title="Newbie upen_g" class="rated-user user-gray">upen_g</a>        →
+        <a href="/blog/entry/6211">How to hack a solution?</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/I_love_hyumasik_pivasik" title="Pupil I_love_hyumasik_pivasik" class="rated-user user-green">I_love_hyumasik_pivasik</a>        →
+        <a href="/blog/entry/70989">Mathforces</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/I_love_Hoang_Yen" title="International Master I_love_Hoang_Yen" class="rated-user user-orange">I_love_Hoang_Yen</a>        →
+        <a href="/blog/entry/85428">2020 ICPC Vietnam Regional Contest on Kattis</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/dvdg6566" title="Grandmaster dvdg6566" class="rated-user user-red">dvdg6566</a>        →
+        <a href="/blog/entry/85489">About Constant Time TLE</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/Theo830" title="Candidate Master Theo830" class="rated-user user-violet">Theo830</a>        →
+        <a href="/blog/entry/85464">A new cf update that you may haven&#39;t notice</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/Anus1373" title="Master Anus1373" class="rated-user user-orange">Anus1373</a>        →
+        <a href="/blog/entry/81700">Codeforces Round #665 (Div. 2) Editorial</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/kstheking" title="Specialist kstheking" class="rated-user user-cyan">kstheking</a>        →
+        <a href="/blog/entry/85480">Minimum maximum element after K merges</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/MikeMirzayanov" title="Headquarters, MikeMirzayanov" class="rated-user user-admin">MikeMirzayanov</a>        →
+        <a href="/blog/entry/85422">Codeforces Global Rounds 2020: Final Results</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/BledDest" title="International Grandmaster BledDest" class="rated-user user-red">BledDest</a>        →
+        <a href="/blog/entry/74431">Codeforces Round #625 Editorial</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/Monogon" title="Grandmaster Monogon" class="rated-user user-red">Monogon</a>        →
+        <a href="/blog/entry/85348">Codeforces Global Round 12 Editorial</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/kuviman" title="Master kuviman" class="rated-user user-orange">kuviman</a>        →
+        <a href="/blog/entry/85367">AI Cup 2020</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/fcspartakm" title="Candidate Master fcspartakm" class="rated-user user-violet">fcspartakm</a>        →
+        <a href="/blog/entry/46324">Educational Codeforces Round 15 Editorial</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+                        <li><div style="font-size:0.9em;padding:0.5em 0;">
+<a href="/profile/rng_58" title="Legendary Grandmaster rng_58" class="rated-user user-legendary"><span class="legendary-user-first-letter">r</span>ng_58</a>        →
+        <a href="/blog/entry/84506">ARC Lockout Tournament (Unofficial)</a>
+  <img alt="New comment(s)" title="New comment(s)" src="//sta.codeforces.com/s/95669/images/icons/comment-12x12.png" style="vertical-align:middle;"/>
+</div>
+</li>
+            </ul>
+        </div>
+            <div class="bottom-links">
+                <table style="width:100%;">
+                    <tbody>
+                        <tr>
+                            <td style="text-align:left;">
+                            </td>
+                            <td style="text-align:right;">
+                                    <a href="/recent-actions">Detailed →</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+    </div></div>
+                        <div id="pageContent" class="content-with-sidebar">
+                    <div class="second-level-menu">
+<ul class="second-level-menu-list">
+        <li><a href="/profile/pashka">pashka</a></li>
+        <li class="current selectedLava"><a href="/blog/pashka">Blog</a></li>
+        <li><a href="/teams/with/pashka">Teams</a></li>
+        <li><a href="/submissions/pashka">Submissions</a></li>
+        <li><a href="/groups/with/pashka">Groups</a></li>
+        <li><a href="/contests/with/pashka">Contests</a></li>
+        <li><a href="/contests/writer/pashka">Problemsetting</a></li>
+        <li><a href="/streams/pashka">Streams</a></li>
+</ul>
+</div>
+    <div style="margin-top:0;">
+    <div>
+        <h3><a href="/blog/pashka" style="text-decoration:none;color:black !important;">pashka&#39;s blog</a></h3>
+    </div>
+        <div style="margin-top:2em;">
+<div class="topic" topicid="80564">
+    <div class="title">
+            <a href="/blog/entry/80031">            <p>EDU: Segment Tree, part 1</p>
+</a>
+    </div>
+    <div class="info" style="position:relative;">
+            By <a href="/profile/pashka" title="International Grandmaster pashka" class="rated-user user-red">pashka</a>,
+                <span class="format-humantime" title="Jul/12/2020 13:32">5 months ago</span>,
+            <img style="position: relative;top: 5px;" src="//sta.codeforces.com/s/95669/images/flags/24/gb.png" alt="In English" title="In English"/>
+        <span style="position:absolute;right:0;top:0.05em;margin-right:1em;display:inline;font-size:0.75em;">
+            <div style="margin-top:0.25em;">
+            </div>
+        </span>
+    </div>
+    <div class="content">
+        <div class="ttypography"><p>Hello everyone!</p><p>I just published a <a href="https://codeforces.com/edu/course/2/lesson/4">new lesson</a> in the EDU section. This is the first part of the lesson about the segment tree. </p><p><img src="/predownloaded/ad/f8/adf89a39c4a3c646e9b047bc1e24e894a01034d4.png" style="max-width: 100.0%;max-height: 100.0%;"/></p><p>In this lesson, we will learn how to build a simple segment tree (without mass modifications), and how to perform basic operations on it. We will also discuss some tasks that can be solved using the segment tree.</p> <center style="margin: 2.5em;"> <a href="/edu/courses" style="text-decoration: none;font-size: 18.0px;background-color: rgb(1,87,155);color: white;font-weight: bold;padding: 0.5em 1.0em;">Go to EDU →</a> </center><p>More about EDU section you can read in <a href="/blog/entry/79530">this</a> post.</p><p>Hope it will be helpful, enjoy!</p></div>
+    </div>
+        <div style="font-size: 1.1rem;line-height: 11px;">
+            <img style="vertical-align: middle;" src="//sta.codeforces.com/s/95669/images/blog/tags.png" title="Tags" alt="Tags"/>
+                <span style="padding: 0 0.35em;">
+    <a href="/search?query=edu" class="tag notice" style="text-decoration: none;">edu</a>,
+                </span>
+                <span style="padding: 0 0.35em;">
+    <a href="/search?query=segment+tree" class="tag notice" style="text-decoration: none;">segment tree</a>
+                </span>
+        </div>
+    <div class="roundbox meta" style="">
+            <div class="roundbox-lt"> </div>
+            <div class="roundbox-rt"> </div>
+            <div class="roundbox-lb"> </div>
+            <div class="roundbox-rb"> </div>
+        <div class="left-meta">
+            <ul>
+                    <li style="line-height: 1.6em;">        <a href="#" class="topic-vote-up-80564"><img style="vertical-align:middle;position:relative;top:-0.2em" src="//sta.codeforces.com/s/95669/images/actions/voteup.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+</li>
+                    <li style="line-height: 1.6em;">
+        <span title="Topic rating" style="font-size:larger;position:relative;bottom:1px;font-weight:bold;color:green">+1309</span>
+</li>
+                    <li style="line-height: 1.6em;">        <a href="#" class="topic-vote-down-80564"><img style="vertical-align:middle;position:relative;top:-0.2em" src="//sta.codeforces.com/s/95669/images/actions/votedown.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</li>
+            </ul>
+        </div>
+        <span style="position: relative; line-height: 1.65em; top: 0.75rem; left: 0.8em;">
+        </span>
+        <div class="right-meta">
+            <ul>
+                    <li>        <a href="/profile/pashka"><img style="vertical-align:middle;position:relative;top:-1px" src="//sta.codeforces.com/s/95669/images/blog/user_16x16.png" alt="Author" title="Author"/></a>
+        <a href="/profile/pashka">
+        pashka
+        </a>
+</li>
+                    <li>        <img style="vertical-align:middle;position:relative;top:-1px" src="//sta.codeforces.com/s/95669/images/blog/date_16x16.png" alt="Publication date" title="Publication date"/>
+        <span class="format-humantime" title="Jul/12/2020 13:32">5 months ago</span>
+</li>
+                    <li>        <a href="/blog/entry/80031#comments"><img style="vertical-align:middle;position:relative;top:-1px" src="//sta.codeforces.com/s/95669/images/blog/comments_16x16.png" alt="Comments" title="Comments"/></a>
+        <a href="/blog/entry/80031#comments">
+        25
+        </a>
+</li>
+            </ul>
+        </div>
+        <br style="clear:both;"/>
+    </div>
+<div class="comments" commentableid="87073">
+    <div class="title">
+        <img src="//sta.codeforces.com/s/95669/images/icons/comments-48x48.png" alt="Comments" title="Comments" style="position:relative;top:0.6em;"/>
+        <a name="comments">Comments (25)</a>
+    </div>
+    <div><a href="#" class="new-root-comment" style="float:right;position:relative;bottom:3.25em;">Write comment?</a></div>
+<div class="comment">
+    <table class="comment-table" commentid="660431" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/codersanjeev" style="position: relative;">
+<img src="//userpic.codeforces.com/850571/avatar/386e8a69934b0412.jpg"/>        </a>
+        <div><a href="/profile/codersanjeev" title="Newbie codersanjeev" class="rated-user user-gray">codersanjeev</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/12/2020 14:41">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-660431" href="?#comment-660431" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="660431" data-commentrating="9" data-commentuserid="850571">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:green;font-weight:bold;">+9</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-660431">
+                    <div class="moveup">
+                    <div class="ttypography"><p>thank you for making it easy for us.</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-660431 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-660431 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-660431">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="660475" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/--Someone--" style="position: relative;">
+<img src="//userpic.codeforces.com/556758/avatar/4ec3848fed207db4.jpg"/>        </a>
+        <div><a href="/profile/--Someone--" title="Master --Someone--" class="rated-user user-orange">--Someone--</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/12/2020 15:25">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-660475" href="?#comment-660475" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="660475" data-commentrating="34" data-commentuserid="556758">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:green;font-weight:bold;">+34</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-660475">
+                    <div class="moveup">
+                    <div class="ttypography"><p>Please add &#34;Friends standings&#34; option in the standings</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-660475 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-660475 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-660475">
+            <li>
+<div class="comment">
+    <table class="comment-table" commentid="660494" commentparentid="660475">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/MikeMirzayanov" style="position: relative;">
+<img src="//userpic.codeforces.com/11/avatar/7d0648e330a57263.jpg"/>        </a>
+        <div><a href="/profile/MikeMirzayanov" title="Headquarters, MikeMirzayanov" class="rated-user user-admin">MikeMirzayanov</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/12/2020 15:52">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-660494" href="?#comment-660494" style="font-size:1.2em;">#</a></span>
+                        <span class="item"><a title="Parent comment" href="#comment-660475" style="font-size:1.2em;">^</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="660494" data-commentrating="57" data-commentuserid="11">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:green;font-weight:bold;">+57</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-660494">
+                    <div class="moveup">
+                    <div class="ttypography"><p>We will implement it soon.</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-660494 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-660494 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-660494">
+            <li>
+<div class="comment">
+    <table class="comment-table" commentid="661576" commentparentid="660494">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/abhishekvtangod" style="position: relative;">
+<img src="//userpic.codeforces.com/1212635/avatar/a4ef531992b813b7.jpg"/>        </a>
+        <div><a href="/profile/abhishekvtangod" title="Specialist abhishekvtangod" class="rated-user user-cyan">abhishekvtangod</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/13/2020 19:13">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-661576" href="?#comment-661576" style="font-size:1.2em;">#</a></span>
+                        <span class="item"><a title="Parent comment" href="#comment-660494" style="font-size:1.2em;">^</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="661576" data-commentrating="18" data-commentuserid="1212635">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:green;font-weight:bold;">+18</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-661576">
+                    <div class="moveup">
+                    <div class="ttypography"><p>There is a bug in normal friends standings for a particular problem, after selecting friends only checkbox , we can&#39;t sort the standings other than based on solution size, please fix this soon. Example: <a href="https://codeforces.com/contest/1380/status/A?friends=on">https://codeforces.com/contest/1380/status/A?friends=on</a> open this url, and try sorting according according to execution time or submission time, it redirects to /status route.</p><p>Thankss</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-661576 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-661576 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-661576">
+    </ul>
+</div>
+</li>
+            <li>
+<div class="comment">
+    <table class="comment-table" commentid="661889" commentparentid="660494">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/Oak_limy" style="position: relative;">
+<img src="//userpic.codeforces.com/1195740/avatar/925765d6b956e737.jpg"/>        </a>
+        <div><a href="/profile/Oak_limy" title="Specialist Oak_limy" class="rated-user user-cyan">Oak_limy</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/14/2020 12:48">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-661889" href="?#comment-661889" style="font-size:1.2em;">#</a></span>
+                        <span class="item"><a title="Parent comment" href="#comment-660494" style="font-size:1.2em;">^</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="661889" data-commentrating="0" data-commentuserid="1195740">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:gray;font-weight:bold;">0</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-661889">
+                    <div class="moveup">
+                    <div class="ttypography"><p>Please let us can see other&#39;s solutions,so that we can check our code and find our mistakes.Thanks!</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-661889 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-661889 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-661889">
+    </ul>
+</div>
+</li>
+            <li>
+<div class="comment">
+    <table class="comment-table" commentid="661899" commentparentid="660494">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/WrongAnswerOnTest1" style="position: relative;">
+<img src="//userpic.codeforces.com/473787/avatar/87d9af8f693f26e3.jpg"/>        </a>
+        <div><a href="/profile/WrongAnswerOnTest1" title="Specialist WrongAnswerOnTest1" class="rated-user user-cyan">WrongAnswerOnTest1</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/14/2020 13:13">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-661899" href="?#comment-661899" style="font-size:1.2em;">#</a></span>
+                        <span class="item"><a title="Parent comment" href="#comment-660494" style="font-size:1.2em;">^</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="661899" data-commentrating="3" data-commentuserid="473787">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:green;font-weight:bold;">+3</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-661899">
+                    <div class="moveup">
+                    <div class="ttypography"><p>Also won&#39;t those submissions be counted in our solved problems?</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-661899 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-661899 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-661899">
+    </ul>
+</div>
+</li>
+    </ul>
+</div>
+</li>
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="660538" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/nitin_codr" style="position: relative;">
+<img src="//userpic.codeforces.com/no-avatar.jpg"/>        </a>
+        <div><a href="/profile/nitin_codr" title="Pupil nitin_codr" class="rated-user user-green">nitin_codr</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/12/2020 16:39">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-660538" href="?#comment-660538" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="660538" data-commentrating="15" data-commentuserid="864977">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:green;font-weight:bold;">+15</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-660538">
+                    <div class="moveup">
+                    <div class="ttypography"><p>Thanks for your efforts!</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-660538 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-660538 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-660538">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="660546" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/sidne" style="position: relative;">
+<img src="//userpic.codeforces.com/699171/avatar/1f36091a56ca26a6.jpg"/>        </a>
+        <div><a href="/profile/sidne" title="Specialist sidne" class="rated-user user-cyan">sidne</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/12/2020 16:47">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-660546" href="?#comment-660546" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="660546" data-commentrating="16" data-commentuserid="699171">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:green;font-weight:bold;">+16</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-660546">
+                    <div class="moveup">
+                    <div class="ttypography"><p>This thing is really great and helpful. Hoping for more tutorials on topics that are more likely to be used to solve problems of difficulties around 1600-1900 ratings. </p><p>And also, thanks a lot for your time and hard work. Really appreciate it :)</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-660546 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-660546 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-660546">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="661013" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/love_85" style="position: relative;">
+<img src="//userpic.codeforces.com/1480409/avatar/1658eea6fc11afc5.jpg"/>        </a>
+        <div><a href="/profile/love_85" title="Pupil love_85" class="rated-user user-green">love_85</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/12/2020 21:14">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-661013" href="?#comment-661013" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="661013" data-commentrating="3" data-commentuserid="1480409">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:green;font-weight:bold;">+3</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-661013">
+                    <div class="moveup">
+                    <div class="ttypography"><p>Too much helpful for us.Thanks for your efforts.</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-661013 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-661013 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-661013">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="661099" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/Muhammad98" style="position: relative;">
+<img src="//userpic.codeforces.com/697747/avatar/7bbfb05c4a4cb15.jpg"/>        </a>
+        <div><a href="/profile/Muhammad98" title="Specialist Muhammad98" class="rated-user user-cyan">Muhammad98</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/12/2020 22:43">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-661099" href="?#comment-661099" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="661099" data-commentrating="5" data-commentuserid="697747">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:green;font-weight:bold;">+5</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-661099">
+                    <div class="moveup">
+                    <div class="ttypography"><p>waiting for DP lessons &lt;3</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-661099 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-661099 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-661099">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="661120" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/nandagopalnaskar3" style="position: relative;">
+<img src="//userpic.codeforces.com/1278855/avatar/defa36106889a18.jpg"/>        </a>
+        <div><a href="/profile/nandagopalnaskar3" title="Pupil nandagopalnaskar3" class="rated-user user-green">nandagopalnaskar3</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/12/2020 23:19">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-661120" href="?#comment-661120" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="661120" data-commentrating="12" data-commentuserid="1278855">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:green;font-weight:bold;">+12</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-661120">
+                    <div class="moveup">
+                    <div class="ttypography"><p>Eagerly waiting for more. Thanks for your efforts.</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-661120 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-661120 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-661120">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="661133" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/coachBr" style="position: relative;">
+<img src="//userpic.codeforces.com/633018/avatar/e1031b351ada08f4.jpg"/>        </a>
+        <div><a href="/profile/coachBr" title="Expert coachBr" class="rated-user user-blue">coachBr</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/12/2020 23:36">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-661133" href="?#comment-661133" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="661133" data-commentrating="13" data-commentuserid="633018">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:green;font-weight:bold;">+13</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-661133">
+                    <div class="moveup">
+                    <div class="ttypography"><p>Thanks <a class="rated-user user-red" href="/profile/pashka" title="International Grandmaster pashka">pashka</a>. You explain to cleanly. The part 1 helped me alot, i hope that part 2 too.</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-661133 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-661133 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-661133">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="661152" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/shiftyblock" style="position: relative;">
+<img src="//userpic.codeforces.com/1320630/avatar/64c336e916ccc53e.jpg"/>        </a>
+        <div><a href="/profile/shiftyblock" title="Specialist shiftyblock" class="rated-user user-cyan">shiftyblock</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/13/2020 00:17">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-661152" href="?#comment-661152" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="661152" data-commentrating="21" data-commentuserid="1320630">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:green;font-weight:bold;">+21</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-661152">
+                    <div class="moveup">
+                    <div class="ttypography"><p><a class="rated-user user-red" href="/profile/pashka" title="International Grandmaster pashka">pashka</a> thank you so much this is so much better than everything on gfg or hackerearth explanations &lt;3</p><p>Also for everyone else, let&#39;s get pashka to 1k friends! </p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-661152 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-661152 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-661152">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="661582" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/abhishekvtangod" style="position: relative;">
+<img src="//userpic.codeforces.com/1212635/avatar/a4ef531992b813b7.jpg"/>        </a>
+        <div><a href="/profile/abhishekvtangod" title="Specialist abhishekvtangod" class="rated-user user-cyan">abhishekvtangod</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/13/2020 19:17">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-661582" href="?#comment-661582" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="661582" data-commentrating="12" data-commentuserid="1212635">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:green;font-weight:bold;">+12</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-661582">
+                    <div class="moveup">
+                    <div class="ttypography"><p>Thankss codeforces for such an effort, this helps a lot.</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-661582 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-661582 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-661582">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="661598" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/sabercpp" style="position: relative;">
+<img src="//userpic.codeforces.com/1313019/avatar/9db093c4e0fde5b3.jpg"/>        </a>
+        <div><a href="/profile/sabercpp" title="Newbie sabercpp" class="rated-user user-gray">sabercpp</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/13/2020 19:48">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-661598" href="?#comment-661598" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="661598" data-commentrating="35" data-commentuserid="1313019">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:green;font-weight:bold;">+35</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-661598">
+                    <div class="moveup">
+                    <div class="ttypography"><p><a class="rated-user user-red" href="/profile/pashka" title="International Grandmaster pashka">pashka</a> is my new god.</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-661598 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-661598 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-661598">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="661660" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/rds__98" style="position: relative;">
+<img src="//userpic.codeforces.com/593078/avatar/19f208be79c61b19.jpg"/>        </a>
+        <div><a href="/profile/rds__98" title="Pupil rds__98" class="rated-user user-green">rds__98</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/13/2020 22:26">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-661660" href="?#comment-661660" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="661660" data-commentrating="12" data-commentuserid="593078">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:green;font-weight:bold;">+12</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-661660">
+                    <div class="moveup">
+                    <div class="ttypography"><p>I Love this community. Thanks a lot for the hard work &lt;3</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-661660 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-661660 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-661660">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="661681" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/TwentyOneHundredOrBust" style="position: relative;">
+<img src="//userpic.codeforces.com/659032/avatar/ce46dacd36c62d2f.jpg"/>        </a>
+        <div><a href="/profile/TwentyOneHundredOrBust" title="Master TwentyOneHundredOrBust" class="rated-user user-orange">TwentyOneHundredOrBust</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/14/2020 00:00">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-661681" href="?#comment-661681" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="661681" data-commentrating="70" data-commentuserid="659032">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:green;font-weight:bold;">+70</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-661681">
+                    <div class="moveup">
+                    <div class="ttypography"><p>the astute reader will note that these videos are being released only now that <a class="rated-user user-red" href="/profile/antontrygubO_o" title="Grandmaster antontrygubO_o">antontrygubO_o</a> has banned use of data structures in contests. Coincidence? I think not</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-661681 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-661681 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-661681">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="661705" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/nitin_codr" style="position: relative;">
+<img src="//userpic.codeforces.com/no-avatar.jpg"/>        </a>
+        <div><a href="/profile/nitin_codr" title="Pupil nitin_codr" class="rated-user user-green">nitin_codr</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/14/2020 01:05">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-661705" href="?#comment-661705" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="661705" data-commentrating="0" data-commentuserid="864977">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:gray;font-weight:bold;">0</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-661705">
+                    <div class="moveup">
+                    <div class="ttypography"><p><a class="rated-user user-red" href="/profile/pashka" title="International Grandmaster pashka">pashka</a> awesome explanation!! :)</p><p>I was unable to understand segment tree before these videos. Hope to get more such content from you.</p><p>thank you so much. &lt;3</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-661705 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-661705 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-661705">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="661717" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/rds__98" style="position: relative;">
+<img src="//userpic.codeforces.com/593078/avatar/19f208be79c61b19.jpg"/>        </a>
+        <div><a href="/profile/rds__98" title="Pupil rds__98" class="rated-user user-green">rds__98</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/14/2020 03:17">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-661717" href="?#comment-661717" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+                        <span style="" commentid="661717" revisioncount="3" revision="3">
+                            <a href="#" style="text-decoration:none;font-size:1.4rem;color:#bebebe;" class="leftRevision">←</a>
+                            Rev. <span class="revision">3</span>
+                            <a href="#" style="text-decoration:none;font-size:1.4rem;visibility:hidden;color:#bebebe;" class="rightRevision">→</a>
+                        </span>
+<span commentid="661717" data-commentrating="0" data-commentuserid="593078">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:gray;font-weight:bold;">0</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-661717">
+                    <div class="moveup">
+                    <div class="ttypography"><p>I accidentally submitted the code for merging the intervals using <code>+</code> operator instead of <code>max()</code> and I am getting WA in C But the same gives AC on D in step-2 should this be happening? </p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-661717 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-661717 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-661717">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="661774" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/chenxiaoyan" style="position: relative;">
+<img src="//userpic.codeforces.com/803490/avatar/9e7cdb29c9fbf1.jpg"/>        </a>
+        <div><a href="/profile/chenxiaoyan" title="Master chenxiaoyan" class="rated-user user-orange">chenxiaoyan</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/14/2020 08:11">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-661774" href="?#comment-661774" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="661774" data-commentrating="0" data-commentuserid="803490">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:gray;font-weight:bold;">0</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-661774">
+                    <div class="moveup">
+                    <div class="ttypography"><p>Good job.</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-661774 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-661774 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-661774">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="661900" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/Aggu_01000101" style="position: relative;">
+<img src="//userpic.codeforces.com/860838/avatar/13f9d2ea948bc1e4.jpg"/>        </a>
+        <div><a href="/profile/Aggu_01000101" title="Master Aggu_01000101" class="rated-user user-orange">Aggu_01000101</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/14/2020 13:13">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-661900" href="?#comment-661900" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="661900" class="negative-comment-vote" data-commentrating="-17" data-commentuserid="860838">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:gray;font-weight:bold;">-17</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-661900">
+                    <div class="moveup">
+                    <div class="ttypography"><p>sheldor no bazinga</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-661900 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-661900 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-661900">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="662257" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/ATTENTIVE5" style="position: relative;">
+<img src="//userpic.codeforces.com/919425/avatar/a71f7f8b93a3f161.jpg"/>        </a>
+        <div><a href="/profile/ATTENTIVE5" title="Newbie ATTENTIVE5" class="rated-user user-gray">ATTENTIVE5</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/15/2020 13:02">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-662257" href="?#comment-662257" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="662257" data-commentrating="0" data-commentuserid="919425">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:gray;font-weight:bold;">0</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-662257">
+                    <div class="moveup">
+                    <div class="ttypography"><p>Beginner&#39;s request Upload tutorial on number theory and dp Thanks in advance!</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-662257 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-662257 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-662257">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="662328" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/nagabhushan" style="position: relative;">
+<img src="//userpic.codeforces.com/352219/avatar/8530bec8d794b4b8.jpg"/>        </a>
+        <div><a href="/profile/nagabhushan" title="Expert nagabhushan" class="rated-user user-blue">nagabhushan</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/15/2020 16:24">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-662328" href="?#comment-662328" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="662328" data-commentrating="0" data-commentuserid="352219">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:gray;font-weight:bold;">0</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-662328">
+                    <div class="moveup">
+                    <div class="ttypography"><p>Waiting for DP and Graph theory. Thanks!</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-662328 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-662328 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-662328">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="662334" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/akay_99" style="position: relative;">
+<img src="//userpic.codeforces.com/916496/avatar/39735a83bb3420e0.jpg"/>        </a>
+        <div><a href="/profile/akay_99" title="Pupil akay_99" class="rated-user user-green">akay_99</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Jul/15/2020 17:11">5 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-662334" href="?#comment-662334" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="662334" class="negative-comment-vote" data-commentrating="-14" data-commentuserid="916496">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:gray;font-weight:bold;">-14</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-662334">
+                    <div class="moveup">
+                    <div class="ttypography"><p><a class="rated-user user-red" href="/profile/pashka" title="International Grandmaster pashka">pashka</a> I tried your approach in pypy3 [submission:86900427] but it exceeded the time(TLE). I think the Time limit for every language is 1sec hence others using much slower language(python or java) face TLE problem. I request you to please change the time limit to the standard execution time. Thanks,</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-662334 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-662334 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-662334">
+    </ul>
+</div>
+<div class="comment">
+    <table class="comment-table" commentid="693888" commentparentid="-1">
+        <tbody><tr>
+            <td class="left">
+                <div style="position: absolute; left: 0;" class="comment-indent-holder">
+                        <div class="comment-no-indent">
+                            <span>»</span>
+                        </div>
+                </div>
+    <div class="avatar">
+        <a href="/profile/pmlalpurwala" style="position: relative;">
+<img src="//userpic.codeforces.com/no-avatar.jpg"/>        </a>
+        <div><a href="/profile/pmlalpurwala" title="Specialist pmlalpurwala" class="rated-user user-cyan">pmlalpurwala</a></div>
+    </div>
+            </td>
+            <td class="right">
+                <div class="info">
+                    <span class="item"><span class="format-humantime" title="Sep/10/2020 10:00">3 months ago</span>,</span>
+                    <span class="item"><a title="Link to comment" name="comment-693888" href="?#comment-693888" style="font-size:1.2em;">#</a></span>
+                    <span class="item">|</span>
+                    <span style="position: relative; top: 2px;">
+</span>
+                    <div style="position:absolute;right:0;top:0;">
+<span commentid="693888" data-commentrating="0" data-commentuserid="1198246">
+<a href="#" class="vote-for-comment" votedirection="1" dd="x"><img style="position:relative;top:3px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-voteup-blue.png" alt="Vote: I like it" title="Vote: I like it"/></a>
+<span class="commentRating"><span style="color:gray;font-weight:bold;">0</span></span>
+<a href="#" class="vote-for-comment" votedirection="-1" dd="y"><img style="position:relative;top:2px;opacity:0.35;" src="//sta.codeforces.com/s/95669/images/actions/comment-votedown-blue.png" alt="Vote: I do not like it" title="Vote: I do not like it"/></a>
+</span>                    </div>
+                </div>
+                <div class="comment-content comment-content-693888">
+                    <div class="moveup">
+                    <div class="ttypography"><p>thank you</p></div>
+                    </div>
+                </div>
+                <div class="reply info">
+                    <a class="comment-693888 en false" href="#" style="text-decoration: none;"><span class="arrow">→</span></a>
+                    <a class="comment-693888 en false" href="#">Reply</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    <ul class="comment-children comment-693888">
+    </ul>
+</div>
+    <br/>
+<div id="editBox-87073" style="width:50em;display:none;">
+    <div class="previewBody" style="border: 1px solid #d4d4d4; margin-bottom: 0.5em; padding: 0.25em; display:none;"> </div>
+    <div style="width: 1px"> </div>
+    <div class="commentLocale" style="position: relative; top: 0.5em;left:4px;display: none;">
+        <input type="radio" name="locale" value="en"/><span style="font-size: 1.2rem;position: relative; bottom: 3px;">In English</span>
+        <input style="margin-left:1em" type="radio" name="locale" value="ru"/><span style="font-size: 1.2rem;position: relative; bottom: 3px;">In Russian</span>
+    </div>
+    <textarea data-drafts-id="CommentReplyFrame" class="wysiwyg" name="editContent" rows="20" style="width:99%;"></textarea>
+    <div class="error error__content"></div>
+    <div style="text-align:center;">
+        <input type="button" name="preview" style="padding: 0.25em 1em; margin-top: 1em; min-width: 6.5em;" value="Preview"/>
+        <input type="button" name="save" style="padding: 0.25em 1em; margin-top: 1em; min-width: 6.5em;" value="Save"/>
+    </div>
+</div>
+</div>
+<div class="new-comments-box" data-position="outside" data-index="-1" style="display: none;">
+    <div class="up dir" title="Ctrl+Up">↑<hr/></div>
+    <div class="info" title="New comments"></div>
+    <div class="down dir" title="Ctrl+Down"><hr/>↓</div>
+</div>
+</div>
+        </div>
+    </div>
+                </div>
+        </div>
+            <br style="clear: both;"/>
+            <div id="footer">
+                <div><a href="https://codeforces.com/">Codeforces</a> (c) Copyright 2010-2020 Mike Mirzayanov</div>
+                <div>The only programming contests Web 2.0 platform</div>
+                    <div>Server time: <span class="format-timewithseconds" data-locale="en">Dec/11/2020 21:04:05</span> (g1).</div>
+                    <div>Desktop version, switch to <a rel="nofollow" class="switchToMobile" href="?mobile=true">mobile version</a>.</div>
+                <div class="smaller"><a href="/privacy">Privacy Policy</a></div>
+                    <div style="margin-top: 25px;">
+                        Supported by
+                    </div>
+                    <div style="margin-top: 8px; padding-bottom: 20px; position: relative; left: 10px;">
+                        <a href="https://telegram.org/"><img style="margin-right: 2em; width: 60px;" src="//sta.codeforces.com/s/95669/images/telegram-100x100.png" alt="Telegram" title="Telegram"/></a>
+                        <a href="http://ifmo.ru/en/"><img style="width: 120px;" src="//sta.codeforces.com/s/95669/images/itmo_small_en-logo.png" alt="ИТМО" title="ИТМО"/></a>
+                    </div>
+            </div>
+        <div class="userListsFacebox" style="display:none;">
+            <div style="padding: 0.5em; width: 600px; max-height: 200px; overflow-y: auto">
+<div class="datatable" style="background-color: #E1E1E1; padding-bottom: 3px;">
+            <div class="lt"> </div>
+            <div class="rt"> </div>
+            <div class="lb"> </div>
+            <div class="rb"> </div>
+            <div style="padding: 4px 0 0 6px;font-size:1.4rem;position:relative;">
+                User lists
+                <div style="position:absolute;right:0.25em;top:0.35em;">
+                    <span style="padding:0;position:relative;bottom:2px;" class="rowCount"></span>
+                    <img class="closed" src="//sta.codeforces.com/s/95669/images/icons/control.png"/>
+                    <span class="filter" style="display:none;">
+                        <img class="opened" src="//sta.codeforces.com/s/95669/images/icons/control-270.png"/>
+                        <input style="padding:0 0 0 20px;position:relative;bottom:2px;border:1px solid #aaa;height:17px;font-size:1.3rem;"/>
+                    </span>
+                </div>
+            </div>
+            <div style="background-color: white;margin:0.3em 3px 0 3px;position:relative;">
+            <div class="ilt"> </div>
+            <div class="irt"> </div>
+            <table class="">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+            </table>
+            </div>
+        </div>
+            </div>
+        </div>
+</div>
+</body></html>

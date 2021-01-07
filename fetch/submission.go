@@ -18,17 +18,18 @@ var (
 	sourceSelec   = cascadia.MustCompile("#program-source-text")
 )
 
+// Submission fetches submission information using the DefaultFetcher.
+func Submission(ctx context.Context, url string) (*SubmissionInfo, error) {
+	return DefaultFetcher.Submission(ctx, url)
+}
+
 // Submission fetches the submission source code and accompanying information. The given URL must be
 // a valid submission URL.
-func Submission(ctx context.Context, url string) (*SubmissionInfo, error) {
-	doc, err := scraperGetDoc(ctx, url)
+func (f *Fetcher) Submission(ctx context.Context, url string) (*SubmissionInfo, error) {
+	doc, err := f.FetchPage(ctx, url)
 	if err != nil {
 		return nil, err
 	}
-	return parseSubmission(url, doc)
-}
-
-func parseSubmission(url string, doc *goquery.Document) (*SubmissionInfo, error) {
 
 	// Rows are
 	// # | Author | Problem | Lang | Verdict | Time | Memory | Sent | Judged | <Compare>
@@ -52,7 +53,6 @@ func parseSubmission(url string, doc *goquery.Document) (*SubmissionInfo, error)
 	s.Problem = infoRow.Eq(2).FindMatcher(problemSelec).Text()
 	s.Language = strings.TrimSpace(infoRow.Eq(3).Text())
 	s.Verdict = strings.TrimSpace(infoRow.Eq(4).Text())
-	var err error
 	if s.SentTime, err = parseSubmissionTime(infoRow.Eq(7).Text()); err != nil {
 		return nil, err
 	}
