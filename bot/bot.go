@@ -145,9 +145,16 @@ func (bot *Bot) buildHelpEmbed() *disgord.Embed {
 		Value:  bot.helpCommand.Description,
 		Inline: true,
 	})
+	var avatar string
+	if me, err := bot.Client.CurrentUser().Get(); err == nil {
+		avatar, _ = me.AvatarURL(128, false)
+	}
 	embed := disgord.Embed{
-		Title:       bot.Info.Name,
-		Description: bot.Info.Description + "\nSupported commands:",
+		Author: &disgord.EmbedAuthor{
+			Name:    bot.Info.Name,
+			IconURL: avatar,
+		},
+		Description: bot.Info.Description + "\n\n**Commands**",
 		Fields:      fields,
 	}
 	return &embed
