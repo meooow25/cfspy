@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 
 	"github.com/andersfylling/disgord"
@@ -9,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const homeURL = "https://github.com/meooow25/cfspy"
 const supportURL = "https://github.com/meooow25/cfspy/issues"
 
 var token = os.Getenv("TOKEN")
@@ -40,9 +42,10 @@ func main() {
 				// https://github.com/andersfylling/disgord/blob/5c80ec9176ee57789c5018848aa894d1175065eb/internal/gateway/eventclient.go#L37-L51
 				RejectEvents: disgord.AllEventsExcept(relevantEvents()...),
 			},
-			Name:       "CFSpy",
-			Prefix:     "c;",
-			Desc:       "Codeforces Spy watches for Codeforces links and shows a preview.",
+			Name:   "CFSpy",
+			Prefix: "c;",
+			Desc: fmt.Sprintf("Codeforces Spy watches for Codeforces links and shows a summary.\n"+
+				"To learn more or invite the bot to your server, visit the [Github page](%s).", homeURL),
 			SupportURL: supportURL,
 		},
 	)
