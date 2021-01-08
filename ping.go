@@ -66,9 +66,9 @@ func onPing(ctx bot.Context) {
 func installPingCfCommand(b *bot.Bot) {
 	b.Client.Logger().Info("Setting up pingcf command")
 	b.AddCommand(&bot.Command{
-		ID:      "pingcf",
-		Desc:    "Checks the latency of codeforces.com",
-		Handler: onPingCf,
+		ID:          "pingcf",
+		Description: "Checks the latency of codeforces.com",
+		Handler:     onPingCf,
 	})
 }
 
@@ -76,8 +76,8 @@ func installPingCfCommand(b *bot.Bot) {
 func installPingCommand(b *bot.Bot) {
 	b.Client.Logger().Info("Setting up ping command")
 	b.AddCommand(&bot.Command{
-		ID:      "ping",
-		Desc:    "Checks the latency of the Discord REST API",
-		Handler: onPing,
+		ID:          "ping",
+		Description: "Checks the latency of the Discord REST API",
+		Handler:     onPing,
 	})
 }

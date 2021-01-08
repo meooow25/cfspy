@@ -44,7 +44,7 @@ func main() {
 			},
 			Name:   "CFSpy",
 			Prefix: "c;",
-			Desc: fmt.Sprintf("Codeforces Spy watches for Codeforces links and shows a summary.\n"+
+			Description: fmt.Sprintf("Codeforces Spy watches for Codeforces links and shows a summary.\n"+
 				"To learn more or invite the bot to your server, visit the [Github page](%s).", homeURL),
 			SupportURL: supportURL,
 		},

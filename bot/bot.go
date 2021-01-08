@@ -21,18 +21,18 @@ type Bot struct {
 // Info wraps some bot info.
 type Info struct {
 	disgord.Config
-	Name       string
-	Prefix     string
-	Desc       string
-	SupportURL string
+	Name        string
+	Prefix      string
+	Description string
+	SupportURL  string
 }
 
 // Command represents a bot command.
 type Command struct {
-	ID      string
-	Usage   string
-	Desc    string
-	Handler func(Context)
+	ID          string
+	Usage       string
+	Description string
+	Handler     func(Context)
 }
 
 // Used for parsing args, the string `hello "wor ld"` will be parsed to ["hello", "wor ld"]
@@ -46,9 +46,9 @@ func New(info Info) *Bot {
 		commands: make(map[string]*Command),
 	}
 	bot.helpCommand = &Command{
-		ID:      "help",
-		Desc:    "Shows the bot help message",
-		Handler: bot.sendHelp,
+		ID:          "help",
+		Description: "Shows the bot help message",
+		Handler:     bot.sendHelp,
 	}
 	bot.Client.Gateway().
 		WithMiddleware(
@@ -136,18 +136,18 @@ func (bot *Bot) buildHelpEmbed() *disgord.Embed {
 	for _, command := range bot.commandList {
 		fields = append(fields, &disgord.EmbedField{
 			Name:   command.FullUsage(),
-			Value:  command.Desc,
+			Value:  command.Description,
 			Inline: true,
 		})
 	}
 	fields = append(fields, &disgord.EmbedField{
 		Name:   bot.helpCommand.FullUsage(),
-		Value:  bot.helpCommand.Desc,
+		Value:  bot.helpCommand.Description,
 		Inline: true,
 	})
 	embed := disgord.Embed{
 		Title:       bot.Info.Name,
-		Description: bot.Info.Desc + "\nSupported commands:",
+		Description: bot.Info.Description + "\nSupported commands:",
 		Fields:      fields,
 	}
 	return &embed

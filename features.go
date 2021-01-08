@@ -11,7 +11,7 @@ const featureInfo = "CFSpy watches for Codeforces links. It can\n" +
 	"- Watch for problem links and show some basic information about the problem.\n" +
 	"- Watch for submission links and show some basic information about the submission or show a " +
 	"snippet from the submission. Showing a snippet requires line numbers, for which you may " +
-	"install this [userscript](https://greasyfork.org/en/scripts/403747-cf-linemaster)."
+	"want to install this [userscript](https://greasyfork.org/en/scripts/403747-cf-linemaster)."
 
 func onFeatureInfo(ctx bot.Context) {
 	embed := disgord.Embed{
@@ -25,8 +25,8 @@ func onFeatureInfo(ctx bot.Context) {
 func installFeatureInfoCommand(b *bot.Bot) {
 	b.Client.Logger().Info("Setting up features command")
 	b.AddCommand(&bot.Command{
-		ID:      "features",
-		Desc:    "Shows information about automatic features",
-		Handler: onFeatureInfo,
+		ID:          "features",
+		Description: "Shows information about automatic features",
+		Handler:     onFeatureInfo,
 	})
 }
