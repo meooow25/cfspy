@@ -1,6 +1,10 @@
 package fetch
 
-import "time"
+import (
+	"time"
+
+	"github.com/togatoga/goforces"
+)
 
 // BlogURLMatch contains matched information for a blog URL.
 type BlogURLMatch struct {
@@ -18,6 +22,12 @@ type SubmissionURLMatch struct {
 	URL       string
 	LineBegin int
 	LineEnd   int
+}
+
+// ProfileURLMatch contains matched information for a profile URL.
+type ProfileURLMatch struct {
+	URL    string
+	Handle string
 }
 
 // BlogInfo contains blog information.
@@ -80,4 +90,10 @@ type SubmissionInfo struct {
 	SentTime time.Time
 	Content  string
 	URL      string
+}
+
+type ProfileInfo struct {
+	*goforces.User
+	Color int
+	URL   string
 }

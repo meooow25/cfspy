@@ -59,6 +59,7 @@ func main() {
 	installBlogAndCommentFeature(b)
 	installProblemFeature(b)
 	installSubmissionFeature(b)
+	installProfileFeature(b)
 
 	if *serverCountFeature {
 		installServerCountFeature(b)

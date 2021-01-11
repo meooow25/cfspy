@@ -259,13 +259,14 @@ func fetchCommentBrowser(
 	return goquery.NewDocumentFromReader(strings.NewReader(jsonResp.Content))
 }
 
-// Fetches the avatar URL for a handle using the Codeforces API.
-func fetchAvatar(ctx context.Context, handle string) (string, error) {
+// Fetches the user info for a handle using the Codeforces API.
+func fetchUserInfo(ctx context.Context, handle string) (*goforces.User, error) {
 	infos, err := cfAPI.GetUserInfo(ctx, []string{handle})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return withCodeforcesHost(infos[0].Avatar), nil
+	infos[0].Avatar = withCodeforcesHost(infos[0].Avatar)
+	return &infos[0], nil
 }
 
 // Fetcher is a Codeforces info fetcher.
@@ -273,7 +274,7 @@ type Fetcher struct {
 	FetchPage            func(ctx context.Context, url string) (*goquery.Document, error)
 	FetchPageBrowser     func(ctx context.Context, url string) (*goquery.Document, error)
 	FetchCommentRevision func(ctx context.Context, commentID string, revision int, csrfToken string) (*goquery.Document, error)
-	FetchAvatar          func(ctx context.Context, handle string) (string, error)
+	FetchUserInfo        func(ctx context.Context, handle string) (*goforces.User, error)
 }
 
 // DefaultFetcher is the default fetcher that fetches data from Codeforces web and API.
@@ -281,5 +282,5 @@ var DefaultFetcher = Fetcher{
 	FetchPage:            scraperGetDoc,
 	FetchPageBrowser:     scraperGetDocBrowser,
 	FetchCommentRevision: fetchCommentBrowser,
-	FetchAvatar:          fetchAvatar,
+	FetchUserInfo:        fetchUserInfo,
 }

@@ -159,6 +159,58 @@ func TestParseSubmissionURLs(t *testing.T) {
 	}
 }
 
+func TestParseProfileURLs(t *testing.T) {
+	tests := []struct {
+		name     string
+		text     string
+		expected []*ProfileURLMatch
+	}{
+		{"helloWorld", "Hello, world!", nil},
+		{"homePage", "https://codeforces.com/", nil},
+		{"single", "https://codeforces.com/profile/handle1",
+			[]*ProfileURLMatch{
+				{URL: "https://codeforces.com/profile/handle1", Handle: "handle1"},
+			},
+		},
+		{"singleWithText", "Visit https://codeforces.com/profile/handle2.",
+			[]*ProfileURLMatch{
+				{URL: "https://codeforces.com/profile/handle2", Handle: "handle2"},
+			},
+		},
+		{"singleSuppressed", "<https://codeforces.com/profile/handle3>",
+			nil,
+		},
+		{"singleSpoilered", "||https://codeforces.com/profile/handle4||",
+			nil,
+		},
+		{"singleWithParams", "https://codeforces.com/profile/handle5?locale=ru#key=value",
+			[]*ProfileURLMatch{
+				{URL: "https://codeforces.com/profile/handle5?locale=ru#key=value", Handle: "handle5"},
+			},
+		},
+		{"singleTooShort", "https://codeforces.com/profile/12",
+			nil,
+		},
+		{"singleTooLong", "https://codeforces.com/profile/1234567890123456789012345",
+			nil,
+		},
+		{"multiple",
+			"See https://codeforces.com/profile/handle6 and https://codeforces.com/profile/handle7. " +
+				"See this suppressed link <https://codeforces.com/profile/handle8> and " +
+				"this spoilered link ||https://codeforces.com/profile/handle9||.",
+			[]*ProfileURLMatch{
+				{URL: "https://codeforces.com/profile/handle6", Handle: "handle6"},
+				{URL: "https://codeforces.com/profile/handle7", Handle: "handle7"},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			checkEqual(t, test.expected, ParseProfileURLs(test.text))
+		})
+	}
+}
+
 func TestRemoveSpoilers(t *testing.T) {
 	tests := []struct {
 		input string
