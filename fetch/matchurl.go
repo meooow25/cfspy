@@ -14,7 +14,7 @@ var (
 	problemURLRe      = regexp.MustCompile(`https?://codeforces.com/(?:(?:contest|gym)/\d+/problem|problemset/problem/\d+|problemsets/acmsguru/problem/\d+)/\w+` + queryAndFragment)
 	submissionURLRe   = regexp.MustCompile(`https?://codeforces.com/(?:(?:contest|gym)/\d+/submission|problemset/submission/\d+)/\d+` + queryAndFragment)
 	lineNumFragmentRe = regexp.MustCompile(`L(\d+)(?:-L(\d+))?`)
-	profileURLRe      = regexp.MustCompile(`https?://codeforces.com/profile/([\w-]+)` + queryAndFragment)
+	profileURLRe      = regexp.MustCompile(`https?://codeforces.com/profile/[\w-]+` + queryAndFragment)
 )
 
 // ParseBlogURLs parses Codeforces blog URLS from the given string.
@@ -98,7 +98,7 @@ func ParseSubmissionURLs(s string) []*SubmissionURLMatch {
 func ParseProfileURLs(s string) []*ProfileURLMatch {
 	s = removeSpoilers(s)
 	var matches []*ProfileURLMatch
-	for _, idx := range profileURLRe.FindAllStringSubmatchIndex(s, -1) {
+	for _, idx := range profileURLRe.FindAllStringIndex(s, -1) {
 		if checkEmbedsSuppressed(s, idx[0], idx[1]) {
 			continue
 		}
@@ -106,13 +106,8 @@ func ParseProfileURLs(s string) []*ProfileURLMatch {
 		if _, err := url.Parse(urlMatch); err != nil {
 			continue
 		}
-		handle := s[idx[2]:idx[3]]
-		if len(handle) < 3 || len(handle) > 24 { // invalid handle
-			continue
-		}
 		match := ProfileURLMatch{
-			URL:    urlMatch,
-			Handle: handle,
+			URL: urlMatch,
 		}
 		matches = append(matches, &match)
 	}

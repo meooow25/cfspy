@@ -25,17 +25,17 @@ func maybeHandleProfileURL(ctx bot.Context, evt *disgord.MessageCreate) {
 			return
 		}
 		first := profileURLMatches[0]
-		handleProfileUrl(ctx, first)
+		handleProfileUrl(ctx, first.URL)
 	}()
 }
 
 // Responds on the Discord channel with some user profile information.
-func handleProfileUrl(ctx bot.Context, match *fetch.ProfileURLMatch) {
-	ctx.Logger.Info("Processing profile URL: ", match.URL)
+func handleProfileUrl(ctx bot.Context, url string) {
+	ctx.Logger.Info("Processing profile URL: ", url)
 
-	profileInfo, err := fetch.Profile(context.Background(), match)
+	profileInfo, err := fetch.Profile(context.Background(), url)
 	if err != nil {
-		err = fmt.Errorf("Error fetching profile from %v: %w", match.URL, err)
+		err = fmt.Errorf("Error fetching profile from %v: %w", url, err)
 		ctx.Logger.Error(err)
 		ctx.SendTimed(timedErrorMsgTTL, ctx.MakeErrorEmbed(err.Error()))
 		return
@@ -64,7 +64,7 @@ func handleProfileUrl(ctx bot.Context, match *fetch.ProfileURLMatch) {
 
 func makeProfileEmbed(p *fetch.ProfileInfo) *disgord.Embed {
 	desc := strings.Title(p.Rank)
-	if p.Rank != "unrated" && p.Rank != "headquarters" {
+	if p.Rank != "Unrated" && p.Rank != "Headquarters" {
 		desc += fmt.Sprintf("\nRating: %v (max. %v)", p.Rating, p.MaxRating)
 	}
 	return &disgord.Embed{
