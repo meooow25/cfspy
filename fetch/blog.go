@@ -75,11 +75,9 @@ func (f *Fetcher) Blog(ctx context.Context, url string) (*BlogInfo, error) {
 	} else {
 		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
-		info, err := f.FetchUserInfo(ctx, b.AuthorHandle)
-		if err != nil {
+		if b.AuthorAvatar, err = f.FetchAvatar(ctx, b.AuthorHandle); err != nil {
 			return nil, err
 		}
-		b.AuthorAvatar = info.Avatar
 	}
 
 	return &b, nil

@@ -9,17 +9,16 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/go-test/deep"
-	"github.com/togatoga/goforces"
 )
 
 func testParseBlog(t *testing.T, filename string, want *BlogInfo) {
 	f := Fetcher{
 		FetchPage: pageFetcherFor(filename, "testurl"),
-		FetchUserInfo: func(_ context.Context, handle string) (*goforces.User, error) {
+		FetchAvatar: func(_ context.Context, handle string) (string, error) {
 			if handle != want.AuthorHandle {
 				t.Fatalf("got %v, want %v", handle, want.AuthorHandle)
 			}
-			return &goforces.User{Avatar: "fetchedavatarurl"}, nil
+			return "fetchedavatarurl", nil
 		},
 	}
 	got, err := f.Blog(context.Background(), "testurl")
