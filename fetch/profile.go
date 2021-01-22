@@ -43,7 +43,7 @@ func (f *Fetcher) Profile(ctx context.Context, url string) (*ProfileInfo, error)
 	lis := infoDiv.FindMatcher(infoLiSelec)
 	lis.EachWithBreak(func(_ int, s *goquery.Selection) bool {
 		text := s.Text()
-		if strings.Contains(text, "Contest rating") {
+		if strings.Contains(text, "Contest rating") || strings.Contains(text, "Рейтинг") {
 			// Format is "Contest rating: <value> (max. <rank>, <value>)"
 			text = strings.Join(strings.Fields(text), " ")
 			numbers := numberRe.FindAllString(text, -1)
