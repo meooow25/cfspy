@@ -14,7 +14,7 @@ var (
 	problemURLRe      = regexp.MustCompile(`https?://codeforces.com/(?:(?:contest|gym)/\d+/problem|problemset/problem/\d+|problemsets/acmsguru/problem/\d+)/\w+` + queryAndFragment)
 	submissionURLRe   = regexp.MustCompile(`https?://codeforces.com/(?:(?:contest|gym)/\d+/submission|problemset/submission/\d+)/\d+` + queryAndFragment)
 	lineNumFragmentRe = regexp.MustCompile(`L(\d+)(?:-L(\d+))?`)
-	profileURLRe      = regexp.MustCompile(`https?://codeforces.com/profile/[\w-]+` + queryAndFragment)
+	profileURLRe      = regexp.MustCompile(`https?://codeforces.com/profile/[\w-.]*[\w-]` + queryAndFragment)
 )
 
 // ParseBlogURLs parses Codeforces blog URLS from the given string.

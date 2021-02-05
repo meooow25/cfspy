@@ -177,6 +177,11 @@ func TestParseProfileURLs(t *testing.T) {
 				{URL: "https://codeforces.com/profile/handle2"},
 			},
 		},
+		{"singleWithSpecialChars", "https://codeforces.com/profile/h-a_n..d_1-3",
+			[]*ProfileURLMatch{
+				{URL: "https://codeforces.com/profile/h-a_n..d_1-3"},
+			},
+		},
 		{"singleSuppressed", "<https://codeforces.com/profile/handle3>",
 			nil,
 		},
