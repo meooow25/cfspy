@@ -1,8 +1,6 @@
 package fetch
 
-import (
-	"time"
-)
+import "time"
 
 // BlogURLMatch contains matched information for a blog URL.
 type BlogURLMatch struct {

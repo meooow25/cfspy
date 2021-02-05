@@ -68,7 +68,7 @@ func makeProfileEmbed(p *fetch.ProfileInfo) *disgord.Embed {
 		desc += fmt.Sprintf("\nRating: %v (max. %v)", p.Rating, p.MaxRating)
 	}
 	return &disgord.Embed{
-		Title:       fmt.Sprintf("%v", p.Handle),
+		Title:       p.Handle,
 		URL:         p.URL,
 		Thumbnail:   &disgord.EmbedThumbnail{URL: p.Avatar},
 		Color:       p.Color,
