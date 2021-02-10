@@ -23,6 +23,7 @@ var (
 	scriptSelec        = cascadia.MustCompile("script")
 	blogSelec          = cascadia.MustCompile(".topic")
 	blogRatingSelec    = cascadia.MustCompile(`[title="Topic rating"]`)
+	blogRatingRuSelec  = cascadia.MustCompile(`[title="Рейтинг текста"]`)
 	commentRatingSelec = cascadia.MustCompile(".commentRating")
 	contentSelec       = cascadia.MustCompile(".ttypography")
 	spoilerContentCls  = "spoiler-content"
@@ -56,8 +57,12 @@ func (f *Fetcher) Blog(ctx context.Context, url string) (*BlogInfo, error) {
 	if b.CreationTime, err = parseTime(blogDiv); err != nil {
 		return nil, err
 	}
-	if b.Rating, err = strconv.Atoi(blogDiv.FindMatcher(blogRatingSelec).Text()); err != nil {
-		return nil, err
+	ratingSpan := blogDiv.FindMatcher(blogRatingSelec)
+	if ratingSpan.Length() == 0 {
+		ratingSpan = blogDiv.FindMatcher(blogRatingRuSelec)
+	}
+	if b.Rating, err = strconv.Atoi(ratingSpan.Text()); err != nil {
+		return nil, fmt.Errorf("Error getting blog rating: %w", err)
 	}
 
 	// If the author commented under the blog get the pic, otherwise fetch from the API.
