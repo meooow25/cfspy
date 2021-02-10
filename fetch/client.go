@@ -144,9 +144,21 @@ func scraperGetDocBrowser(ctx context.Context, url string) (*goquery.Document, e
 	return scraperGetDocInternal(ctx, url, cfScraperBrowser)
 }
 
+func clearSessionID(client *http.Client) {
+	url, _ := url.Parse("https://codeforces.com")
+	for _, cookie := range client.Jar.Cookies(url) {
+		if cookie.Name == "JSESSIONID" {
+			cookieCopy := *cookie
+			cookieCopy.Expires = time.Unix(0, 0)
+			client.Jar.SetCookies(url, []*http.Cookie{&cookieCopy})
+		}
+	}
+}
+
 var errorMsgRe = regexp.MustCompile(`Codeforces.showMessage\("(.*)"\);\s*Codeforces\.reformatTimes`)
 
 func scraperGetDocInternal(ctx context.Context, url string, client *http.Client) (*goquery.Document, error) {
+	defer clearSessionID(client) // Server attaches preferred locale to the session
 	doc, err := fetch(ctx, url, client)
 	if err != nil {
 		return nil, err
