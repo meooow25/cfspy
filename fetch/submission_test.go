@@ -2,9 +2,13 @@ package fetch
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/go-test/deep"
 )
 
@@ -89,4 +93,20 @@ int main()
 		}
 		testParseSubmission(t, "contest_1267_submission_66109629.html", want)
 	})
+}
+
+func TestParseSubmissionLocaleParamStripped(t *testing.T) {
+	expected := errors.New("expected")
+	f := Fetcher{
+		FetchPage: func(ctx context.Context, url string) (*goquery.Document, error) {
+			if strings.Contains(url, "locale") {
+				t.Fatal(fmt.Errorf("locale param not stripped: %v", url))
+			}
+			return nil, expected
+		},
+	}
+	_, err := f.Submission(context.Background(), "https://codeforces.com/submission?locale=test")
+	if err != expected {
+		t.Fatal(err)
+	}
 }
