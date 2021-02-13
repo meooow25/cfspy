@@ -56,6 +56,19 @@ func TestParseBlog(t *testing.T) {
 		}
 		testParseBlog(t, "blog_entry_80031.html", want)
 	})
+
+	t.Run("blogRussianLocale", func(t *testing.T) {
+		want := &BlogInfo{
+			Title:        "Вузовско-академическая олимпиада по информатике 2021",
+			CreationTime: time.Date(2021, 2, 2, 8, 55, 0, 0, time.UTC),
+			AuthorHandle: "xoposhiy",
+			AuthorAvatar: "fetchedavatarurl",
+			AuthorColor:  colorClsMap["user-black"],
+			Rating:       72,
+			URL:          "testurl",
+		}
+		testParseBlog(t, "blog_entry_87432.html", want)
+	})
 }
 
 const commentRevFmt = `<div class="ttypography"><p>comment revision %v</p></div>`

@@ -26,7 +26,13 @@ func Submission(ctx context.Context, url string) (*SubmissionInfo, error) {
 // Submission fetches the submission source code and accompanying information. The given URL must be
 // a valid submission URL.
 func (f *Fetcher) Submission(ctx context.Context, url string) (*SubmissionInfo, error) {
-	doc, err := f.FetchPage(ctx, url)
+	// Russian locale offers no benefit for submission info
+	urlWithoutLocale, err := removeLocaleParam(url)
+	if err != nil {
+		return nil, err
+	}
+
+	doc, err := f.FetchPage(ctx, urlWithoutLocale)
 	if err != nil {
 		return nil, err
 	}
