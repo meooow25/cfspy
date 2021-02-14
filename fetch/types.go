@@ -87,6 +87,7 @@ type SubmissionInfo struct {
 	URL      string
 }
 
+// ProfileInfo contains profile information.
 type ProfileInfo struct {
 	Handle    string
 	Rating    int
