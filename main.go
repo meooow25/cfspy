@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
 
 	"github.com/andersfylling/disgord"
@@ -10,8 +9,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const homeURL = "https://github.com/meooow25/cfspy"
-const supportURL = "https://github.com/meooow25/cfspy/issues"
+const (
+	description = "CFSpy watches for Codeforces links and shows helpful previews.\n" +
+		"To learn more or invite the bot to your server, visit the " +
+		"[Github page](https://github.com/meooow25/cfspy)."
+	supportURL = "https://github.com/meooow25/cfspy/issues"
+)
 
 var token = os.Getenv("TOKEN")
 var logger = logrus.New()
@@ -42,11 +45,10 @@ func main() {
 				// https://github.com/andersfylling/disgord/blob/5c80ec9176ee57789c5018848aa894d1175065eb/internal/gateway/eventclient.go#L37-L51
 				RejectEvents: disgord.AllEventsExcept(relevantEvents()...),
 			},
-			Name:   "CFSpy",
-			Prefix: "c;",
-			Description: fmt.Sprintf("CFSpy watches for Codeforces links and shows a summary.\n"+
-				"To learn more or invite the bot to your server, visit the [Github page](%s).", homeURL),
-			SupportURL: supportURL,
+			Name:        "CFSpy",
+			Prefix:      "c;",
+			Description: description,
+			SupportURL:  supportURL,
 		},
 	)
 

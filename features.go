@@ -5,13 +5,16 @@ import (
 	"github.com/meooow25/cfspy/bot"
 )
 
-const featureInfo = "CFSpy watches for Codeforces links. It can\n" +
-	"- Watch for blog links and show some basic information about the blog.\n" +
-	"- Watch for comment links and show the comment.\n" +
-	"- Watch for problem links and show some basic information about the problem.\n" +
-	"- Watch for submission links and show some basic information about the submission or show a " +
-	"snippet from the submission. Showing a snippet requires line numbers, for which you may " +
-	"want to install this [userscript](https://greasyfork.org/en/scripts/403747-cf-linemaster)."
+const featureInfo = "CFSpy watches for Codeforces links and shows helpful previews.\n" +
+	"Supported links include\n" +
+	"- _Blogs_: Shows some information about the blog.\n" +
+	"- _Comments_: Shows the comment information and content.\n" +
+	"- _Problems_: Shows some information about the problem.\n" +
+	"- _Profiles_: Shows some information about the user profile.\n" +
+	"- _Submissions_: Shows some information about the submission.\n" +
+	"- _Submissions with line numbers_: Shows a snippet from the submission containing the " +
+	"specified lines. For line selection and highlighting support in your browser you may want " +
+	"to install this [userscript](https://greasyfork.org/en/scripts/403747-cf-linemaster)."
 
 func onFeatureInfo(ctx bot.Context) {
 	embed := disgord.Embed{

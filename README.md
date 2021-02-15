@@ -8,12 +8,14 @@ A simple Codeforces utility bot for Discord
 If you have a Discord server where you discuss [Codeforces](https://codeforces.com), you could use this bot.
 
 ## Features
-Embed link previews for Codeforces URLs on Discord are usually not helpful, because Codeforces does not have the meta tags that Discord looks for.
-To improve that, CFSpy can
-- Watch for blog links and show some basic information about the blog.
-- Watch for comment links and show the comment.
-- Watch for problem links and show some basic information about the problem.
-- Watch for submission links and show some basic information about the submission, or even show a snippet from the submission. Showing a snippet requires line numbers, for which you may want to install this [userscript](https://greasyfork.org/en/scripts/403747-cf-linemaster).
+Embed previews for Codeforces links on Discord are usually not helpful, because Codeforces does not have the meta tags that Discord looks for.  
+You can let CFSpy watch for these links instead and respond with useful previews. Supported links include
+- **Blogs**: Shows some information about the blog.
+- **Comments**: Shows the comment information and content.
+- **Problems**: Shows some information about the problem.
+- **Profiles**: Shows some information about the user profile.
+- **Submissions**: Shows some information about the submission.
+- **Submissions with line numbers**: Shows a snippet from the submission containing the specified lines. For line selection and highlighting support in your browser you may want to install this [userscript](https://greasyfork.org/en/scripts/403747-cf-linemaster).
 
 To answer the common question _"Is Codeforces down?"_, there is a command to ping `codeforces.com`.
 
