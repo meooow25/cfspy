@@ -20,6 +20,11 @@ type SubmissionURLMatch struct {
 	LineEnd   int
 }
 
+// ProfileURLMatch contains matched information for a profile URL.
+type ProfileURLMatch struct {
+	URL string
+}
+
 // BlogInfo contains blog information.
 type BlogInfo struct {
 	Title        string
@@ -80,4 +85,15 @@ type SubmissionInfo struct {
 	SentTime time.Time
 	Content  string
 	URL      string
+}
+
+// ProfileInfo contains profile information.
+type ProfileInfo struct {
+	Handle    string
+	Rating    int
+	MaxRating int
+	Rank      string
+	Color     int
+	Avatar    string
+	URL       string
 }

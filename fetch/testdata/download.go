@@ -16,6 +16,10 @@ func main() {
 	url := flag.String("url", "", "Codeforces URL")
 	flag.Parse()
 
+	if *url == "" {
+		log.Fatal("-url flag required")
+	}
+
 	resp, err := http.Get(*url)
 	if err != nil {
 		log.Fatal(err)
