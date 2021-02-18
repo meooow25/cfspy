@@ -15,7 +15,7 @@ You can let CFSpy watch for these links instead and respond with useful previews
 - **Problems**: Shows some information about the problem.
 - **Profiles**: Shows some information about the user profile.
 - **Submissions**: Shows some information about the submission.
-- **Submissions with line numbers**: Shows a snippet from the submission containing the specified lines. For line selection and highlighting support in your browser you may want to install this [userscript](https://greasyfork.org/en/scripts/403747-cf-linemaster).
+- **Submissions with line numbers**: Shows a snippet from the submission containing the specified lines. Install this [userscript](https://greasyfork.org/en/scripts/403747-cf-linemaster) to get line selection and highlighting support in your browser.
 
 To answer the common question _"Is Codeforces down?"_, there is a command to ping `codeforces.com`.
 
