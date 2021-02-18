@@ -49,19 +49,19 @@ func (f *Fetcher) Profile(ctx context.Context, url string) (*ProfileInfo, error)
 	lis := infoDiv.FindMatcher(infoLiSelec)
 	lis.EachWithBreak(func(_ int, s *goquery.Selection) bool {
 		text := s.Text()
-		if strings.Contains(text, "Contest rating") || strings.Contains(text, "Рейтинг") {
-			// Format is "Contest rating: <value> (max. <rank>, <value>)"
-			text = strings.Join(strings.Fields(text), " ")
-			numbers := numberRe.FindAllString(text, -1)
-			if len(numbers) != 2 {
-				err = fmt.Errorf("Unexpected format of rating line: %v", text)
-				return false
-			}
+		if !strings.Contains(text, "Contest rating") {
+			return true
+		}
+		// Format is "Contest rating: <value> (max. <rank>, <value>)"
+		text = strings.Join(strings.Fields(text), " ")
+		numbers := numberRe.FindAllString(text, -1)
+		if len(numbers) == 2 {
 			p.Rating, _ = strconv.Atoi(numbers[0])
 			p.MaxRating, _ = strconv.Atoi(numbers[1])
-			return false
+		} else {
+			err = fmt.Errorf("Unexpected format of rating line: %v", text)
 		}
-		return true
+		return false
 	})
 	if err != nil {
 		return nil, err
