@@ -37,18 +37,6 @@ func TestParseProfile(t *testing.T) {
 		}
 		testParseProfile(t, "profile_rainboy.html", want)
 	})
-	t.Run("hq", func(t *testing.T) {
-		want := &ProfileInfo{
-			Handle:    "MikeMirzayanov",
-			Rating:    0,
-			MaxRating: 0,
-			Rank:      "Headquarters",
-			Color:     colorClsMap["user-admin"],
-			Avatar:    "https://userpic.codeforces.com/11/title/c7fb4051127c29e4.jpg",
-			URL:       "testurl",
-		}
-		testParseProfile(t, "profile_MikeMirzayanov.html", want)
-	})
 	t.Run("unrated", func(t *testing.T) {
 		want := &ProfileInfo{
 			Handle:    "LanceTheDragonTrainer",
@@ -60,6 +48,30 @@ func TestParseProfile(t *testing.T) {
 			URL:       "testurl",
 		}
 		testParseProfile(t, "profile_LanceTheDragonTrainer.html", want)
+	})
+	t.Run("hqRated", func(t *testing.T) {
+		want := &ProfileInfo{
+			Handle:    "geranazavr555",
+			Rating:    1772,
+			MaxRating: 1864,
+			Rank:      "Headquarters",
+			Color:     colorClsMap["user-admin"],
+			Avatar:    "https://userpic.codeforces.com/226065/title/c40b38db239bbdab.jpg",
+			URL:       "testurl",
+		}
+		testParseProfile(t, "profile_geranazavr555.html", want)
+	})
+	t.Run("hqUnrated", func(t *testing.T) {
+		want := &ProfileInfo{
+			Handle:    "MikeMirzayanov",
+			Rating:    0,
+			MaxRating: 0,
+			Rank:      "Headquarters",
+			Color:     colorClsMap["user-admin"],
+			Avatar:    "https://userpic.codeforces.com/11/title/c7fb4051127c29e4.jpg",
+			URL:       "testurl",
+		}
+		testParseProfile(t, "profile_MikeMirzayanov.html", want)
 	})
 }
 

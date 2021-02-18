@@ -63,7 +63,7 @@ func handleProfileUrl(ctx bot.Context, url string) {
 
 func makeProfileEmbed(p *fetch.ProfileInfo) *disgord.Embed {
 	desc := p.Rank
-	if p.Rank != "Unrated" && p.Rank != "Headquarters" {
+	if p.Rating != 0 || p.Rank != "Unrated" && p.Rank != "Headquarters" {
 		desc += fmt.Sprintf("\nRating: %v (max. %v)", p.Rating, p.MaxRating)
 	}
 	return &disgord.Embed{
