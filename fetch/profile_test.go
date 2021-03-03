@@ -37,6 +37,18 @@ func TestParseProfile(t *testing.T) {
 		}
 		testParseProfile(t, "profile_rainboy.html", want)
 	})
+	t.Run("negativeRated", func(t *testing.T) {
+		want := &ProfileInfo{
+			Handle:    "__123456__",
+			Rating:    -47,
+			MaxRating: 1381,
+			Rank:      "Newbie",
+			Color:     colorClsMap["user-gray"],
+			Avatar:    "https://userpic.codeforces.com/no-title.jpg",
+			URL:       "testurl",
+		}
+		testParseProfile(t, "profile___123456__.html", want)
+	})
 	t.Run("unrated", func(t *testing.T) {
 		want := &ProfileInfo{
 			Handle:    "LanceTheDragonTrainer",

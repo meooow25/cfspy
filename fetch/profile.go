@@ -16,7 +16,7 @@ var (
 	rankSelec    = cascadia.MustCompile(".user-rank")
 	photoSelec   = cascadia.MustCompile(".title-photo img")
 	infoLiSelec  = cascadia.MustCompile("li")
-	numberRe     = regexp.MustCompile("[0-9]+")
+	numberRe     = regexp.MustCompile("-?[0-9]+")
 )
 
 // Profile fetches user profile information using the DefaultFetcher.
