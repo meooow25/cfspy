@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/andersfylling/disgord"
 	"github.com/meooow25/cfspy/bot"
@@ -37,27 +36,11 @@ func handleProblemURL(ctx bot.Context, problemURL string) {
 	if err != nil {
 		err = fmt.Errorf("Error fetching problem from %v: %w", problemURL, err)
 		ctx.Logger.Error(err)
-		ctx.SendTimed(timedErrorMsgTTL, ctx.MakeErrorEmbed(err.Error()))
+		respondWithError(ctx, err)
 		return
 	}
 
-	err = ctx.SendWithDelBtn(bot.OnePageWithDelParams{
-		Embed: makeProblemEmbed(problemInfo),
-		MsgCallback: func(*disgord.Message) {
-			// This will fail without manage messages permission, that's fine.
-			go bot.SuppressEmbeds(ctx.Session, ctx.Message)
-		},
-		DeactivateAfter: time.Minute,
-		DelCallback: func(evt *disgord.MessageReactionAdd) {
-			// This will fail without manage messages permission, that's fine.
-			go bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
-		},
-		AllowOp: func(evt *disgord.MessageReactionAdd) bool {
-			// Allow only the author to control the widget.
-			return evt.UserID == ctx.Message.Author.ID
-		},
-	})
-	if err != nil {
+	if err = respondWithOnePagePreview(ctx, "", makeProblemEmbed(problemInfo)); err != nil {
 		ctx.Logger.Error(fmt.Errorf("Error sending problem info: %w", err))
 	}
 }
