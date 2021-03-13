@@ -138,12 +138,17 @@ func newBrowserScraperClient() *http.Client {
 // scraperGetDoc fetches the page from the given URL and returns a parsed goquery document. Uses the
 // cfScraper client. Clears the session when done.
 func scraperGetDoc(ctx context.Context, url string) (*goquery.Document, error) {
-	defer clearSessionID(cfScraper) // Server attaches preferred locale to the session
+	// Server attaches preferred locale to the session, which we don't want to persist.
+	defer clearSessionID(cfScraper)
 	return scraperGetDocInternal(ctx, url, cfScraper)
 }
 
 // Same as scraperGetDoc but uses the cfScraperBrowser client, which uses a browser user agent.
-func scraperGetDocWithClient(ctx context.Context, url string, client *http.Client) (*goquery.Document, error) {
+func scraperGetDocWithClient(
+	ctx context.Context,
+	url string,
+	client *http.Client,
+) (*goquery.Document, error) {
 	return scraperGetDocInternal(ctx, url, client)
 }
 
@@ -160,7 +165,11 @@ func clearSessionID(client *http.Client) {
 
 var errorMsgRe = regexp.MustCompile(`Codeforces.showMessage\("(.*)"\);\s*Codeforces\.reformatTimes`)
 
-func scraperGetDocInternal(ctx context.Context, url string, client *http.Client) (*goquery.Document, error) {
+func scraperGetDocInternal(
+	ctx context.Context,
+	url string,
+	client *http.Client,
+) (*goquery.Document, error) {
 	doc, err := fetch(ctx, url, client)
 	if err != nil {
 		return nil, err
@@ -215,10 +224,12 @@ func fetch(ctx context.Context, url string, client *http.Client) (*goquery.Docum
 	return doc, nil
 }
 
-// Fetches a comment revision. This endpoint rejects non-browser user agents, so use a client
-// constructed with newBrowserScraperClient. This endpoint only works if there is more than one
-// revision, otherwise it would be usable for fetching comments more easily. Requires a CSRF token
-// and the JSESSIONID cookie. The session cookie must be present on the given client.
+// Fetches a comment revision. This endpoint rejects non-browser user agents, so supply a client
+// constructed with newBrowserScraperClient.
+// This endpoint only works if there is more than one revision, otherwise it would be usable for
+// fetching comments more easily.
+// Requires a CSRF token and the JSESSIONID cookie. The session cookie must be present on the
+// supplied client, which would be the case if it was used to fetch any page before this.
 func fetchCommentRevision(
 	ctx context.Context,
 	commentID string,
@@ -237,7 +248,7 @@ func fetchCommentRevision(
 	req, _ := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
-		"http://codeforces.com/data/comment-data",
+		"https://codeforces.com/data/comment-data",
 		strings.NewReader(formData.Encode()),
 	)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -248,7 +259,7 @@ func fetchCommentRevision(
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("%v", resp.Status)
+		return nil, fmt.Errorf("HTTP error %v", resp.Status)
 	}
 	var jsonResp struct {
 		Content string `json:"content"`
