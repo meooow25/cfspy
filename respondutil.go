@@ -11,27 +11,38 @@ func respondWithError(ctx bot.Context, err error) {
 	ctx.SendTimed(30*time.Second, ctx.MakeErrorEmbed(err.Error()))
 }
 
+func prepareCallbacks(ctx bot.Context) (
+	msgCallback func(*disgord.Message),
+	delCallback func(*disgord.MessageReactionAdd),
+	allowOp func(*disgord.MessageReactionAdd) bool,
+) {
+	return func(*disgord.Message) {
+			// This will fail without manage messages permission, that's fine.
+			go bot.SuppressEmbeds(ctx.Session, ctx.Message)
+		},
+		func(evt *disgord.MessageReactionAdd) {
+			// This will fail without manage messages permission, that's fine.
+			go bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
+		},
+		func(evt *disgord.MessageReactionAdd) bool {
+			// Allow only the author to control the widget.
+			return evt.UserID == ctx.Message.Author.ID
+		}
+}
+
 func respondWithOnePagePreview(
 	ctx bot.Context,
 	content string,
 	embed *disgord.Embed,
 ) error {
+	msgCallback, delCallback, allowOp := prepareCallbacks(ctx)
 	return ctx.SendWithDelBtn(bot.OnePageWithDelParams{
-		Content: content,
-		Embed:   embed,
-		MsgCallback: func(*disgord.Message) {
-			// This will fail without manage messages permission, that's fine.
-			go bot.SuppressEmbeds(ctx.Session, ctx.Message)
-		},
+		Content:         content,
+		Embed:           embed,
+		MsgCallback:     msgCallback,
 		DeactivateAfter: time.Minute,
-		DelCallback: func(evt *disgord.MessageReactionAdd) {
-			// This will fail without manage messages permission, that's fine.
-			go bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
-		},
-		AllowOp: func(evt *disgord.MessageReactionAdd) bool {
-			// Allow only the author to control the widget.
-			return evt.UserID == ctx.Message.Author.ID
-		},
+		DelCallback:     delCallback,
+		AllowOp:         allowOp,
 	})
 }
 
@@ -40,23 +51,15 @@ func respondWithMultiPagePreview(
 	getPage bot.PageGetter,
 	numPages int,
 ) error {
+	msgCallback, delCallback, allowOp := prepareCallbacks(ctx)
 	return ctx.SendPaginated(bot.PaginateParams{
 		GetPage:         getPage,
 		NumPages:        numPages,
 		PageToShowFirst: numPages,
-		MsgCallback: func(*disgord.Message) {
-			// This will fail without manage messages permission, that's fine.
-			go bot.SuppressEmbeds(ctx.Session, ctx.Message)
-		},
+		MsgCallback:     msgCallback,
 		DeactivateAfter: time.Minute,
 		DelBtn:          true,
-		DelCallback: func(evt *disgord.MessageReactionAdd) {
-			// This will fail without manage messages permission, that's fine.
-			go bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
-		},
-		AllowOp: func(evt *disgord.MessageReactionAdd) bool {
-			// Allow only the author to control the widget.
-			return evt.UserID == ctx.Message.Author.ID
-		},
+		DelCallback:     delCallback,
+		AllowOp:         allowOp,
 	})
 }
