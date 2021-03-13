@@ -20,7 +20,7 @@ func prepareCallbacks(ctx bot.Context) (
 			// This will fail without manage messages permission, that's fine.
 			go bot.SuppressEmbeds(ctx.Session, ctx.Message)
 		},
-		func(evt *disgord.MessageReactionAdd) {
+		func(*disgord.MessageReactionAdd) {
 			// This will fail without manage messages permission, that's fine.
 			go bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
 		},
