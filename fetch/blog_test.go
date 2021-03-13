@@ -3,6 +3,7 @@ package fetch
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
 	"testing"
 	"time"
@@ -75,12 +76,19 @@ const commentRevFmt = `<div class="ttypography"><p>comment revision %v</p></div>
 
 func testParseComment(t *testing.T, filename string, commentID string, want *CommentInfo) {
 	f := Fetcher{
-		FetchPageBrowser: pageFetcherFor(filename, "testurl"),
-		FetchCommentRevision: func(_ context.Context, gotCommentID string, revision int, _ string) (*goquery.Document, error) {
+		FetchPageWithClient: pageFetcherWithClientFor(filename, "testurl"),
+		FetchCommentRevision: func(
+			_ context.Context,
+			gotCommentID string,
+			revision int,
+			_ string,
+			_ *http.Client,
+		) (*goquery.Document, error) {
 			if gotCommentID != commentID {
 				t.Fatalf("got %v, want %v", gotCommentID, commentID)
 			}
-			return goquery.NewDocumentFromReader(strings.NewReader(fmt.Sprintf(commentRevFmt, revision)))
+			return goquery.NewDocumentFromReader(
+				strings.NewReader(fmt.Sprintf(commentRevFmt, revision)))
 		},
 	}
 	gotRevCnt, getter, err := f.Comment(context.Background(), "testurl", commentID)

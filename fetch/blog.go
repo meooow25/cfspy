@@ -108,7 +108,8 @@ func (f *Fetcher) Comment(
 	url string,
 	commentID string,
 ) (revisionCount int, getter CommentInfoGetter, err error) {
-	doc, err := f.FetchPageBrowser(ctx, url)
+	client := newBrowserScraperClient()
+	doc, err := f.FetchPageWithClient(ctx, url, client)
 	if err != nil {
 		return
 	}
@@ -146,7 +147,7 @@ func (f *Fetcher) Comment(
 				"Expected revision between 1 and %v, got %v", base.RevisionCount, revision)
 		}
 		if _, ok := cache[revision]; !ok {
-			doc, err := f.FetchCommentRevision(ctx, commentID, revision, csrf)
+			doc, err := f.FetchCommentRevision(ctx, commentID, revision, csrf, client)
 			if err != nil {
 				return nil, err
 			}

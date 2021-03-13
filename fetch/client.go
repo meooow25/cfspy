@@ -26,12 +26,6 @@ var (
 		Jar: newRestrictedJar("JSESSIONID", "RCPC"),
 	}
 
-	// Client that uses a browser user agent
-	cfScraperBrowser = &http.Client{
-		Transport: &browserUATransport{},
-		Jar:       newRestrictedJar("JSESSIONID", "RCPC"),
-	}
-
 	// API client
 	cfAPI, _ = goforces.NewClient(nil)
 )
@@ -133,15 +127,29 @@ func setRCPCCookieOnClient(script string, client *http.Client) error {
 	return nil
 }
 
+// Creates a client that uses a browser user agent.
+func newBrowserScraperClient() *http.Client {
+	return &http.Client{
+		Transport: &browserUATransport{},
+		Jar:       newRestrictedJar("JSESSIONID", "RCPC"),
+	}
+}
+
 // scraperGetDoc fetches the page from the given URL and returns a parsed goquery document. Uses the
-// cfScraper client.
+// cfScraper client. Clears the session when done.
 func scraperGetDoc(ctx context.Context, url string) (*goquery.Document, error) {
+	// Server attaches preferred locale to the session, which we don't want to persist.
+	defer clearSessionID(cfScraper)
 	return scraperGetDocInternal(ctx, url, cfScraper)
 }
 
 // Same as scraperGetDoc but uses the cfScraperBrowser client, which uses a browser user agent.
-func scraperGetDocBrowser(ctx context.Context, url string) (*goquery.Document, error) {
-	return scraperGetDocInternal(ctx, url, cfScraperBrowser)
+func scraperGetDocWithClient(
+	ctx context.Context,
+	url string,
+	client *http.Client,
+) (*goquery.Document, error) {
+	return scraperGetDocInternal(ctx, url, client)
 }
 
 func clearSessionID(client *http.Client) {
@@ -157,8 +165,11 @@ func clearSessionID(client *http.Client) {
 
 var errorMsgRe = regexp.MustCompile(`Codeforces.showMessage\("(.*)"\);\s*Codeforces\.reformatTimes`)
 
-func scraperGetDocInternal(ctx context.Context, url string, client *http.Client) (*goquery.Document, error) {
-	defer clearSessionID(client) // Server attaches preferred locale to the session
+func scraperGetDocInternal(
+	ctx context.Context,
+	url string,
+	client *http.Client,
+) (*goquery.Document, error) {
 	doc, err := fetch(ctx, url, client)
 	if err != nil {
 		return nil, err
@@ -213,15 +224,18 @@ func fetch(ctx context.Context, url string, client *http.Client) (*goquery.Docum
 	return doc, nil
 }
 
-// Fetches a comment revision. This endpoint rejects non-browser user agents, so cfScraperBrowser is
-// used. This endpoint only works if there is more than one revision, otherwise it would be usable
-// for fetching comments more easily. Requires a CSRF token and the JSESSIONID cookie. The session
-// cookie should already be present if cfScraperBrowser was used to fetch a page before this.
-func fetchCommentBrowser(
+// Fetches a comment revision. This endpoint rejects non-browser user agents, so supply a client
+// constructed with newBrowserScraperClient.
+// This endpoint only works if there is more than one revision, otherwise it would be usable for
+// fetching comments more easily.
+// Requires a CSRF token and the JSESSIONID cookie. The session cookie must be present on the
+// supplied client, which would be the case if it was used to fetch any page before this.
+func fetchCommentRevision(
 	ctx context.Context,
 	commentID string,
 	revision int,
 	csrfToken string,
+	client *http.Client,
 ) (*goquery.Document, error) {
 	formData := url.Values{
 		"action":     {"revision"},
@@ -234,18 +248,18 @@ func fetchCommentBrowser(
 	req, _ := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
-		"http://codeforces.com/data/comment-data",
+		"https://codeforces.com/data/comment-data",
 		strings.NewReader(formData.Encode()),
 	)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := cfScraperBrowser.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("%v", resp.Status)
+		return nil, fmt.Errorf("HTTP error %v", resp.Status)
 	}
 	var jsonResp struct {
 		Content string `json:"content"`
@@ -271,15 +285,15 @@ func fetchAvatar(ctx context.Context, handle string) (string, error) {
 // Fetcher is a Codeforces info fetcher.
 type Fetcher struct {
 	FetchPage            func(ctx context.Context, url string) (*goquery.Document, error)
-	FetchPageBrowser     func(ctx context.Context, url string) (*goquery.Document, error)
-	FetchCommentRevision func(ctx context.Context, commentID string, revision int, csrfToken string) (*goquery.Document, error)
+	FetchPageWithClient  func(ctx context.Context, url string, client *http.Client) (*goquery.Document, error)
+	FetchCommentRevision func(ctx context.Context, commentID string, revision int, csrfToken string, client *http.Client) (*goquery.Document, error)
 	FetchAvatar          func(ctx context.Context, handle string) (string, error)
 }
 
 // DefaultFetcher is the default fetcher that fetches data from Codeforces web and API.
 var DefaultFetcher = Fetcher{
 	FetchPage:            scraperGetDoc,
-	FetchPageBrowser:     scraperGetDocBrowser,
-	FetchCommentRevision: fetchCommentBrowser,
+	FetchPageWithClient:  scraperGetDocWithClient,
+	FetchCommentRevision: fetchCommentRevision,
 	FetchAvatar:          fetchAvatar,
 }
