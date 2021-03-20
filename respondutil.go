@@ -7,11 +7,11 @@ import (
 	"github.com/meooow25/cfspy/bot"
 )
 
-func respondWithError(ctx bot.Context, err error) {
+func respondWithError(ctx *bot.Context, err error) {
 	ctx.SendTimed(30*time.Second, ctx.MakeErrorEmbed(err.Error()))
 }
 
-func prepareCallbacks(ctx bot.Context) (
+func prepareCallbacks(ctx *bot.Context) (
 	msgCallback func(*disgord.Message),
 	delCallback func(*disgord.MessageReactionAdd),
 	allowOp func(*disgord.MessageReactionAdd) bool,
@@ -31,7 +31,7 @@ func prepareCallbacks(ctx bot.Context) (
 }
 
 func respondWithOnePagePreview(
-	ctx bot.Context,
+	ctx *bot.Context,
 	content string,
 	embed *disgord.Embed,
 ) error {
@@ -47,7 +47,7 @@ func respondWithOnePagePreview(
 }
 
 func respondWithMultiPagePreview(
-	ctx bot.Context,
+	ctx *bot.Context,
 	getPage bot.PageGetter,
 	numPages int,
 ) error {

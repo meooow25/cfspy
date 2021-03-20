@@ -17,7 +17,7 @@ const featureInfo = "CFSpy watches for Codeforces links and shows helpful previe
 	"[userscript](https://greasyfork.org/en/scripts/403747-cf-linemaster) to get line selection " +
 	"and highlighting support in your browser."
 
-func onFeatureInfo(ctx bot.Context) {
+func onFeatureInfo(ctx *bot.Context) {
 	embed := disgord.Embed{
 		Author:      &disgord.EmbedAuthor{Name: "Features"},
 		Description: featureInfo,

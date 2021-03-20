@@ -8,8 +8,7 @@ import (
 	"github.com/andersfylling/disgord/std"
 )
 
-// Bot is a simple wrapper over a disgord Client. It is not protected by a mutex. Is is ok to
-// concurrently modify the internal disgord client.
+// Bot is a simple wrapper over a disgord Client. It is not protected by a mutex.
 type Bot struct {
 	Client      *disgord.Client
 	Info        Info
@@ -32,7 +31,7 @@ type Command struct {
 	ID          string
 	Usage       string
 	Description string
-	Handler     func(Context)
+	Handler     func(*Context)
 }
 
 // Used for parsing args, the string `hello "wor ld"` will be parsed to ["hello", "wor ld"]
@@ -58,9 +57,9 @@ func New(info Info) *Bot {
 }
 
 // OnMessageCreate attaches a handler that is called on the message create event.
-func (bot *Bot) OnMessageCreate(handler func(Context, *disgord.MessageCreate)) {
+func (bot *Bot) OnMessageCreate(handler func(*Context, *disgord.MessageCreate)) {
 	wrapped := func(s disgord.Session, evt *disgord.MessageCreate) {
-		ctx := Context{
+		ctx := &Context{
 			Bot:     bot,
 			Session: s,
 			Message: evt.Message,
@@ -78,7 +77,7 @@ func (bot *Bot) AddCommand(command *Command) {
 }
 
 func (bot *Bot) maybeHandleCommand(s disgord.Session, evt *disgord.MessageCreate) {
-	ctx := Context{
+	ctx := &Context{
 		Bot:     bot,
 		Session: s,
 		Message: evt.Message,
@@ -102,7 +101,7 @@ func (bot *Bot) maybeHandleCommand(s disgord.Session, evt *disgord.MessageCreate
 	}
 }
 
-func (bot *Bot) sendHelp(ctx Context) {
+func (bot *Bot) sendHelp(ctx *Context) {
 	go func() {
 		if len(ctx.Args) > 1 {
 			ctx.SendIncorrectUsageMsg()
@@ -112,7 +111,7 @@ func (bot *Bot) sendHelp(ctx Context) {
 	}()
 }
 
-func (bot *Bot) rejectCommand(ctx Context, commandID string) {
+func (bot *Bot) rejectCommand(ctx *Context, commandID string) {
 	var content string
 	switch commandID {
 	case "":

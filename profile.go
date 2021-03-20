@@ -16,7 +16,7 @@ func installProfileFeature(bot *bot.Bot) {
 	bot.OnMessageCreate(maybeHandleProfileURL)
 }
 
-func maybeHandleProfileURL(ctx bot.Context, evt *disgord.MessageCreate) {
+func maybeHandleProfileURL(ctx *bot.Context, evt *disgord.MessageCreate) {
 	go func() {
 		profileURLMatches := fetch.ParseProfileURLs(evt.Message.Content)
 		if len(profileURLMatches) == 0 {
@@ -28,7 +28,7 @@ func maybeHandleProfileURL(ctx bot.Context, evt *disgord.MessageCreate) {
 }
 
 // Responds on the Discord channel with some user profile information.
-func handleProfileUrl(ctx bot.Context, url string) {
+func handleProfileUrl(ctx *bot.Context, url string) {
 	ctx.Logger.Info("Processing profile URL: ", url)
 
 	profileInfo, err := fetch.Profile(context.Background(), url)

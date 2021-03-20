@@ -20,7 +20,7 @@ func installBlogAndCommentFeature(bot *bot.Bot) {
 	bot.OnMessageCreate(maybeHandleBlogURL)
 }
 
-func maybeHandleBlogURL(ctx bot.Context, evt *disgord.MessageCreate) {
+func maybeHandleBlogURL(ctx *bot.Context, evt *disgord.MessageCreate) {
 	go func() {
 		blogURLMatches := fetch.ParseBlogURLs(evt.Message.Content)
 		if len(blogURLMatches) == 0 {
@@ -36,7 +36,7 @@ func maybeHandleBlogURL(ctx bot.Context, evt *disgord.MessageCreate) {
 }
 
 // Fetches the blog page and responds on the Discord channel with some basic info on the blog.
-func handleBlogURL(ctx bot.Context, blogURL string) {
+func handleBlogURL(ctx *bot.Context, blogURL string) {
 	ctx.Logger.Info("Processing blog URL: ", blogURL)
 
 	blogInfo, err := fetch.Blog(context.Background(), blogURL)
@@ -74,7 +74,7 @@ func makeBlogEmbed(b *fetch.BlogInfo) *disgord.Embed {
 
 // Fetches the comment from the blog page, converts it to markdown and responds on the Discord
 // channel.
-func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
+func handleCommentURL(ctx *bot.Context, commentURL, commentID string) {
 	ctx.Logger.Info("Processing comment URL: ", commentURL)
 
 	revisionCount, infoGetter, err := fetch.Comment(context.Background(), commentURL, commentID)
