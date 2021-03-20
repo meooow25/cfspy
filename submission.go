@@ -60,7 +60,7 @@ func installSubmissionFeature(bot *bot.Bot) {
 	bot.OnMessageCreate(maybeHandleSubmissionURL)
 }
 
-func maybeHandleSubmissionURL(ctx bot.Context, evt *disgord.MessageCreate) {
+func maybeHandleSubmissionURL(ctx *bot.Context, evt *disgord.MessageCreate) {
 	go func() {
 		submissionURLMatches := fetch.ParseSubmissionURLs(evt.Message.Content)
 		if len(submissionURLMatches) == 0 {
@@ -72,7 +72,7 @@ func maybeHandleSubmissionURL(ctx bot.Context, evt *disgord.MessageCreate) {
 }
 
 // Fetches the submission page and responds on the Discord channel.
-func handleSubmissionURL(ctx bot.Context, match *fetch.SubmissionURLMatch) {
+func handleSubmissionURL(ctx *bot.Context, match *fetch.SubmissionURLMatch) {
 	ctx.Logger.Info("Processing submission URL: ", match.URL)
 
 	submissionInfo, err := fetch.Submission(context.Background(), match.URL)

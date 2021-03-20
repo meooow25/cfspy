@@ -16,7 +16,7 @@ func installProblemFeature(bot *bot.Bot) {
 	bot.OnMessageCreate(maybeHandleProblemURL)
 }
 
-func maybeHandleProblemURL(ctx bot.Context, evt *disgord.MessageCreate) {
+func maybeHandleProblemURL(ctx *bot.Context, evt *disgord.MessageCreate) {
 	go func() {
 		problemURLMatches := fetch.ParseProblemURLs(evt.Message.Content)
 		if len(problemURLMatches) == 0 {
@@ -29,7 +29,7 @@ func maybeHandleProblemURL(ctx bot.Context, evt *disgord.MessageCreate) {
 
 // Fetches the problem page and responds on the Discord channel with some basic info on the problem.
 // TODO: Maybe show a preview of the statement like DMOJ.
-func handleProblemURL(ctx bot.Context, problemURL string) {
+func handleProblemURL(ctx *bot.Context, problemURL string) {
 	ctx.Logger.Info("Processing problem URL: ", problemURL)
 
 	problemInfo, err := fetch.Problem(context.Background(), problemURL)

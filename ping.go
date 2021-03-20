@@ -15,7 +15,7 @@ const (
 	timeout   = 5 * time.Second
 )
 
-func onPingCf(ctx bot.Context) {
+func onPingCf(ctx *bot.Context) {
 	go func() {
 		if len(ctx.Args) > 1 {
 			ctx.SendIncorrectUsageMsg()
@@ -46,7 +46,7 @@ func onPingCf(ctx bot.Context) {
 	}()
 }
 
-func onPing(ctx bot.Context) {
+func onPing(ctx *bot.Context) {
 	go func() {
 		if len(ctx.Args) > 1 {
 			ctx.SendIncorrectUsageMsg()
