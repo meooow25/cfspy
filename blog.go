@@ -90,8 +90,7 @@ func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 		if err != nil {
 			err := fmt.Errorf("Error fetching revision %v of comment %v: %w", revision, commentURL, err)
 			ctx.Logger.Error(err)
-			return "", ctx.MakeErrorEmbed(
-				fmt.Errorf("Failed to fetch revision %v: %w", revision, err).Error())
+			return "", ctx.MakeErrorEmbed(err.Error())
 		}
 		return "", makeCommentEmbed(commentInfo)
 	}
