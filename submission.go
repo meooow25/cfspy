@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math"
 	"strings"
-	"time"
 
 	"github.com/andersfylling/disgord"
 	"github.com/meooow25/cfspy/bot"
@@ -80,7 +79,7 @@ func handleSubmissionURL(ctx bot.Context, match *fetch.SubmissionURLMatch) {
 	if err != nil {
 		err = fmt.Errorf("Error fetching submission from %v: %w", match.URL, err)
 		ctx.Logger.Error(err)
-		ctx.SendTimed(timedErrorMsgTTL, ctx.MakeErrorEmbed(err.Error()))
+		respondWithError(ctx, err)
 		return
 	}
 
@@ -92,7 +91,7 @@ func handleSubmissionURL(ctx bot.Context, match *fetch.SubmissionURLMatch) {
 		content, err = makeCodeSnippet(
 			submissionInfo.Content, submissionInfo.Language, match.LineBegin, match.LineEnd)
 		if err != nil {
-			ctx.SendTimed(timedErrorMsgTTL, ctx.MakeErrorEmbed(err.Error()))
+			respondWithError(ctx, err)
 			return
 		}
 		if bot.ContentTooLong(content) {
@@ -101,24 +100,7 @@ func handleSubmissionURL(ctx bot.Context, match *fetch.SubmissionURLMatch) {
 		}
 	}
 
-	err = ctx.SendWithDelBtn(bot.OnePageWithDelParams{
-		Content: content,
-		Embed:   embed,
-		MsgCallback: func(*disgord.Message) {
-			// This will fail without manage messages permission, that's fine.
-			go bot.SuppressEmbeds(ctx.Session, ctx.Message)
-		},
-		DeactivateAfter: time.Minute,
-		DelCallback: func(evt *disgord.MessageReactionAdd) {
-			// This will fail without manage messages permission, that's fine.
-			go bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
-		},
-		AllowOp: func(evt *disgord.MessageReactionAdd) bool {
-			// Allow only the author to control the widget.
-			return evt.UserID == ctx.Message.Author.ID
-		},
-	})
-	if err != nil {
+	if err = respondWithOnePagePreview(ctx, content, embed); err != nil {
 		ctx.Logger.Error(fmt.Errorf("Error sending problem info: %w", err))
 	}
 }

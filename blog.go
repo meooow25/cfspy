@@ -43,27 +43,11 @@ func handleBlogURL(ctx bot.Context, blogURL string) {
 	if err != nil {
 		err = fmt.Errorf("Error fetching blog from %v: %w", blogURL, err)
 		ctx.Logger.Error(err)
-		ctx.SendTimed(timedErrorMsgTTL, ctx.MakeErrorEmbed(err.Error()))
+		respondWithError(ctx, err)
 		return
 	}
 
-	err = ctx.SendWithDelBtn(bot.OnePageWithDelParams{
-		Embed: makeBlogEmbed(blogInfo),
-		MsgCallback: func(*disgord.Message) {
-			// This will fail without manage messages permission, that's fine.
-			go bot.SuppressEmbeds(ctx.Session, ctx.Message)
-		},
-		DeactivateAfter: time.Minute,
-		DelCallback: func(evt *disgord.MessageReactionAdd) {
-			// This will fail without manage messages permission, that's fine.
-			go bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
-		},
-		AllowOp: func(evt *disgord.MessageReactionAdd) bool {
-			// Allow only the author to control the widget.
-			return evt.UserID == ctx.Message.Author.ID
-		},
-	})
-	if err != nil {
+	if err = respondWithOnePagePreview(ctx, "", makeBlogEmbed(blogInfo)); err != nil {
 		ctx.Logger.Error(fmt.Errorf("Error sending blog info: %w", err))
 	}
 }
@@ -97,37 +81,21 @@ func handleCommentURL(ctx bot.Context, commentURL, commentID string) {
 	if err != nil {
 		err = fmt.Errorf("Error fetching comment from %v: %w", commentURL, err)
 		ctx.Logger.Error(err)
-		ctx.SendTimed(timedErrorMsgTTL, ctx.MakeErrorEmbed(err.Error()))
+		respondWithError(ctx, err)
 		return
 	}
 
-	err = ctx.SendPaginated(bot.PaginateParams{
-		GetPage: func(revision int) (string, *disgord.Embed) {
-			commentInfo, err := infoGetter(revision)
-			if err != nil {
-				return "", ctx.MakeErrorEmbed(
-					fmt.Errorf("Failed to fetch revision %v: %w", revision, err).Error())
-			}
-			return "", makeCommentEmbed(commentInfo)
-		},
-		NumPages:        revisionCount,
-		PageToShowFirst: revisionCount,
-		MsgCallback: func(*disgord.Message) {
-			// This will fail without manage messages permission, that's fine.
-			go bot.SuppressEmbeds(ctx.Session, ctx.Message)
-		},
-		DeactivateAfter: time.Minute,
-		DelBtn:          true,
-		DelCallback: func(evt *disgord.MessageReactionAdd) {
-			// This will fail without manage messages permission, that's fine.
-			go bot.UnsuppressEmbeds(ctx.Session, ctx.Message)
-		},
-		AllowOp: func(evt *disgord.MessageReactionAdd) bool {
-			// Allow only the author to control the widget.
-			return evt.UserID == ctx.Message.Author.ID
-		},
-	})
-	if err != nil {
+	getPage := func(revision int) (string, *disgord.Embed) {
+		commentInfo, err := infoGetter(revision)
+		if err != nil {
+			err := fmt.Errorf("Error fetching revision %v of comment %v: %w", revision, commentURL, err)
+			ctx.Logger.Error(err)
+			return "", ctx.MakeErrorEmbed(err.Error())
+		}
+		return "", makeCommentEmbed(commentInfo)
+	}
+
+	if err = respondWithMultiPagePreview(ctx, getPage, revisionCount); err != nil {
 		ctx.Logger.Error(fmt.Errorf("Error sending comment preview: %w", err))
 	}
 }
