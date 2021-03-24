@@ -8,6 +8,8 @@ func removeLocaleParam(url string) (string, error) {
 		return "", err
 	}
 	q := u.Query()
+	q.Del("lang")
+	q.Del("language")
 	q.Del("locale")
 	u.RawQuery = q.Encode()
 	return u.String(), nil
