@@ -39,6 +39,7 @@ func (f *Fetcher) Submission(ctx context.Context, url string) (*SubmissionInfo, 
 
 	// Rows are
 	// # | Author | Problem | Lang | Verdict | Time | Memory | Sent | Judged | <Compare>
+	// Sometimes, as in https://codeforces.com/contest/1386, time and memory are missing (?!)
 
 	var s SubmissionInfo
 	infoRow := doc.FindMatcher(infoRowSelec).Eq(1).FindMatcher(infoCellSelec)
@@ -59,7 +60,7 @@ func (f *Fetcher) Submission(ctx context.Context, url string) (*SubmissionInfo, 
 	s.Problem = infoRow.Eq(2).FindMatcher(problemSelec).Text()
 	s.Language = strings.TrimSpace(infoRow.Eq(3).Text())
 	s.Verdict = strings.TrimSpace(infoRow.Eq(4).Text())
-	if s.SentTime, err = parseSubmissionTime(infoRow.Eq(7).Text()); err != nil {
+	if s.SentTime, err = parseSubmissionTime(infoRow.Eq(infoRow.Length() - 3).Text()); err != nil {
 		return nil, err
 	}
 	s.Content = doc.FindMatcher(sourceSelec).Text()

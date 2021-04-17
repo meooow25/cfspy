@@ -107,7 +107,7 @@ func handleSubmissionURL(ctx *bot.Context, match *fetch.SubmissionURLMatch) {
 
 func makeSubmissionEmbed(s *fetch.SubmissionInfo, logger disgord.Logger) *disgord.Embed {
 	prefix := ""
-	if s.Verdict == "Accepted" {
+	if s.Verdict == "Accepted" || strings.HasPrefix(s.Verdict, "Perfect result") {
 		prefix = "✅ "
 	}
 	var author string
