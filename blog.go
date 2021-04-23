@@ -9,6 +9,12 @@ import (
 	"github.com/meooow25/cfspy/fetch"
 )
 
+// Length limits for short preview of blog/comments. Much lower than Discord message limits.
+const (
+	msgLimit = 200
+	msgSlack = 100
+)
+
 // Installs the blog watcher feature. The bot watches for Codeforces blog and comment links and
 // responds with an embed containing info about the blog or comment.
 func installBlogAndCommentFeature(bot *bot.Bot) {
@@ -145,7 +151,7 @@ func makeCommentEmbeds(c *fetch.CommentInfo) (short *disgord.Embed, full *disgor
 func makeShortAndFullEmbeds(embed *disgord.Embed) (short *disgord.Embed, full *disgord.Embed) {
 	full = embed
 	short = disgord.DeepCopy(full).(*disgord.Embed)
-	short.Description = truncateMessage(full.Description)
+	short.Description = truncate(full.Description)
 
 	// If the content is short enough, no need for full.
 	// If the content is too long, full cannot be shown.
@@ -153,4 +159,17 @@ func makeShortAndFullEmbeds(embed *disgord.Embed) (short *disgord.Embed, full *d
 		full = nil
 	}
 	return
+}
+
+// Returns the string unchanged if the length is within msgLimit+msgSlack, otherwise returns it
+// truncated to msgLimit chars. The motivation for the slack is that the poster would probably want
+// to display the full comment anyway if it is a bit over the limit.
+func truncate(s string) string {
+	if len(s) <= msgLimit+msgSlack {
+		return s
+	}
+	// Cutting off everything beyond limit doesn't care about markdown formatting and can leave
+	// unclosed markup.
+	// TODO: Maybe use a markdown parser to properly handle these.
+	return s[:msgLimit] + "…"
 }
