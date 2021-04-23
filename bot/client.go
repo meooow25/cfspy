@@ -37,4 +37,4 @@ func (m *manualCtrl) OnInsert(s disgord.Session) error { return nil }
 func (m *manualCtrl) OnRemove(s disgord.Session) error { return nil }
 func (m *manualCtrl) Update()                          {}
 
-var _ disgord.HandlerCtrl = &manualCtrl{}
+var _ disgord.HandlerCtrl = (*manualCtrl)(nil)
