@@ -28,6 +28,8 @@ type ProfileURLMatch struct {
 // BlogInfo contains blog information.
 type BlogInfo struct {
 	Title        string
+	Content      string
+	Images       []string
 	CreationTime time.Time
 	AuthorHandle string
 	AuthorAvatar string

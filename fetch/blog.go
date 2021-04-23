@@ -25,7 +25,7 @@ var (
 	blogRatingSelec    = cascadia.MustCompile(`[title="Topic rating"]`)
 	blogRatingRuSelec  = cascadia.MustCompile(`[title="Рейтинг текста"]`)
 	commentRatingSelec = cascadia.MustCompile(".commentRating")
-	contentSelec       = cascadia.MustCompile(".ttypography")
+	typographySelec    = cascadia.MustCompile(".ttypography")
 	spoilerContentCls  = "spoiler-content"
 	spoilerSelec       = cascadia.MustCompile("." + spoilerContentCls)
 	revisionCountAttr  = "revisioncount"
@@ -42,7 +42,6 @@ func Blog(ctx context.Context, url string) (*BlogInfo, error) {
 //
 // Scrapes instead of using the API because a preview will be added but the blog content is not
 // available through the API.
-// TODO: Use blog content.
 func (f *Fetcher) Blog(ctx context.Context, url string) (*BlogInfo, error) {
 	doc, err := f.FetchPage(ctx, url)
 	if err != nil {
@@ -53,6 +52,7 @@ func (f *Fetcher) Blog(ctx context.Context, url string) (*BlogInfo, error) {
 	b.URL = url
 	b.Title = strings.TrimSpace(doc.FindMatcher(titleSelec).First().Text())
 	blogDiv := doc.FindMatcher(blogSelec)
+	b.Content, b.Images = getContentAsMarkdown(blogDiv.FindMatcher(typographySelec).First())
 	b.AuthorHandle, b.AuthorColor = parseHandleAndColor(blogDiv)
 	if b.CreationTime, err = parseTime(blogDiv); err != nil {
 		return nil, err
@@ -137,7 +137,7 @@ func (f *Fetcher) Comment(
 	base.RevisionCount = revisionCount
 
 	latest := base
-	latest.Content, latest.Images = getCommentContent(comment)
+	latest.Content, latest.Images = getContentAsMarkdown(comment.FindMatcher(typographySelec))
 	latest.Revision = revisionCount
 	cache := map[int]*CommentInfo{revisionCount: &latest}
 
@@ -153,7 +153,7 @@ func (f *Fetcher) Comment(
 			}
 			cur := base
 			cur.Revision = revision
-			cur.Content, cur.Images = getCommentContent(doc.Selection)
+			cur.Content, cur.Images = getContentAsMarkdown(doc.FindMatcher(typographySelec))
 			cache[revision] = &cur
 		}
 		return cache[revision], nil
@@ -169,7 +169,7 @@ func parseCommentRevision(comment *goquery.Selection) int {
 	return cnt
 }
 
-func getCommentContent(comment *goquery.Selection) (markdown string, imgURLs []string) {
+func getContentAsMarkdown(selec *goquery.Selection) (markdown string, imgURLs []string) {
 	converter := md.NewConverter("", true, nil)
 	converter.AddRules(
 		md.Rule{
@@ -218,7 +218,7 @@ func getCommentContent(comment *goquery.Selection) (markdown string, imgURLs []s
 	)
 	converter.Use(plugin.Strikethrough("~~"))
 
-	markdown = converter.Convert(comment.FindMatcher(contentSelec))
+	markdown = converter.Convert(selec)
 
 	// Replace LaTeX delimiter $$$ with $ because it looks ugly.
 	// TODO: Maybe Unicode symbols can be used in simple cases.

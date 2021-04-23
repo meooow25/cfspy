@@ -43,19 +43,26 @@ func handleBlogURL(ctx *bot.Context, blogURL string) {
 		return
 	}
 
-	page := bot.NewPage("", makeBlogEmbed(blogInfo))
+	short, full := makeBlogEmbeds(blogInfo)
+	var page *bot.Page
+	if full != nil {
+		page = bot.NewPageWithExpansion("", short, "", full)
+	} else {
+		page = bot.NewPage("", short)
+	}
 	if err = respondWithOnePagePreview(ctx, page); err != nil {
 		ctx.Logger.Error(fmt.Errorf("Error sending blog info: %w", err))
 	}
 }
 
-func makeBlogEmbed(b *fetch.BlogInfo) *disgord.Embed {
-	return &disgord.Embed{
+func makeBlogEmbeds(b *fetch.BlogInfo) (short *disgord.Embed, full *disgord.Embed) {
+	embed := &disgord.Embed{
 		Title: b.Title,
 		URL:   b.URL,
 		Author: &disgord.EmbedAuthor{
 			Name: b.AuthorHandle + "'s blog",
 		},
+		Description: b.Content,
 		Thumbnail: &disgord.EmbedThumbnail{
 			URL: b.AuthorAvatar,
 		},
@@ -67,6 +74,10 @@ func makeBlogEmbed(b *fetch.BlogInfo) *disgord.Embed {
 		},
 		Color: b.AuthorColor,
 	}
+	if len(b.Images) > 0 {
+		embed.Image = &disgord.EmbedImage{URL: b.Images[0]}
+	}
+	return makeShortAndFullEmbeds(embed)
 }
 
 // Fetches the comment from the blog page, converts it to markdown and responds on the Discord
@@ -107,7 +118,7 @@ func makeCommentEmbeds(c *fetch.CommentInfo) (short *disgord.Embed, full *disgor
 		revisionStr = fmt.Sprintf(
 			"  •  Revision %v/%v", c.Revision, c.RevisionCount)
 	}
-	full = &disgord.Embed{
+	embed := &disgord.Embed{
 		Title: c.BlogTitle,
 		URL:   c.URL,
 		Author: &disgord.EmbedAuthor{
@@ -126,13 +137,18 @@ func makeCommentEmbeds(c *fetch.CommentInfo) (short *disgord.Embed, full *disgor
 		Color: c.AuthorColor,
 	}
 	if len(c.Images) > 0 {
-		full.Image = &disgord.EmbedImage{URL: c.Images[0]}
+		embed.Image = &disgord.EmbedImage{URL: c.Images[0]}
 	}
+	return makeShortAndFullEmbeds(embed)
+}
+
+func makeShortAndFullEmbeds(embed *disgord.Embed) (short *disgord.Embed, full *disgord.Embed) {
+	full = embed
 	short = disgord.DeepCopy(full).(*disgord.Embed)
 	short.Description = truncateMessage(full.Description)
 
-	// If the comment is short enough, no need for full.
-	// If the comment is too long, full cannot be shown.
+	// If the content is short enough, no need for full.
+	// If the content is too long, full cannot be shown.
 	if full.Description == short.Description || bot.EmbedDescriptionTooLong(full) {
 		full = nil
 	}
