@@ -3,15 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"math/rand"
-	"time"
 
 	"github.com/andersfylling/disgord"
 	"github.com/meooow25/cfspy/bot"
 	"github.com/meooow25/cfspy/fetch"
 )
-
-var random = rand.New(rand.NewSource(time.Now().Unix()))
 
 // Installs the blog watcher feature. The bot watches for Codeforces blog and comment links and
 // responds with an embed containing info about the blog or comment.
@@ -93,7 +89,11 @@ func handleCommentURL(ctx *bot.Context, commentURL, commentID string) {
 			ctx.Logger.Error(err)
 			return bot.NewPage("", ctx.MakeErrorEmbed(err.Error()))
 		}
-		return bot.NewPage("", makeCommentEmbed(commentInfo))
+		short, full := makeCommentEmbeds(commentInfo)
+		if full != nil {
+			return bot.NewPageWithExpansion("", short, "", full)
+		}
+		return bot.NewPage("", short)
 	}
 
 	if err = respondWithMultiPagePreview(ctx, getPage, revisionCount); err != nil {
@@ -101,13 +101,13 @@ func handleCommentURL(ctx *bot.Context, commentURL, commentID string) {
 	}
 }
 
-func makeCommentEmbed(c *fetch.CommentInfo) *disgord.Embed {
+func makeCommentEmbeds(c *fetch.CommentInfo) (short *disgord.Embed, full *disgord.Embed) {
 	revisionStr := ""
 	if c.RevisionCount > 1 {
 		revisionStr = fmt.Sprintf(
 			"  •  Revision %v/%v", c.Revision, c.RevisionCount)
 	}
-	embed := &disgord.Embed{
+	full = &disgord.Embed{
 		Title: c.BlogTitle,
 		URL:   c.URL,
 		Author: &disgord.EmbedAuthor{
@@ -126,19 +126,15 @@ func makeCommentEmbed(c *fetch.CommentInfo) *disgord.Embed {
 		Color: c.AuthorColor,
 	}
 	if len(c.Images) > 0 {
-		embed.Image = &disgord.EmbedImage{URL: c.Images[0]}
+		full.Image = &disgord.EmbedImage{URL: c.Images[0]}
 	}
-	updateEmbedIfCommentTooLong(embed)
-	return embed
-}
+	short = disgord.DeepCopy(full).(*disgord.Embed)
+	short.Description = truncateMessage(full.Description)
 
-func updateEmbedIfCommentTooLong(embed *disgord.Embed) {
-	if bot.EmbedDescriptionTooLong(embed) {
-		if random.Intn(20) == 0 {
-			embed.Description = "I have discovered this truly marvelous comment, which this " +
-				"embed is too narrow to contain."
-		} else {
-			embed.Description = "The comment is too large to display."
-		}
+	// If the comment is short enough, no need for full.
+	// If the comment is too long, full cannot be shown.
+	if full.Description == short.Description || bot.EmbedDescriptionTooLong(full) {
+		full = nil
 	}
+	return
 }
