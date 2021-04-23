@@ -47,7 +47,8 @@ func handleBlogURL(ctx *bot.Context, blogURL string) {
 		return
 	}
 
-	if err = respondWithOnePagePreview(ctx, "", makeBlogEmbed(blogInfo)); err != nil {
+	page := bot.NewPage("", makeBlogEmbed(blogInfo))
+	if err = respondWithOnePagePreview(ctx, page); err != nil {
 		ctx.Logger.Error(fmt.Errorf("Error sending blog info: %w", err))
 	}
 }
@@ -85,14 +86,14 @@ func handleCommentURL(ctx *bot.Context, commentURL, commentID string) {
 		return
 	}
 
-	getPage := func(revision int) (string, *disgord.Embed) {
+	getPage := func(revision int) *bot.Page {
 		commentInfo, err := infoGetter(revision)
 		if err != nil {
 			err := fmt.Errorf("Error fetching revision %v of comment %v: %w", revision, commentURL, err)
 			ctx.Logger.Error(err)
-			return "", ctx.MakeErrorEmbed(err.Error())
+			return bot.NewPage("", ctx.MakeErrorEmbed(err.Error()))
 		}
-		return "", makeCommentEmbed(commentInfo)
+		return bot.NewPage("", makeCommentEmbed(commentInfo))
 	}
 
 	if err = respondWithMultiPagePreview(ctx, getPage, revisionCount); err != nil {

@@ -32,13 +32,11 @@ func prepareCallbacks(ctx *bot.Context) (
 
 func respondWithOnePagePreview(
 	ctx *bot.Context,
-	content string,
-	embed *disgord.Embed,
+	page *bot.Page,
 ) error {
 	msgCallback, delCallback, allowOp := prepareCallbacks(ctx)
-	return ctx.SendWithDelBtn(bot.OnePageWithDelParams{
-		Content:         content,
-		Embed:           embed,
+	return ctx.SendWithDelBtn(&bot.OnePageWithDelParams{
+		Page:            page,
 		MsgCallback:     msgCallback,
 		DeactivateAfter: time.Minute,
 		DelCallback:     delCallback,
@@ -52,7 +50,7 @@ func respondWithMultiPagePreview(
 	numPages int,
 ) error {
 	msgCallback, delCallback, allowOp := prepareCallbacks(ctx)
-	return ctx.SendPaginated(bot.PaginateParams{
+	return ctx.SendPaginated(&bot.PaginateParams{
 		GetPage:         getPage,
 		NumPages:        numPages,
 		PageToShowFirst: numPages,

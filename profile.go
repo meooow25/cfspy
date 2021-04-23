@@ -39,7 +39,8 @@ func handleProfileUrl(ctx *bot.Context, url string) {
 		return
 	}
 
-	if err = respondWithOnePagePreview(ctx, "", makeProfileEmbed(profileInfo)); err != nil {
+	page := bot.NewPage("", makeProfileEmbed(profileInfo))
+	if err = respondWithOnePagePreview(ctx, page); err != nil {
 		ctx.Logger.Error(fmt.Errorf("Error sending profile info: %w", err))
 	}
 }
