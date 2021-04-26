@@ -262,7 +262,15 @@ func (w *widget) validateAndUpdateParams() error {
 }
 
 func (w *widget) reactOnMsg(symbol string) {
-	if err := w.msg.React(w.ctx, w.session, symbol); err != nil {
+	// It is possible to get rate limited on react/unreact because react and unreact use the same
+	// bucket but disgord doesn't know this until one request of each has been made. If the first
+	// request fails by exceeding the rate limit, disgord doesn't auto-retry.
+	// After the first request, disgord identifies the bucket from the response headers and rate
+	// limits future requests correctly.
+	err := retryOnRateLimit(func() error {
+		return w.msg.React(w.ctx, w.session, symbol)
+	})
+	if err != nil {
 		w.session.Logger().Error(fmt.Errorf("React failed: %w", err))
 		return
 	}
@@ -270,7 +278,10 @@ func (w *widget) reactOnMsg(symbol string) {
 }
 
 func (w *widget) unreactOnMsg(symbol string) {
-	if err := w.msg.Unreact(w.ctx, w.session, symbol); err != nil {
+	err := retryOnRateLimit(func() error {
+		return w.msg.Unreact(w.ctx, w.session, symbol)
+	})
+	if err != nil {
 		w.session.Logger().Error(fmt.Errorf("Unreact failed: %w", err))
 		return
 	}
