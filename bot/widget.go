@@ -51,9 +51,6 @@ type PaginateParams struct {
 	// After this duration the message will not be monitored.
 	DeactivateAfter time.Duration
 
-	// Whether to add a delete button.
-	DelBtn bool
-
 	// Optional callback to be invoked when the message is deleted.
 	DelCallback DelCallbackType
 
@@ -154,7 +151,6 @@ func SendWithDelBtn(
 			PageToShowFirst: 1,
 			MsgCallback:     params.MsgCallback,
 			DeactivateAfter: params.DeactivateAfter,
-			DelBtn:          true,
 			DelCallback:     params.DelCallback,
 			AllowOp:         params.AllowOp,
 		},
@@ -205,9 +201,7 @@ func (w *widget) run(ctx context.Context, channelID disgord.Snowflake) error {
 		return err
 	}
 	w.params.MsgCallback(w.msg)
-	if w.params.DelBtn {
-		w.reactOnMsg(delSymbol)
-	}
+	w.reactOnMsg(delSymbol)
 	if w.params.NumPages > 1 {
 		w.reactOnMsg(prevSymbol)
 		w.reactOnMsg(nextSymbol)
@@ -252,7 +246,7 @@ func (w *widget) validateAndUpdateParams() error {
 	if w.params.DeactivateAfter < time.Second {
 		return fmt.Errorf("DeactivateAfter must be at least 1s, found %v", w.params.DeactivateAfter)
 	}
-	if w.params.DelBtn && w.params.DelCallback == nil {
+	if w.params.DelCallback == nil {
 		w.params.DelCallback = func(*disgord.MessageReactionAdd) {}
 	}
 	if w.params.AllowOp == nil {
