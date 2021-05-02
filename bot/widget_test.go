@@ -30,13 +30,23 @@ var (
 	}
 )
 
-func newWidget(pages int, lifetime time.Duration, messager *mock_bot.MockMessager) *widget {
+func newWidget(
+	pages int,
+	lifetime time.Duration,
+	msgCallback MsgCallbackType,
+	delCallback DelCallbackType,
+	allowOp AllowPredicateType,
+	messager *mock_bot.MockMessager,
+) *widget {
 	return &widget{
 		params: &PaginateParams{
 			GetPage:         func(i int) *Page { return testPages[i] },
 			NumPages:        pages,
 			PageToShowFirst: pages,
 			Lifetime:        lifetime,
+			MsgCallback:     msgCallback,
+			DelCallback:     delCallback,
+			AllowOp:         allowOp,
 		},
 		messager: messager,
 	}
@@ -54,6 +64,49 @@ func msgReactionAdd(reaction string) *disgord.MessageReactionAdd {
 		PartialEmoji: &disgord.Emoji{Name: reaction},
 		UserID:       testUserID,
 	}
+}
+
+func registerCallCheckCleanup(t *testing.T, got *int, want int) {
+	t.Cleanup(func() {
+		if *got != want {
+			t.Fatalf("got %v calls, want %v", *got, want)
+		}
+	})
+}
+
+func newMsgCallback(t *testing.T, expectedCalls int) MsgCallbackType {
+	calls := 0
+	cb := func(m *disgord.Message) {
+		if m != testMsg {
+			t.Fatalf("got %v, want testMsg", m)
+		}
+		calls++
+	}
+	registerCallCheckCleanup(t, &calls, expectedCalls)
+	return cb
+}
+
+func newDelCallback(t *testing.T, expectedCalls int) DelCallbackType {
+	calls := 0
+	cb := func(evt *disgord.MessageReactionAdd) {
+		reaction := evt.PartialEmoji.Name
+		if reaction != delSymbol {
+			t.Fatalf("got %v, want %v", reaction, delSymbol)
+		}
+		calls++
+	}
+	registerCallCheckCleanup(t, &calls, expectedCalls)
+	return cb
+}
+
+func newAllowPredicate(t *testing.T, expectedCalls int) AllowPredicateType {
+	calls := 0
+	cb := func(evt *disgord.MessageReactionAdd) bool {
+		calls++
+		return true
+	}
+	registerCallCheckCleanup(t, &calls, expectedCalls)
+	return cb
 }
 
 // Exposes convenient functions to record calls to a mock messager.
@@ -105,8 +158,11 @@ func TestWidgetOnePage(t *testing.T) {
 		calls.reactListener(nil),
 		calls.unreact(delSymbol),
 	)
+	msgCallback := newMsgCallback(t, 1)
+	delCallback := newDelCallback(t, 0)
+	allowOp := newAllowPredicate(t, 0)
 
-	w := newWidget(1, time.Millisecond, messager)
+	w := newWidget(1, time.Millisecond, msgCallback, delCallback, allowOp, messager)
 	if err := w.run(context.Background(), testChannelID); err != nil {
 		t.Fatal(err)
 	}
@@ -128,8 +184,11 @@ func TestWidgetMultiPage(t *testing.T) {
 			calls.unreact(delSymbol),
 		),
 	)
+	msgCallback := newMsgCallback(t, 1)
+	delCallback := newDelCallback(t, 0)
+	allowOp := newAllowPredicate(t, 0)
 
-	w := newWidget(2, time.Millisecond, messager)
+	w := newWidget(2, time.Millisecond, msgCallback, delCallback, allowOp, messager)
 	if err := w.run(context.Background(), testChannelID); err != nil {
 		t.Fatal(err)
 	}
@@ -146,8 +205,11 @@ func TestWidgetCancel(t *testing.T) {
 		calls.react(nextSymbol),
 		calls.reactListener(nil),
 	)
+	msgCallback := newMsgCallback(t, 1)
+	delCallback := newDelCallback(t, 0)
+	allowOp := newAllowPredicate(t, 0)
 
-	w := newWidget(2, time.Minute, messager)
+	w := newWidget(2, time.Minute, msgCallback, delCallback, allowOp, messager)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	done := runWidget(ctx, w)
@@ -175,8 +237,11 @@ func TestWidgetDelete(t *testing.T) {
 		calls.reactListener(handlerCh),
 		calls.delete(),
 	)
+	msgCallback := newMsgCallback(t, 1)
+	delCallback := newDelCallback(t, 1)
+	allowOp := newAllowPredicate(t, 1)
 
-	w := newWidget(2, time.Minute, messager)
+	w := newWidget(2, time.Minute, msgCallback, delCallback, allowOp, messager)
 
 	done := runWidget(context.Background(), w)
 
@@ -191,6 +256,68 @@ func TestWidgetDelete(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Fatal("widget did not stop when deleted")
 	}
+}
+
+func TestWidgetAllowOp(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	messager := mock_bot.NewMockMessager(ctrl)
+	calls := messagerCalls{messager}
+	handlerCh := make(chan disgord.HandlerMessageReactionAdd, 1)
+	chk1, chk2, _, _, _ := newCheckpoints()
+
+	inOrder(
+		calls.send(testPages[2].Default.Content, testPages[2].Default.Embed),
+		calls.react(delSymbol),
+		calls.react(prevSymbol),
+		calls.react(nextSymbol),
+		calls.reactListener(handlerCh),
+
+		// Previous, 2 -> 1
+		anyOrder(
+			calls.unreactUser(prevSymbol, testUserID),
+			calls.edit(testPages[1].Default.Content, testPages[1].Default.Embed),
+		),
+		chk1,
+
+		// Delete
+		calls.delete(),
+		chk2,
+	)
+
+	msgCallback := newMsgCallback(t, 1)
+	delCallback := newDelCallback(t, 1)
+	allow := false
+	allowOp := func(evt *disgord.MessageReactionAdd) bool {
+		return allow
+	}
+
+	w := newWidget(2, time.Minute, msgCallback, delCallback, allowOp, messager)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	runWidget(ctx, w)
+	handler := <-handlerCh
+
+	// Not allowed
+	handler(nil, msgReactionAdd(prevSymbol))
+	handler(nil, msgReactionAdd(nextSymbol))
+	handler(nil, msgReactionAdd(delSymbol))
+
+	// Previous, 2 -> 1
+	allow = true
+	handler(nil, msgReactionAdd(prevSymbol))
+	<-chk1
+
+	// Not allowed
+	allow = false
+	handler(nil, msgReactionAdd(prevSymbol))
+	handler(nil, msgReactionAdd(nextSymbol))
+	handler(nil, msgReactionAdd(delSymbol))
+
+	// Delete
+	allow = true
+	handler(nil, msgReactionAdd(delSymbol))
+	<-chk2
 }
 
 func TestWidgetChangePage(t *testing.T) {
@@ -230,7 +357,11 @@ func TestWidgetChangePage(t *testing.T) {
 		chk4,
 	)
 
-	w := newWidget(2, time.Minute, messager)
+	msgCallback := newMsgCallback(t, 1)
+	delCallback := newDelCallback(t, 0)
+	allowOp := newAllowPredicate(t, 4)
+
+	w := newWidget(2, time.Minute, msgCallback, delCallback, allowOp, messager)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -300,7 +431,11 @@ func TestWidgetExpandContract(t *testing.T) {
 		chk4,
 	)
 
-	w := newWidget(3, time.Minute, messager)
+	msgCallback := newMsgCallback(t, 1)
+	delCallback := newDelCallback(t, 0)
+	allowOp := newAllowPredicate(t, 4)
+
+	w := newWidget(3, time.Minute, msgCallback, delCallback, allowOp, messager)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -391,7 +526,11 @@ func TestWidgetMixedActions(t *testing.T) {
 		calls.delete(),
 	)
 
-	w := newWidget(4, time.Minute, messager)
+	msgCallback := newMsgCallback(t, 1)
+	delCallback := newDelCallback(t, 1)
+	allowOp := newAllowPredicate(t, 6)
+
+	w := newWidget(4, time.Minute, msgCallback, delCallback, allowOp, messager)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
