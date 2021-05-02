@@ -88,3 +88,5 @@ func (m *disgordMessager) AddReactListener(
 ) {
 	m.session.Gateway().WithMiddleware(filter).WithCtrl(ctrl).MessageReactionAdd(handler)
 }
+
+var _ Messager = (*disgordMessager)(nil)

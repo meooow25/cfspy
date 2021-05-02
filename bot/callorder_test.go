@@ -41,8 +41,11 @@ func asGroup(callOrGroup interface{}) *group {
 }
 
 // A checkpoint after a group.
-type checkpoint struct {
-	done chan<- struct{}
+type checkpoint chan struct{}
+
+func newCheckpoints() (checkpoint, checkpoint, checkpoint, checkpoint, checkpoint) {
+	return make(chan struct{}),
+		make(chan struct{}), make(chan struct{}), make(chan struct{}), make(chan struct{})
 }
 
 // Enforces no ordering between the input calls or groups. Returns a combined group.
@@ -67,7 +70,7 @@ func inOrder(callsOrGroupsOrCheckpoints ...interface{}) *group {
 				// Can probably be made to work in this case but I don't need it
 				panic(fmt.Errorf("a checkpoint cannot be first"))
 			}
-			lastGroup.closeOnDone(chk.done)
+			lastGroup.closeOnDone(chk)
 			continue
 		}
 		g := asGroup(x)

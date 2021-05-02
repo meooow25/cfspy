@@ -158,7 +158,7 @@ func TestWidgetCancel(t *testing.T) {
 			t.Fatalf("got %v, want context.Canceled", err)
 		}
 	case <-time.After(time.Second):
-		t.Fatalf("widget did not stop when canceled")
+		t.Fatal("widget did not stop when canceled")
 	}
 }
 
@@ -189,7 +189,7 @@ func TestWidgetDelete(t *testing.T) {
 			t.Fatal(err)
 		}
 	case <-time.After(time.Second):
-		t.Fatalf("widget did not stop when deleted")
+		t.Fatal("widget did not stop when deleted")
 	}
 }
 
@@ -198,11 +198,7 @@ func TestWidgetChangePage(t *testing.T) {
 	messager := mock_bot.NewMockMessager(ctrl)
 	calls := messagerCalls{messager}
 	handlerCh := make(chan disgord.HandlerMessageReactionAdd, 1)
-
-	done1 := make(chan struct{})
-	done2 := make(chan struct{})
-	done3 := make(chan struct{})
-	done4 := make(chan struct{})
+	chk1, chk2, chk3, chk4, _ := newCheckpoints()
 
 	inOrder(
 		calls.send(testPages[2].Default.Content, testPages[2].Default.Embed),
@@ -216,22 +212,22 @@ func TestWidgetChangePage(t *testing.T) {
 			calls.unreactUser(prevSymbol, testUserID),
 			calls.edit(testPages[1].Default.Content, testPages[1].Default.Embed),
 		),
-		checkpoint{done1},
+		chk1,
 
 		// Previous, 1 -> 1
 		calls.unreactUser(prevSymbol, testUserID),
-		checkpoint{done2},
+		chk2,
 
 		// Next, 1 -> 2
 		anyOrder(
 			calls.unreactUser(nextSymbol, testUserID),
 			calls.edit(testPages[2].Default.Content, testPages[2].Default.Embed),
 		),
-		checkpoint{done3},
+		chk3,
 
 		// Next, 2 -> 2
 		calls.unreactUser(nextSymbol, testUserID),
-		checkpoint{done4},
+		chk4,
 	)
 
 	w := newWidget(2, time.Minute, messager)
@@ -243,19 +239,19 @@ func TestWidgetChangePage(t *testing.T) {
 
 	// Previous, 2 -> 1
 	handler(nil, msgReactionAdd(prevSymbol))
-	<-done1
+	<-chk1
 
 	// Previous, 1 -> 1
 	handler(nil, msgReactionAdd(prevSymbol))
-	<-done2
+	<-chk2
 
 	// Next, 1 -> 2
 	handler(nil, msgReactionAdd(nextSymbol))
-	<-done3
+	<-chk3
 
 	// Next, 2 -> 2
 	handler(nil, msgReactionAdd(nextSymbol))
-	<-done4
+	<-chk4
 }
 
 func TestWidgetExpandContract(t *testing.T) {
@@ -263,11 +259,7 @@ func TestWidgetExpandContract(t *testing.T) {
 	messager := mock_bot.NewMockMessager(ctrl)
 	calls := messagerCalls{messager}
 	handlerCh := make(chan disgord.HandlerMessageReactionAdd, 1)
-
-	done1 := make(chan struct{})
-	done2 := make(chan struct{})
-	done3 := make(chan struct{})
-	done4 := make(chan struct{})
+	chk1, chk2, chk3, chk4, _ := newCheckpoints()
 
 	inOrder(
 		calls.send(testPages[3].Default.Content, testPages[3].Default.Embed),
@@ -286,11 +278,11 @@ func TestWidgetExpandContract(t *testing.T) {
 				calls.react(lessSymbol),
 			),
 		),
-		checkpoint{done1},
+		chk1,
 
 		// Expand, expanded -> expanded
 		calls.unreactUser(moreSymbol, testUserID),
-		checkpoint{done2},
+		chk2,
 
 		// Contract, expanded -> default
 		anyOrder(
@@ -301,11 +293,11 @@ func TestWidgetExpandContract(t *testing.T) {
 				calls.react(moreSymbol),
 			),
 		),
-		checkpoint{done3},
+		chk3,
 
 		// Contract, default -> default
 		calls.unreactUser(lessSymbol, testUserID),
-		checkpoint{done4},
+		chk4,
 	)
 
 	w := newWidget(3, time.Minute, messager)
@@ -317,19 +309,19 @@ func TestWidgetExpandContract(t *testing.T) {
 
 	// Expand, default -> expanded
 	handler(nil, msgReactionAdd(moreSymbol))
-	<-done1
+	<-chk1
 
 	// Expand, expanded -> expanded
 	handler(nil, msgReactionAdd(moreSymbol))
-	<-done2
+	<-chk2
 
 	// Contract, expanded -> default
 	handler(nil, msgReactionAdd(lessSymbol))
-	<-done3
+	<-chk3
 
 	// Contract, default -> default
 	handler(nil, msgReactionAdd(lessSymbol))
-	<-done4
+	<-chk4
 }
 
 func TestWidgetMixedActions(t *testing.T) {
@@ -337,12 +329,7 @@ func TestWidgetMixedActions(t *testing.T) {
 	messager := mock_bot.NewMockMessager(ctrl)
 	calls := messagerCalls{messager}
 	handlerCh := make(chan disgord.HandlerMessageReactionAdd, 1)
-
-	done1 := make(chan struct{})
-	done2 := make(chan struct{})
-	done3 := make(chan struct{})
-	done4 := make(chan struct{})
-	done5 := make(chan struct{})
+	chk1, chk2, chk3, chk4, chk5 := newCheckpoints()
 
 	inOrder(
 		calls.send(testPages[4].Default.Content, testPages[4].Default.Embed),
@@ -361,7 +348,7 @@ func TestWidgetMixedActions(t *testing.T) {
 				calls.react(lessSymbol),
 			),
 		),
-		checkpoint{done1},
+		chk1,
 
 		// Previous, 4 -> 3
 		anyOrder(
@@ -372,7 +359,7 @@ func TestWidgetMixedActions(t *testing.T) {
 				calls.react(moreSymbol),
 			),
 		),
-		checkpoint{done2},
+		chk2,
 
 		// Previous, 3 -> 2
 		anyOrder(
@@ -382,7 +369,7 @@ func TestWidgetMixedActions(t *testing.T) {
 				calls.unreact(moreSymbol),
 			),
 		),
-		checkpoint{done3},
+		chk3,
 
 		// Next, 2 -> 3
 		anyOrder(
@@ -392,14 +379,14 @@ func TestWidgetMixedActions(t *testing.T) {
 				calls.react(moreSymbol),
 			),
 		),
-		checkpoint{done4},
+		chk4,
 
 		// Next, 3 -> 4
 		anyOrder(
 			calls.unreactUser(nextSymbol, testUserID),
 			calls.edit(testPages[4].Default.Content, testPages[4].Default.Embed),
 		),
-		checkpoint{done5},
+		chk5,
 
 		calls.delete(),
 	)
@@ -413,23 +400,23 @@ func TestWidgetMixedActions(t *testing.T) {
 
 	// Expand 4, default -> expanded
 	handler(nil, msgReactionAdd(moreSymbol))
-	<-done1
+	<-chk1
 
 	// Previous, 4 -> 3
 	handler(nil, msgReactionAdd(prevSymbol))
-	<-done2
+	<-chk2
 
 	// Previous, 3 -> 2
 	handler(nil, msgReactionAdd(prevSymbol))
-	<-done3
+	<-chk3
 
 	// Next, 2 -> 3
 	handler(nil, msgReactionAdd(nextSymbol))
-	<-done4
+	<-chk4
 
 	// Next, 3 -> 4
 	handler(nil, msgReactionAdd(nextSymbol))
-	<-done5
+	<-chk5
 
 	// Delete
 	handler(nil, msgReactionAdd(delSymbol))
