@@ -26,6 +26,14 @@ To answer the common question _"Is Codeforces down?"_, there is a command to pin
 
 #### Invite the bot to your server
 [Click here](https://discord.com/api/oauth2/authorize?client_id=713443232834650152&permissions=8192&scope=bot) to authorize the bot. CFSpy requires the `Manage messages` permission to remove the default embeds.
+<details>
+  <summary><i>If you get an error when you try to add the bot...</i></summary>
+  <sub>
+    That may be because the bot is already in 100 servers, and Discord does not allow a bot to be in more than 100 servers without <a href="https://support.discord.com/hc/en-us/articles/360040720412-Bot-Verification-and-Data-Whitelisting">verification</a>.
+    To verify the bot, I will need to give Discord a real-life ID of mine to verify, which is simply ridiculous. If you agree, consider upvoting this <a href="https://support.discord.com/hc/en-us/community/posts/360061029252-Remove-ID-verification-for-Bots">support article</a>, but I don't expect any resolution.<br>
+    I'm sorry if you aren't able to add the bot because of this, but feel free to run your own instance (see below).
+  </sub>
+</details>
 
 #### Or run your own instance
 1. To set up a Discord bot, follow [these steps](https://discordpy.readthedocs.io/en/latest/discord.html).
