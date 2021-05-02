@@ -55,7 +55,7 @@ func respondWithMultiPagePreview(
 		NumPages:        numPages,
 		PageToShowFirst: numPages,
 		MsgCallback:     msgCallback,
-		DeactivateAfter: time.Minute,
+		Lifetime:        time.Minute,
 		DelCallback:     delCallback,
 		AllowOp:         allowOp,
 	})

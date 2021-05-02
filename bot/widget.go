@@ -49,7 +49,7 @@ type PaginateParams struct {
 	MsgCallback MsgCallbackType
 
 	// After this duration the message will not be monitored.
-	DeactivateAfter time.Duration
+	Lifetime time.Duration
 
 	// Optional callback to be invoked when the message is deleted.
 	DelCallback DelCallbackType
@@ -130,8 +130,9 @@ func SendPaginated(
 	channelID disgord.Snowflake,
 ) error {
 	w := widget{
-		params:  params,
-		session: session,
+		params:   params,
+		messager: &disgordMessager{session: session},
+		logger:   session.Logger(),
 	}
 	return w.run(ctx, channelID)
 }
@@ -150,7 +151,7 @@ func SendWithDelBtn(
 			NumPages:        1,
 			PageToShowFirst: 1,
 			MsgCallback:     params.MsgCallback,
-			DeactivateAfter: params.DeactivateAfter,
+			Lifetime:        params.DeactivateAfter,
 			DelCallback:     params.DelCallback,
 			AllowOp:         params.AllowOp,
 		},
@@ -160,8 +161,9 @@ func SendWithDelBtn(
 }
 
 type widget struct {
-	params  *PaginateParams
-	session disgord.Session
+	params   *PaginateParams
+	messager Messager
+	logger   disgord.Logger
 
 	// The active context for the widget
 	ctx    context.Context
@@ -184,7 +186,7 @@ func (w *widget) run(ctx context.Context, channelID disgord.Snowflake) error {
 	}
 
 	// Initialize context
-	w.ctx, w.cancel = context.WithTimeout(ctx, w.params.DeactivateAfter)
+	w.ctx, w.cancel = context.WithTimeout(ctx, w.params.Lifetime)
 	defer w.cancel()
 
 	// Initialize state
@@ -195,8 +197,8 @@ func (w *widget) run(ctx context.Context, channelID disgord.Snowflake) error {
 
 	// Send page to show first, add reacts
 	var err error
-	w.msg, err = w.session.WithContext(w.ctx).
-		SendMsg(channelID, w.currentPage.Default.Content, w.currentPage.Default.Embed)
+	w.msg, err = w.messager.Send(
+		w.ctx, channelID, w.currentPage.Default.Content, w.currentPage.Default.Embed)
 	if err != nil {
 		return err
 	}
@@ -210,14 +212,15 @@ func (w *widget) run(ctx context.Context, channelID disgord.Snowflake) error {
 
 	// Listen for reacts on the message
 	ctrl := &manualCtrl{}
-	w.session.Gateway().
-		WithMiddleware(filterReactionAddForMsg(w.msg.ID)).
-		WithCtrl(ctrl).
-		MessageReactionAdd(func(_ disgord.Session, evt *disgord.MessageReactionAdd) {
+	w.messager.AddReactListener(
+		filterReactionAddForMsg(w.msg.ID),
+		ctrl,
+		func(_ disgord.Session, evt *disgord.MessageReactionAdd) {
 			if allSymbols[evt.PartialEmoji.Name] && w.params.AllowOp(evt) {
 				go w.handleControlReact(evt)
 			}
-		})
+		},
+	)
 
 	<-w.ctx.Done()
 	ctrl.kill()
@@ -243,8 +246,8 @@ func (w *widget) validateAndUpdateParams() error {
 	if w.params.MsgCallback == nil {
 		w.params.MsgCallback = func(*disgord.Message) {}
 	}
-	if w.params.DeactivateAfter < time.Second {
-		return fmt.Errorf("DeactivateAfter must be at least 1s, found %v", w.params.DeactivateAfter)
+	if w.params.Lifetime <= 0 {
+		return fmt.Errorf("Lifetime must be positive, found %v", w.params.Lifetime)
 	}
 	if w.params.DelCallback == nil {
 		w.params.DelCallback = func(*disgord.MessageReactionAdd) {}
@@ -256,27 +259,16 @@ func (w *widget) validateAndUpdateParams() error {
 }
 
 func (w *widget) reactOnMsg(symbol string) {
-	// It is possible to get rate limited on react/unreact because react and unreact use the same
-	// bucket but disgord doesn't know this until one request of each has been made. If the first
-	// request fails by exceeding the rate limit, disgord doesn't auto-retry.
-	// After the first request, disgord identifies the bucket from the response headers and rate
-	// limits future requests correctly.
-	err := retryOnRateLimit(func() error {
-		return w.msg.React(w.ctx, w.session, symbol)
-	})
-	if err != nil {
-		w.session.Logger().Error(fmt.Errorf("React failed: %w", err))
+	if err := w.messager.React(w.ctx, w.msg, symbol); err != nil {
+		w.logger.Error(fmt.Errorf("React failed: %w", err))
 		return
 	}
 	w.currentReacts[symbol] = true
 }
 
 func (w *widget) unreactOnMsg(symbol string) {
-	err := retryOnRateLimit(func() error {
-		return w.msg.Unreact(w.ctx, w.session, symbol)
-	})
-	if err != nil {
-		w.session.Logger().Error(fmt.Errorf("Unreact failed: %w", err))
+	if err := w.messager.Unreact(w.ctx, w.msg, symbol); err != nil {
+		w.logger.Error(fmt.Errorf("Unreact failed: %w", err))
 		return
 	}
 	delete(w.currentReacts, symbol)
@@ -284,7 +276,7 @@ func (w *widget) unreactOnMsg(symbol string) {
 
 func (w *widget) cleanupReacts(ctx context.Context) {
 	for react := range w.currentReacts {
-		w.msg.Unreact(ctx, w.session, react)
+		w.messager.Unreact(w.ctx, w.msg, react)
 	}
 }
 
@@ -315,12 +307,8 @@ func (w *widget) expandCurrentPage() {
 	if w.currentPage.Expanded == nil || w.expanded {
 		return
 	}
-	_, err := MsgQueryBuilder(w.session, w.msg).
-		WithContext(w.ctx).
-		Update().
-		SetContent(w.currentPage.Expanded.Content).
-		SetEmbed(w.currentPage.Expanded.Embed).
-		Execute()
+	_, err := w.messager.Edit(
+		w.ctx, w.msg, w.currentPage.Expanded.Content, w.currentPage.Expanded.Embed)
 	if err != nil {
 		return
 	}
@@ -333,12 +321,8 @@ func (w *widget) contractCurrentPage() {
 	if w.currentPage.Expanded == nil || !w.expanded {
 		return
 	}
-	_, err := MsgQueryBuilder(w.session, w.msg).
-		WithContext(w.ctx).
-		Update().
-		SetContent(w.currentPage.Default.Content).
-		SetEmbed(w.currentPage.Default.Embed).
-		Execute()
+	_, err := w.messager.Edit(
+		w.ctx, w.msg, w.currentPage.Default.Content, w.currentPage.Default.Embed)
 	if err != nil {
 		return
 	}
@@ -352,12 +336,7 @@ func (w *widget) showPage(delta int) {
 		return
 	}
 	newPage := w.params.GetPage(newPageNum)
-	_, err := MsgQueryBuilder(w.session, w.msg).
-		WithContext(w.ctx).
-		Update().
-		SetContent(newPage.Default.Content).
-		SetEmbed(newPage.Default.Embed).
-		Execute()
+	_, err := w.messager.Edit(w.ctx, w.msg, newPage.Default.Content, newPage.Default.Embed)
 	if err != nil {
 		return
 	}
@@ -373,16 +352,13 @@ func (w *widget) handleControlReact(evt *disgord.MessageReactionAdd) {
 
 	react := evt.PartialEmoji.Name
 	if react == delSymbol {
-		MsgQueryBuilder(w.session, w.msg).WithContext(w.ctx).Delete()
+		w.messager.Delete(w.ctx, w.msg)
 		w.params.DelCallback(evt)
 		w.cancel()
 		return
 	}
 
-	go MsgQueryBuilder(w.session, w.msg).
-		WithContext(w.ctx).
-		Reaction(react).
-		DeleteUser(evt.UserID)
+	go w.messager.UnreactUser(w.ctx, w.msg, react, evt.UserID)
 
 	switch evt.PartialEmoji.Name {
 	case prevSymbol:
@@ -394,6 +370,6 @@ func (w *widget) handleControlReact(evt *disgord.MessageReactionAdd) {
 	case lessSymbol:
 		w.contractCurrentPage()
 	default:
-		w.session.Logger().Error(fmt.Errorf("Unexpected react %v", react))
+		w.logger.Error(fmt.Errorf("Unexpected react %v", react))
 	}
 }
