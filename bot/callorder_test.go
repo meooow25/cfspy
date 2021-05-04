@@ -74,18 +74,16 @@ func inOrder(callsOrGroupsOrCheckpoints ...interface{}) *group {
 			continue
 		}
 		g := asGroup(x)
+		if i == 0 {
+			res.first = g.first
+		}
 		for _, lastCall := range lastGroup.last {
 			for _, firstCall := range g.first {
 				firstCall.After(lastCall)
 			}
 		}
-		if i == 0 {
-			res.first = g.first
-		}
-		if i == len(callsOrGroupsOrCheckpoints)-1 {
-			res.last = g.last
-		}
 		lastGroup = g
 	}
+	res.last = lastGroup.last
 	return res
 }
