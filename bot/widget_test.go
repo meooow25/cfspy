@@ -99,7 +99,7 @@ func newDelCallback(t *testing.T, expectedCalls int) DelCallbackType {
 	return cb
 }
 
-func newAllowPredicate(t *testing.T, expectedCalls int) AllowPredicateType {
+func newAllowOp(t *testing.T, expectedCalls int) AllowPredicateType {
 	calls := 0
 	cb := func(evt *disgord.MessageReactionAdd) bool {
 		calls++
@@ -160,7 +160,7 @@ func TestWidgetOnePage(t *testing.T) {
 	)
 	msgCallback := newMsgCallback(t, 1)
 	delCallback := newDelCallback(t, 0)
-	allowOp := newAllowPredicate(t, 0)
+	allowOp := newAllowOp(t, 0)
 
 	w := newWidget(1, time.Millisecond, msgCallback, delCallback, allowOp, messager)
 	if err := w.run(context.Background(), testChannelID); err != nil {
@@ -186,7 +186,7 @@ func TestWidgetMultiPage(t *testing.T) {
 	)
 	msgCallback := newMsgCallback(t, 1)
 	delCallback := newDelCallback(t, 0)
-	allowOp := newAllowPredicate(t, 0)
+	allowOp := newAllowOp(t, 0)
 
 	w := newWidget(2, time.Millisecond, msgCallback, delCallback, allowOp, messager)
 	if err := w.run(context.Background(), testChannelID); err != nil {
@@ -207,7 +207,7 @@ func TestWidgetCancel(t *testing.T) {
 	)
 	msgCallback := newMsgCallback(t, 1)
 	delCallback := newDelCallback(t, 0)
-	allowOp := newAllowPredicate(t, 0)
+	allowOp := newAllowOp(t, 0)
 
 	w := newWidget(2, time.Minute, msgCallback, delCallback, allowOp, messager)
 
@@ -239,7 +239,7 @@ func TestWidgetDelete(t *testing.T) {
 	)
 	msgCallback := newMsgCallback(t, 1)
 	delCallback := newDelCallback(t, 1)
-	allowOp := newAllowPredicate(t, 1)
+	allowOp := newAllowOp(t, 1)
 
 	w := newWidget(2, time.Minute, msgCallback, delCallback, allowOp, messager)
 
@@ -263,7 +263,7 @@ func TestWidgetAllowOp(t *testing.T) {
 	messager := mock_bot.NewMockMessager(ctrl)
 	calls := messagerCalls{messager}
 	handlerCh := make(chan disgord.HandlerMessageReactionAdd, 1)
-	chk1, chk2, _, _, _ := newCheckpoints()
+	chk, _, _, _, _ := newCheckpoints()
 
 	inOrder(
 		calls.send(testPages[2].Default.Content, testPages[2].Default.Embed),
@@ -277,25 +277,22 @@ func TestWidgetAllowOp(t *testing.T) {
 			calls.unreactUser(prevSymbol, testUserID),
 			calls.edit(testPages[1].Default.Content, testPages[1].Default.Embed),
 		),
-		chk1,
+		chk,
 
 		// Delete
 		calls.delete(),
-		chk2,
 	)
 
 	msgCallback := newMsgCallback(t, 1)
 	delCallback := newDelCallback(t, 1)
 	allow := false
-	allowOp := func(evt *disgord.MessageReactionAdd) bool {
+	allowOp := func(*disgord.MessageReactionAdd) bool {
 		return allow
 	}
 
 	w := newWidget(2, time.Minute, msgCallback, delCallback, allowOp, messager)
+	done := runWidget(context.Background(), w)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	runWidget(ctx, w)
 	handler := <-handlerCh
 
 	// Not allowed
@@ -306,7 +303,7 @@ func TestWidgetAllowOp(t *testing.T) {
 	// Previous, 2 -> 1
 	allow = true
 	handler(nil, msgReactionAdd(prevSymbol))
-	<-chk1
+	<-chk
 
 	// Not allowed
 	allow = false
@@ -317,7 +314,10 @@ func TestWidgetAllowOp(t *testing.T) {
 	// Delete
 	allow = true
 	handler(nil, msgReactionAdd(delSymbol))
-	<-chk2
+
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestWidgetChangePage(t *testing.T) {
@@ -359,13 +359,14 @@ func TestWidgetChangePage(t *testing.T) {
 
 	msgCallback := newMsgCallback(t, 1)
 	delCallback := newDelCallback(t, 0)
-	allowOp := newAllowPredicate(t, 4)
+	allowOp := newAllowOp(t, 4)
 
 	w := newWidget(2, time.Minute, msgCallback, delCallback, allowOp, messager)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	runWidget(ctx, w)
+
 	handler := <-handlerCh
 
 	// Previous, 2 -> 1
@@ -433,13 +434,14 @@ func TestWidgetExpandContract(t *testing.T) {
 
 	msgCallback := newMsgCallback(t, 1)
 	delCallback := newDelCallback(t, 0)
-	allowOp := newAllowPredicate(t, 4)
+	allowOp := newAllowOp(t, 4)
 
 	w := newWidget(3, time.Minute, msgCallback, delCallback, allowOp, messager)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	runWidget(ctx, w)
+
 	handler := <-handlerCh
 
 	// Expand, default -> expanded
@@ -528,13 +530,11 @@ func TestWidgetMixedActions(t *testing.T) {
 
 	msgCallback := newMsgCallback(t, 1)
 	delCallback := newDelCallback(t, 1)
-	allowOp := newAllowPredicate(t, 6)
+	allowOp := newAllowOp(t, 6)
 
 	w := newWidget(4, time.Minute, msgCallback, delCallback, allowOp, messager)
+	done := runWidget(context.Background(), w)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	done := runWidget(ctx, w)
 	handler := <-handlerCh
 
 	// Expand 4, default -> expanded
