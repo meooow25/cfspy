@@ -310,11 +310,11 @@ func (w *widget) expandCurrentPage() {
 	_, err := w.messager.Edit(
 		w.ctx, w.msg, w.currentPage.Expanded.Content, w.currentPage.Expanded.Embed)
 	if err != nil {
+		w.logger.Error(fmt.Errorf("Failed to expand page: %w", err))
 		return
 	}
 	w.expanded = true
 	w.fixMoreLessReactsForCurrentPage()
-
 }
 
 func (w *widget) contractCurrentPage() {
@@ -324,6 +324,7 @@ func (w *widget) contractCurrentPage() {
 	_, err := w.messager.Edit(
 		w.ctx, w.msg, w.currentPage.Default.Content, w.currentPage.Default.Embed)
 	if err != nil {
+		w.logger.Error(fmt.Errorf("Failed to contract page: %w", err))
 		return
 	}
 	w.expanded = false
@@ -338,6 +339,7 @@ func (w *widget) showPage(delta int) {
 	newPage := w.params.GetPage(newPageNum)
 	_, err := w.messager.Edit(w.ctx, w.msg, newPage.Default.Content, newPage.Default.Embed)
 	if err != nil {
+		w.logger.Error(fmt.Errorf("Failed to show page: %w", err))
 		return
 	}
 	w.currentPageNum = newPageNum
