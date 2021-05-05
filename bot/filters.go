@@ -17,7 +17,7 @@ func filterMsgCreateNotBot(evt interface{}) interface{} {
 
 // Returns a filter for MessageCreate events, which allows messages with the given prefix only and
 // also strips the prefix from the message.
-func filterMsgCreateStripPrefix(prefix string) func(evt interface{}) interface{} {
+func filterMsgCreateStripPrefix(prefix string) disgord.Middleware {
 	return func(evt interface{}) interface{} {
 		evtMsgCreate := evt.(*disgord.MessageCreate)
 		if !strings.HasPrefix(evtMsgCreate.Message.Content, prefix) {
@@ -30,7 +30,7 @@ func filterMsgCreateStripPrefix(prefix string) func(evt interface{}) interface{}
 
 // Returns a filter for MessageReactionAdd events, which allows reactions on the given message ID
 // only.
-func filterReactionAddForMsg(msgID disgord.Snowflake) func(interface{}) interface{} {
+func filterReactionAddForMsg(msgID disgord.Snowflake) disgord.Middleware {
 	return func(evt interface{}) interface{} {
 		evtReactionAdd := evt.(*disgord.MessageReactionAdd)
 		if evtReactionAdd.MessageID != msgID {

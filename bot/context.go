@@ -39,12 +39,12 @@ func (ctx *Context) SendTimed(
 
 // EditMsg edits a message to set the given string as content.
 func (ctx *Context) EditMsg(msg *disgord.Message, content string) (*disgord.Message, error) {
-	return QueryBuilderFor(ctx.Session, msg).SetContent(content)
+	return MsgQueryBuilder(ctx.Session, msg).SetContent(content)
 }
 
 // DeleteMsg deletes the given message.
 func (ctx *Context) DeleteMsg(msg *disgord.Message) error {
-	return QueryBuilderFor(ctx.Session, msg).Delete()
+	return MsgQueryBuilder(ctx.Session, msg).Delete()
 }
 
 // React reacts on the given message with the given emoji.
@@ -70,12 +70,7 @@ func (ctx *Context) MakeErrorEmbed(msg string) *disgord.Embed {
 	return &embed
 }
 
-// SendPaginated sends a paginated message in the current channel.
-func (ctx *Context) SendPaginated(params PaginateParams) error {
+// SendPaginated sends a paginated widget in the current channel.
+func (ctx *Context) SendWidget(params *WidgetParams) error {
 	return SendPaginated(context.Background(), params, ctx.Session, ctx.Message.ChannelID)
-}
-
-// SendWithDelBtn sends a message and adds a delete button to it.
-func (ctx *Context) SendWithDelBtn(params OnePageWithDelParams) error {
-	return SendWithDelBtn(context.Background(), params, ctx.Session, ctx.Message.ChannelID)
 }

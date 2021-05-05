@@ -40,7 +40,8 @@ func handleProblemURL(ctx *bot.Context, problemURL string) {
 		return
 	}
 
-	if err = respondWithOnePagePreview(ctx, "", makeProblemEmbed(problemInfo)); err != nil {
+	page := bot.NewPage("", makeProblemEmbed(problemInfo))
+	if err = respondWithOnePagePreview(ctx, page); err != nil {
 		ctx.Logger.Error(fmt.Errorf("Error sending problem info: %w", err))
 	}
 }

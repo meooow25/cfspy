@@ -100,7 +100,8 @@ func handleSubmissionURL(ctx *bot.Context, match *fetch.SubmissionURLMatch) {
 		}
 	}
 
-	if err = respondWithOnePagePreview(ctx, content, embed); err != nil {
+	page := bot.NewPage(content, embed)
+	if err = respondWithOnePagePreview(ctx, page); err != nil {
 		ctx.Logger.Error(fmt.Errorf("Error sending problem info: %w", err))
 	}
 }

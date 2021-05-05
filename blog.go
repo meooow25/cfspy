@@ -3,15 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
-	"math/rand"
-	"time"
 
 	"github.com/andersfylling/disgord"
 	"github.com/meooow25/cfspy/bot"
 	"github.com/meooow25/cfspy/fetch"
 )
 
-var random = rand.New(rand.NewSource(time.Now().Unix()))
+// Length limits for short preview of blog/comments. Much lower than Discord message limits.
+const (
+	msgLimit = 200
+	msgSlack = 100
+)
 
 // Installs the blog watcher feature. The bot watches for Codeforces blog and comment links and
 // responds with an embed containing info about the blog or comment.
@@ -47,18 +49,26 @@ func handleBlogURL(ctx *bot.Context, blogURL string) {
 		return
 	}
 
-	if err = respondWithOnePagePreview(ctx, "", makeBlogEmbed(blogInfo)); err != nil {
+	short, full := makeBlogEmbeds(blogInfo)
+	var page *bot.Page
+	if full != nil {
+		page = bot.NewPageWithExpansion("", short, "", full)
+	} else {
+		page = bot.NewPage("", short)
+	}
+	if err = respondWithOnePagePreview(ctx, page); err != nil {
 		ctx.Logger.Error(fmt.Errorf("Error sending blog info: %w", err))
 	}
 }
 
-func makeBlogEmbed(b *fetch.BlogInfo) *disgord.Embed {
-	return &disgord.Embed{
+func makeBlogEmbeds(b *fetch.BlogInfo) (short *disgord.Embed, full *disgord.Embed) {
+	embed := &disgord.Embed{
 		Title: b.Title,
 		URL:   b.URL,
 		Author: &disgord.EmbedAuthor{
 			Name: b.AuthorHandle + "'s blog",
 		},
+		Description: b.Content,
 		Thumbnail: &disgord.EmbedThumbnail{
 			URL: b.AuthorAvatar,
 		},
@@ -70,6 +80,10 @@ func makeBlogEmbed(b *fetch.BlogInfo) *disgord.Embed {
 		},
 		Color: b.AuthorColor,
 	}
+	if len(b.Images) > 0 {
+		embed.Image = &disgord.EmbedImage{URL: b.Images[0]}
+	}
+	return makeShortAndFullEmbeds(embed)
 }
 
 // Fetches the comment from the blog page, converts it to markdown and responds on the Discord
@@ -85,14 +99,18 @@ func handleCommentURL(ctx *bot.Context, commentURL, commentID string) {
 		return
 	}
 
-	getPage := func(revision int) (string, *disgord.Embed) {
+	getPage := func(revision int) *bot.Page {
 		commentInfo, err := infoGetter(revision)
 		if err != nil {
 			err := fmt.Errorf("Error fetching revision %v of comment %v: %w", revision, commentURL, err)
 			ctx.Logger.Error(err)
-			return "", ctx.MakeErrorEmbed(err.Error())
+			return bot.NewPage("", ctx.MakeErrorEmbed(err.Error()))
 		}
-		return "", makeCommentEmbed(commentInfo)
+		short, full := makeCommentEmbeds(commentInfo)
+		if full != nil {
+			return bot.NewPageWithExpansion("", short, "", full)
+		}
+		return bot.NewPage("", short)
 	}
 
 	if err = respondWithMultiPagePreview(ctx, getPage, revisionCount); err != nil {
@@ -100,7 +118,7 @@ func handleCommentURL(ctx *bot.Context, commentURL, commentID string) {
 	}
 }
 
-func makeCommentEmbed(c *fetch.CommentInfo) *disgord.Embed {
+func makeCommentEmbeds(c *fetch.CommentInfo) (short *disgord.Embed, full *disgord.Embed) {
 	revisionStr := ""
 	if c.RevisionCount > 1 {
 		revisionStr = fmt.Sprintf(
@@ -127,17 +145,31 @@ func makeCommentEmbed(c *fetch.CommentInfo) *disgord.Embed {
 	if len(c.Images) > 0 {
 		embed.Image = &disgord.EmbedImage{URL: c.Images[0]}
 	}
-	updateEmbedIfCommentTooLong(embed)
-	return embed
+	return makeShortAndFullEmbeds(embed)
 }
 
-func updateEmbedIfCommentTooLong(embed *disgord.Embed) {
-	if bot.EmbedDescriptionTooLong(embed) {
-		if random.Intn(20) == 0 {
-			embed.Description = "I have discovered this truly marvelous comment, which this " +
-				"embed is too narrow to contain."
-		} else {
-			embed.Description = "The comment is too large to display."
-		}
+func makeShortAndFullEmbeds(embed *disgord.Embed) (short *disgord.Embed, full *disgord.Embed) {
+	full = embed
+	short = disgord.DeepCopy(full).(*disgord.Embed)
+	short.Description = truncate(full.Description)
+
+	// If the content is short enough, no need for full.
+	// If the content is too long, full cannot be shown.
+	if full.Description == short.Description || bot.EmbedDescriptionTooLong(full) {
+		full = nil
 	}
+	return
+}
+
+// Returns the string unchanged if the length is within msgLimit+msgSlack, otherwise returns it
+// truncated to msgLimit chars. The motivation for the slack is that the poster would probably want
+// to display the full content anyway if it is a bit over the limit.
+func truncate(s string) string {
+	if len(s) <= msgLimit+msgSlack {
+		return s
+	}
+	// Cutting off everything beyond limit doesn't care about markdown formatting and can leave
+	// unclosed markup.
+	// TODO: Maybe use a markdown parser to properly handle these.
+	return s[:msgLimit] + "…"
 }
