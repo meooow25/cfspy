@@ -170,10 +170,10 @@ func (w *widget) run(ctx context.Context, channelID disgord.Snowflake) error {
 	w.fixMoreLessReactsForCurrentPage()
 
 	// Listen for reacts on the message
-	ctrl := &manualCtrl{}
+	var ctrl manualCtrl
 	w.messager.AddReactListener(
 		filterReactionAddForMsg(w.msg.ID),
-		ctrl,
+		&ctrl,
 		func(_ disgord.Session, evt *disgord.MessageReactionAdd) {
 			if allSymbols[evt.PartialEmoji.Name] && w.params.AllowOp(evt) {
 				go w.handleControlReact(evt)
