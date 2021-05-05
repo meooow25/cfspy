@@ -25,6 +25,13 @@ type Page struct {
 	Expanded *Message
 }
 
+// A set of pages, numbered 1 to Total. First is shown first.
+type Pages struct {
+	Get   func(pageNum int) *Page
+	Total int
+	First int
+}
+
 // PageGetter is a function type that returns a page given the page number.
 type PageGetter func(int) *Page
 
@@ -37,13 +44,9 @@ type DelCallbackType func(*disgord.MessageReactionAdd)
 // AllowPredicateType is the predicate type that returns whether the operation on react is allowed.
 type AllowPredicateType func(*disgord.MessageReactionAdd) bool
 
-// PaginateParams aggregates the params required for a paginated message.
-type PaginateParams struct {
-	// Should return the page corresponding to the given page number.
-	GetPage PageGetter
-
-	NumPages        int
-	PageToShowFirst int
+// WidgetParams aggregates the params required for a paginated widget.
+type WidgetParams struct {
+	Pages *Pages
 
 	// Optional callback invoked when the message is created.
 	MsgCallback MsgCallbackType
@@ -56,24 +59,6 @@ type PaginateParams struct {
 
 	// Optional check called before performing any operation (delete, prev, next). Defaults to
 	// always allowed.
-	AllowOp AllowPredicateType
-}
-
-// OnePageWithDelParams aggregates the params required for a single message with a delete button.
-type OnePageWithDelParams struct {
-	// The page to send.
-	Page *Page
-
-	// Optional callback invoked when the message is created.
-	MsgCallback MsgCallbackType
-
-	// After this duration the message will not be monitored.
-	DeactivateAfter time.Duration
-
-	// Optional callback to be invoked when the message is deleted.
-	DelCallback DelCallbackType
-
-	// Optional check called before performing delete. Defaults to always allowed.
 	AllowOp AllowPredicateType
 }
 
@@ -125,7 +110,7 @@ func NewPageWithExpansion(
 // SendPaginated sends a paginated message.
 func SendPaginated(
 	ctx context.Context,
-	params *PaginateParams,
+	params *WidgetParams,
 	session disgord.Session,
 	channelID disgord.Snowflake,
 ) error {
@@ -137,31 +122,8 @@ func SendPaginated(
 	return w.run(ctx, channelID)
 }
 
-// SendWithDelBtn sends a message and adds a delete button to it.
-func SendWithDelBtn(
-	ctx context.Context,
-	params *OnePageWithDelParams,
-	session disgord.Session,
-	channelID disgord.Snowflake,
-) error {
-	return SendPaginated(
-		ctx,
-		&PaginateParams{
-			GetPage:         func(int) *Page { return params.Page },
-			NumPages:        1,
-			PageToShowFirst: 1,
-			MsgCallback:     params.MsgCallback,
-			Lifetime:        params.DeactivateAfter,
-			DelCallback:     params.DelCallback,
-			AllowOp:         params.AllowOp,
-		},
-		session,
-		channelID,
-	)
-}
-
 type widget struct {
-	params   *PaginateParams
+	params   *WidgetParams
 	messager Messager
 	logger   disgord.Logger
 
@@ -190,8 +152,8 @@ func (w *widget) run(ctx context.Context, channelID disgord.Snowflake) error {
 	defer w.cancel()
 
 	// Initialize state
-	w.currentPageNum = w.params.PageToShowFirst
-	w.currentPage = w.params.GetPage(w.currentPageNum)
+	w.currentPageNum = w.params.Pages.First
+	w.currentPage = w.params.Pages.Get(w.currentPageNum)
 	w.expanded = false
 	w.currentReacts = make(map[string]bool)
 
@@ -204,7 +166,7 @@ func (w *widget) run(ctx context.Context, channelID disgord.Snowflake) error {
 	}
 	w.params.MsgCallback(w.msg)
 	w.reactOnMsg(delSymbol)
-	if w.params.NumPages > 1 {
+	if w.params.Pages.Total > 1 {
 		w.reactOnMsg(prevSymbol)
 		w.reactOnMsg(nextSymbol)
 	}
@@ -232,16 +194,19 @@ func (w *widget) run(ctx context.Context, channelID disgord.Snowflake) error {
 }
 
 func (w *widget) validateAndUpdateParams() error {
-	if w.params.GetPage == nil {
-		return errors.New("GetPage must not be nil")
+	if w.params.Pages == nil {
+		return errors.New("Pages must not be nil")
 	}
-	if w.params.NumPages < 1 {
-		return fmt.Errorf("NumPages must be positive, found %v", w.params.NumPages)
+	if w.params.Pages.Get == nil {
+		return errors.New("Pages.Get must not be nil")
 	}
-	if w.params.PageToShowFirst < 1 || w.params.PageToShowFirst > w.params.NumPages {
+	if w.params.Pages.Total < 1 {
+		return fmt.Errorf("Pages.Total must be positive, found %v", w.params.Pages.Total)
+	}
+	if w.params.Pages.First < 1 || w.params.Pages.First > w.params.Pages.Total {
 		return fmt.Errorf(
-			"PageToShowFirst must be between 1 and %v, found %v",
-			w.params.NumPages, w.params.PageToShowFirst)
+			"Pages.First must be between 1 and %v, found %v",
+			w.params.Pages.Total, w.params.Pages.First)
 	}
 	if w.params.MsgCallback == nil {
 		w.params.MsgCallback = func(*disgord.Message) {}
@@ -333,10 +298,10 @@ func (w *widget) contractCurrentPage() {
 
 func (w *widget) showPage(delta int) {
 	newPageNum := w.currentPageNum + delta
-	if newPageNum < 1 || newPageNum > w.params.NumPages {
+	if newPageNum < 1 || newPageNum > w.params.Pages.Total {
 		return
 	}
-	newPage := w.params.GetPage(newPageNum)
+	newPage := w.params.Pages.Get(newPageNum)
 	_, err := w.messager.Edit(w.ctx, w.msg, newPage.Default.Content, newPage.Default.Embed)
 	if err != nil {
 		w.logger.Error(fmt.Errorf("Failed to show page: %w", err))

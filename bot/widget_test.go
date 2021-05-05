@@ -39,14 +39,16 @@ func newWidget(
 	messager *mock_bot.MockMessager,
 ) *widget {
 	return &widget{
-		params: &PaginateParams{
-			GetPage:         func(i int) *Page { return testPages[i] },
-			NumPages:        pages,
-			PageToShowFirst: pages,
-			Lifetime:        lifetime,
-			MsgCallback:     msgCallback,
-			DelCallback:     delCallback,
-			AllowOp:         allowOp,
+		params: &WidgetParams{
+			Pages: &Pages{
+				Get:   func(i int) *Page { return testPages[i] },
+				Total: pages,
+				First: pages,
+			},
+			Lifetime:    lifetime,
+			MsgCallback: msgCallback,
+			DelCallback: delCallback,
+			AllowOp:     allowOp,
 		},
 		messager: messager,
 	}

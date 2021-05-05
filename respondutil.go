@@ -34,14 +34,8 @@ func respondWithOnePagePreview(
 	ctx *bot.Context,
 	page *bot.Page,
 ) error {
-	msgCallback, delCallback, allowOp := prepareCallbacks(ctx)
-	return ctx.SendWithDelBtn(&bot.OnePageWithDelParams{
-		Page:            page,
-		MsgCallback:     msgCallback,
-		DeactivateAfter: time.Minute,
-		DelCallback:     delCallback,
-		AllowOp:         allowOp,
-	})
+	getPage := func(int) *bot.Page { return page }
+	return respondWithMultiPagePreview(ctx, getPage, 1)
 }
 
 func respondWithMultiPagePreview(
@@ -50,13 +44,15 @@ func respondWithMultiPagePreview(
 	numPages int,
 ) error {
 	msgCallback, delCallback, allowOp := prepareCallbacks(ctx)
-	return ctx.SendPaginated(&bot.PaginateParams{
-		GetPage:         getPage,
-		NumPages:        numPages,
-		PageToShowFirst: numPages,
-		MsgCallback:     msgCallback,
-		Lifetime:        time.Minute,
-		DelCallback:     delCallback,
-		AllowOp:         allowOp,
+	return ctx.SendWidget(&bot.WidgetParams{
+		Pages: &bot.Pages{
+			Get:   getPage,
+			Total: numPages,
+			First: numPages,
+		},
+		MsgCallback: msgCallback,
+		Lifetime:    time.Minute,
+		DelCallback: delCallback,
+		AllowOp:     allowOp,
 	})
 }

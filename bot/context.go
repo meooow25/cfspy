@@ -70,12 +70,7 @@ func (ctx *Context) MakeErrorEmbed(msg string) *disgord.Embed {
 	return &embed
 }
 
-// SendPaginated sends a paginated message in the current channel.
-func (ctx *Context) SendPaginated(params *PaginateParams) error {
+// SendPaginated sends a paginated widget in the current channel.
+func (ctx *Context) SendWidget(params *WidgetParams) error {
 	return SendPaginated(context.Background(), params, ctx.Session, ctx.Message.ChannelID)
-}
-
-// SendWithDelBtn sends a message and adds a delete button to it.
-func (ctx *Context) SendWithDelBtn(params *OnePageWithDelParams) error {
-	return SendWithDelBtn(context.Background(), params, ctx.Session, ctx.Message.ChannelID)
 }
