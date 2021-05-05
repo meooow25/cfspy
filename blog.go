@@ -163,7 +163,7 @@ func makeShortAndFullEmbeds(embed *disgord.Embed) (short *disgord.Embed, full *d
 
 // Returns the string unchanged if the length is within msgLimit+msgSlack, otherwise returns it
 // truncated to msgLimit chars. The motivation for the slack is that the poster would probably want
-// to display the full comment anyway if it is a bit over the limit.
+// to display the full content anyway if it is a bit over the limit.
 func truncate(s string) string {
 	if len(s) <= msgLimit+msgSlack {
 		return s
