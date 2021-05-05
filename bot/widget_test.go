@@ -111,33 +111,53 @@ func newAllowOp(t *testing.T, expectedCalls int) AllowPredicateType {
 	return cb
 }
 
+// Matches a context.Context that has not crossed its deadline or been cancelled.
+type activeContextMatcher struct{}
+
+func (m activeContextMatcher) Matches(x interface{}) bool {
+	if ctx, ok := x.(context.Context); ok {
+		return ctx.Err() == nil
+	}
+	return false
+}
+
+func (m activeContextMatcher) String() string {
+	return "is an active context"
+}
+
+var _ gomock.Matcher = activeContextMatcher{}
+
 // Exposes convenient functions to record calls to a mock messager.
 type messagerCalls struct {
 	messager *mock_bot.MockMessager
 }
 
 func (c *messagerCalls) send(content string, embed *disgord.Embed) *gomock.Call {
-	return c.messager.EXPECT().Send(gomock.Any(), testChannelID, content, embed).Return(testMsg, nil)
+	return c.messager.EXPECT().
+		Send(activeContextMatcher{}, testChannelID, content, embed).
+		Return(testMsg, nil)
 }
 
 func (c *messagerCalls) edit(content string, embed *disgord.Embed) *gomock.Call {
-	return c.messager.EXPECT().Edit(gomock.Any(), testMsg, content, embed).Return(testMsg, nil)
+	return c.messager.EXPECT().
+		Edit(activeContextMatcher{}, testMsg, content, embed).
+		Return(testMsg, nil)
 }
 
 func (c *messagerCalls) react(reaction string) *gomock.Call {
-	return c.messager.EXPECT().React(gomock.Any(), testMsg, reaction)
+	return c.messager.EXPECT().React(activeContextMatcher{}, testMsg, reaction)
 }
 
 func (c *messagerCalls) unreact(reaction string) *gomock.Call {
-	return c.messager.EXPECT().Unreact(gomock.Any(), testMsg, reaction)
+	return c.messager.EXPECT().Unreact(activeContextMatcher{}, testMsg, reaction)
 }
 
 func (c *messagerCalls) unreactUser(reaction string, userID disgord.Snowflake) *gomock.Call {
-	return c.messager.EXPECT().UnreactUser(gomock.Any(), testMsg, reaction, userID)
+	return c.messager.EXPECT().UnreactUser(activeContextMatcher{}, testMsg, reaction, userID)
 }
 
 func (c *messagerCalls) delete() *gomock.Call {
-	return c.messager.EXPECT().Delete(gomock.Any(), testMsg)
+	return c.messager.EXPECT().Delete(activeContextMatcher{}, testMsg)
 }
 
 func (c *messagerCalls) reactListener(ch chan<- disgord.HandlerMessageReactionAdd) *gomock.Call {
@@ -200,12 +220,14 @@ func TestWidgetCancel(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	messager := mock_bot.NewMockMessager(ctrl)
 	calls := messagerCalls{messager}
-	gomock.InOrder(
+	chk, _, _, _, _ := newCheckpoints()
+	inOrder(
 		calls.send(testPages[2].Default.Content, testPages[2].Default.Embed),
 		calls.react(delSymbol),
 		calls.react(prevSymbol),
 		calls.react(nextSymbol),
 		calls.reactListener(nil),
+		chk,
 	)
 	msgCallback := newMsgCallback(t, 1)
 	delCallback := newDelCallback(t, 0)
@@ -215,6 +237,7 @@ func TestWidgetCancel(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	done := runWidget(ctx, w)
+	<-chk
 	cancel()
 	select {
 	case err := <-done:
