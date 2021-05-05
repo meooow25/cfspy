@@ -241,7 +241,7 @@ func (w *widget) unreactOnMsg(symbol string) {
 
 func (w *widget) cleanupReacts(ctx context.Context) {
 	for react := range w.currentReacts {
-		w.messager.Unreact(w.ctx, w.msg, react)
+		w.messager.Unreact(ctx, w.msg, react)
 	}
 }
 
