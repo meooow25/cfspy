@@ -10,7 +10,7 @@ If you have a Discord server where you discuss [Codeforces](https://codeforces.c
 ## Features
 Embed previews for Codeforces links on Discord are usually not helpful, because Codeforces does not have the meta tags that Discord looks for.  
 You can let CFSpy watch for these links instead and respond with useful previews. Supported links include
-- **Blogs**: Shows some information about the blog.
+- **Blogs**: Shows the blog information and content.
 - **Comments**: Shows the comment information and content.
 - **Problems**: Shows some information about the problem.
 - **Profiles**: Shows some information about the user profile.

@@ -7,7 +7,7 @@ import (
 
 const featureInfo = "CFSpy watches for Codeforces links and shows helpful previews.\n" +
 	"Supported links include\n" +
-	"- _Blogs_: Shows some information about the blog.\n" +
+	"- _Blogs_: Shows the blog information and content.\n" +
 	"- _Comments_: Shows the comment information and content.\n" +
 	"- _Problems_: Shows some information about the problem.\n" +
 	"- _Profiles_: Shows some information about the user profile.\n" +
