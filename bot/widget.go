@@ -25,15 +25,12 @@ type Page struct {
 	Expanded *Message
 }
 
-// A set of pages, numbered 1 to Total. First is shown first.
+// Pages is a set of pages, numbered 1 to Total. First is shown first.
 type Pages struct {
 	Get   func(pageNum int) *Page
 	Total int
 	First int
 }
-
-// PageGetter is a function type that returns a page given the page number.
-type PageGetter func(int) *Page
 
 // MsgCallbackType is the callback function type invoked on message create.
 type MsgCallbackType func(*disgord.Message)
@@ -223,30 +220,32 @@ func (w *widget) validateAndUpdateParams() error {
 	return nil
 }
 
-func (w *widget) reactOnMsg(symbol string) {
-	if err := w.messager.React(w.ctx, w.msg, symbol); err != nil {
-		w.logger.Error(fmt.Errorf("React failed: %w", err))
+func (w *widget) reactOnMsg(react string) {
+	if err := w.messager.React(w.ctx, w.msg, react); err != nil {
+		w.logger.Error(fmt.Errorf("React %q failed: %w", react, err))
 		return
 	}
-	w.currentReacts[symbol] = true
+	w.currentReacts[react] = true
 }
 
-func (w *widget) unreactOnMsg(symbol string) {
-	if err := w.messager.Unreact(w.ctx, w.msg, symbol); err != nil {
-		w.logger.Error(fmt.Errorf("Unreact failed: %w", err))
+func (w *widget) unreactOnMsg(react string) {
+	if err := w.messager.Unreact(w.ctx, w.msg, react); err != nil {
+		w.logger.Error(fmt.Errorf("Unreact %q failed: %w", react, err))
 		return
 	}
-	delete(w.currentReacts, symbol)
+	delete(w.currentReacts, react)
 }
 
 func (w *widget) cleanupReacts(ctx context.Context) {
 	for react := range w.currentReacts {
-		w.messager.Unreact(ctx, w.msg, react)
+		if err := w.messager.Unreact(ctx, w.msg, react); err != nil {
+			w.logger.Error(fmt.Errorf("Clean up react %q failed: %w", react, err))
+		}
 	}
 }
 
 func (w *widget) fixMoreLessReactsForCurrentPage() {
-	symbols := []string{moreSymbol, lessSymbol}
+	reacts := []string{moreSymbol, lessSymbol}
 	want := make(map[string]bool)
 	if w.currentPage.Expanded != nil {
 		if w.expanded {
@@ -255,15 +254,15 @@ func (w *widget) fixMoreLessReactsForCurrentPage() {
 			want[moreSymbol] = true
 		}
 	}
-	// Remove first, add later
-	for _, symbol := range symbols {
-		if w.currentReacts[symbol] && !want[symbol] {
-			w.unreactOnMsg(symbol)
+	// Remove first, then add
+	for _, react := range reacts {
+		if w.currentReacts[react] && !want[react] {
+			w.unreactOnMsg(react)
 		}
 	}
-	for _, symbol := range symbols {
-		if !w.currentReacts[symbol] && want[symbol] {
-			w.reactOnMsg(symbol)
+	for _, react := range reacts {
+		if !w.currentReacts[react] && want[react] {
+			w.reactOnMsg(react)
 		}
 	}
 }

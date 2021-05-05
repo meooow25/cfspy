@@ -40,7 +40,7 @@ func respondWithOnePagePreview(
 
 func respondWithMultiPagePreview(
 	ctx *bot.Context,
-	getPage bot.PageGetter,
+	getPage func(int) *bot.Page,
 	numPages int,
 ) error {
 	msgCallback, delCallback, allowOp := prepareCallbacks(ctx)
