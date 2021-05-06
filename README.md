@@ -17,6 +17,8 @@ You can let CFSpy watch for these links instead and respond with useful previews
 - **Submissions**: Shows some information about the submission.
 - **Submissions with line numbers**: Shows a snippet from the submission containing the specified lines. Install this [userscript](https://greasyfork.org/en/scripts/403747-cf-linemaster) to get line selection and highlighting support in your browser.
 
+To make CFSpy ignore links wrap them in <kbd>\<</kbd><kbd>\></kbd>, this is also how Discord's [default embeds](https://support.discord.com/hc/en-us/articles/206342858--How-do-I-disable-auto-embed-) work.
+
 To answer the common question _"Is Codeforces down?"_, there is a command to ping `codeforces.com`.
 
 ## Sample
