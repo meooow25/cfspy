@@ -27,7 +27,7 @@ To answer the common question _"Is Codeforces down?"_, there is a command to pin
 ## Use it
 
 #### Invite the bot to your server
-[Click here](https://discord.com/api/oauth2/authorize?client_id=713443232834650152&permissions=8192&scope=bot) to authorize the bot. CFSpy requires the `Manage messages` permission to remove the default embeds.
+[Click here](https://discord.com/api/oauth2/authorize?client_id=713443232834650152&permissions=8192&scope=bot) to authorize the bot. CFSpy requires the <kbd>Manage messages</kbd> permission to remove the default embeds.
 <details>
   <summary><i>If you get an error...</i></summary>
   <sub>
