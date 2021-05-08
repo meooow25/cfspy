@@ -10,12 +10,14 @@ If you have a Discord server where you discuss [Codeforces](https://codeforces.c
 ## Features
 Embed previews for Codeforces links on Discord are usually not helpful, because Codeforces does not have the meta tags that Discord looks for.  
 You can let CFSpy watch for these links instead and respond with useful previews. Supported links include
-- **Blogs**: Shows some information about the blog.
+- **Blogs**: Shows the blog information and content.
 - **Comments**: Shows the comment information and content.
 - **Problems**: Shows some information about the problem.
 - **Profiles**: Shows some information about the user profile.
 - **Submissions**: Shows some information about the submission.
 - **Submissions with line numbers**: Shows a snippet from the submission containing the specified lines. Install this [userscript](https://greasyfork.org/en/scripts/403747-cf-linemaster) to get line selection and highlighting support in your browser.
+
+To make CFSpy ignore links wrap them in <kbd>\<</kbd><kbd>\></kbd>, this is also how Discord's [default embeds](https://support.discord.com/hc/en-us/articles/206342858--How-do-I-disable-auto-embed-) work.
 
 To answer the common question _"Is Codeforces down?"_, there is a command to ping `codeforces.com`.
 
@@ -25,12 +27,12 @@ To answer the common question _"Is Codeforces down?"_, there is a command to pin
 ## Use it
 
 #### Invite the bot to your server
-[Click here](https://discord.com/api/oauth2/authorize?client_id=713443232834650152&permissions=8192&scope=bot) to authorize the bot. CFSpy requires the `Manage messages` permission to remove the default embeds.
+[Click here](https://discord.com/api/oauth2/authorize?client_id=713443232834650152&permissions=8192&scope=bot) to authorize the bot. CFSpy requires the <kbd>Manage messages</kbd> permission to remove the default embeds.
 <details>
-  <summary><i>If you get an error when you try to add the bot...</i></summary>
+  <summary><i>If you get an error...</i></summary>
   <sub>
-    That may be because the bot is already in 100 servers, and Discord does not allow a bot to be in more than 100 servers without <a href="https://support.discord.com/hc/en-us/articles/360040720412-Bot-Verification-and-Data-Whitelisting">verification</a>.
-    To verify the bot, I will need to give Discord a real-life ID of mine to verify, which is simply ridiculous. If you agree, consider upvoting this <a href="https://support.discord.com/hc/en-us/community/posts/360061029252-Remove-ID-verification-for-Bots">support article</a>, but I don't expect any resolution.<br>
+    It may be because the bot is already in 100 servers, and Discord does not allow a bot to be in more than 100 servers without <a href="https://support.discord.com/hc/en-us/articles/360040720412-Bot-Verification-and-Data-Whitelisting">verification</a>.
+    Discord requires a real-life ID of the developer to verify a bot, which is simply ridiculous. If you agree, consider showing your support on this <a href="https://support.discord.com/hc/en-us/community/posts/360061029252-Remove-ID-verification-for-Bots">article</a>, but to be honest I don't expect them to do anything about it.<br>
     I'm sorry if you aren't able to add the bot because of this, but feel free to run your own instance (see below).
   </sub>
 </details>
