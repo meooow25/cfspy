@@ -31,7 +31,7 @@ To answer the common question _"Is Codeforces down?"_, there is a command to pin
 <details>
   <summary><i>If you get an error...</i></summary>
   <sub>
-    That may be because the bot is already in 100 servers, and Discord does not allow a bot to be in more than 100 servers without <a href="https://support.discord.com/hc/en-us/articles/360040720412-Bot-Verification-and-Data-Whitelisting">verification</a>.
+    It may be because the bot is already in 100 servers, and Discord does not allow a bot to be in more than 100 servers without <a href="https://support.discord.com/hc/en-us/articles/360040720412-Bot-Verification-and-Data-Whitelisting">verification</a>.
     Discord requires a real-life ID of the developer to verify a bot, which is simply ridiculous. If you agree, consider showing your support on this <a href="https://support.discord.com/hc/en-us/community/posts/360061029252-Remove-ID-verification-for-Bots">article</a>, but I don't expect any resolution.<br>
     I'm sorry if you aren't able to add the bot because of this, but feel free to run your own instance (see below).
   </sub>
