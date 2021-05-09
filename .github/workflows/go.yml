@@ -37,7 +37,7 @@ jobs:
             echo "Not formatted:"
             echo "${FILES}"
             echo
-            echo "Run go fmt"
+            echo "Run go fmt ./..."
             exit 1
           fi
 
@@ -49,7 +49,7 @@ jobs:
           if [ -n "${DIFF}" ]; then
             echo "${DIFF}"
             echo
-            echo "Run go generate"
+            echo "Run go generate ./..."
             exit 1 
           fi
 
