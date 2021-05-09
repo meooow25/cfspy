@@ -29,3 +29,12 @@ jobs:
 
       - name: Test
         run: go test -v ./...
+
+      - name: Format
+        run: |
+          FILES=$(gofmt -l .)
+          if [ ! -z "${FILES}" ]; then
+            echo "Not formatted:"
+            echo "${FILES}"
+            exit 1
+          fi
