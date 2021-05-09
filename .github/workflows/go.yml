@@ -50,6 +50,7 @@ jobs:
             echo "${DIFF}"
             echo
             echo "Run go generate"
+            exit 1 
           fi
 
       - name: Tidy mod file
@@ -60,4 +61,5 @@ jobs:
             echo "${DIFF}"
             echo
             echo "Run go mod tidy"
+            exit 1
           fi
