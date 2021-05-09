@@ -33,8 +33,19 @@ jobs:
       - name: Format
         run: |
           FILES=$(gofmt -l .)
-          if [ ! -z "${FILES}" ]; then
+          if [ -n "${FILES}" ]; then
             echo "Not formatted:"
             echo "${FILES}"
+            echo
+            echo "Run go fmt"
             exit 1
+          fi
+
+      - name: Tidy mod file
+        run: |
+          go mod tidy
+          git diff --exit-code -U0 go.mod go.sum
+          if (( $? != 0 )); then
+            echo
+            echo "Run go mod tidy"
           fi
