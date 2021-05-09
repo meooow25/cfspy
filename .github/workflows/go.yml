@@ -41,6 +41,16 @@ jobs:
             exit 1
           fi
 
+      - name: Generate
+        run: |
+          go generate ./...
+          DIFF=$(git status -s)
+          if [ -n "${DIFF}" ]; then
+            echo "${DIFF}"
+            echo
+            echo "Run go generate"
+          fi
+
       - name: Tidy mod file
         run: |
           go mod tidy
