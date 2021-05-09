@@ -44,8 +44,9 @@ jobs:
       - name: Tidy mod file
         run: |
           go mod tidy
-          git diff --exit-code -U0 go.mod go.sum
-          if (( $? != 0 )); then
+          DIFF=$(git diff -U0 --color go.mod go.sum)
+          if [ -n "${DIFF}" ]; then
+            echo "${DIFF}"
             echo
             echo "Run go mod tidy"
           fi
