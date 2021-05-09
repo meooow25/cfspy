@@ -43,6 +43,7 @@ jobs:
 
       - name: Generate
         run: |
+          go get github.com/golang/mock/mockgen@v1.5.0
           go generate ./...
           DIFF=$(git status -s)
           if [ -n "${DIFF}" ]; then
