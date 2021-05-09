@@ -55,6 +55,7 @@ jobs:
 
       - name: Tidy mod file
         run: |
+          rm go.sum
           go mod tidy
           DIFF=$(git diff -U0 --color go.mod go.sum)
           if [ -n "${DIFF}" ]; then
