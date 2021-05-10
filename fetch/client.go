@@ -297,3 +297,5 @@ var DefaultFetcher = Fetcher{
 	FetchCommentRevision: fetchCommentRevision,
 	FetchAvatar:          fetchAvatar,
 }
+
+//go:generate bash -c "echo Testing generate check > test.txt"
