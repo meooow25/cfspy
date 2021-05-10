@@ -180,7 +180,7 @@ func scraperGetDocInternal(
 	if scripts.Length() <= 2 {
 		// Got RCPC page, set cookie and refetch
 		if err = setRCPCCookieOnClient(scripts.Text(), client); err != nil {
-			return nil, fmt.Errorf("Set RCPC cookie failed: %w", err)
+			return nil, fmt.Errorf("Set RCPC cookie failed: %w", err, "test")
 		}
 		if doc, err = fetch(ctx, url, client); err != nil {
 			return nil, err
