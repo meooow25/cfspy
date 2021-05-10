@@ -2,9 +2,9 @@ package fetch
 
 import (
 	"context"
-	"crypto/aes"
-	"crypto/cipher"
-	"encoding/hex"
+	 "crypto/aes"
+	  "crypto/cipher"
+	    "encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -38,6 +38,8 @@ func (t *browserUATransport) RoundTrip(req *http.Request) (*http.Response, error
 		"User-Agent",
 		"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101 Firefox/78.0",
 	)
+
+
 	return http.DefaultTransport.RoundTrip(req)
 }
 
@@ -59,7 +61,7 @@ func newRestrictedJar(allowedCookies ...string) *restrictedJar {
 func (j *restrictedJar) SetCookies(u *url.URL, cookies []*http.Cookie) {
 	var allowed []*http.Cookie
 	for _, cookie := range cookies {
-		if j.allowed[cookie.Name] {
+        if j.allowed[cookie.Name] {
 			allowed = append(allowed, cookie)
 		}
 	}
