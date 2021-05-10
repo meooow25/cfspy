@@ -16,7 +16,7 @@ func TestParseBlogURLs(t *testing.T) {
 		{"homePage", "https://codeforces.com/", nil},
 		{"single", "https://codeforces.com/blog/entry/123",
 			[]*BlogURLMatch{
-				{URL: "https://codeforces.com/blog/entry/123"},
+				{URL: "https://codeforces.com/blog/entry/test"},
 			},
 		},
 		{"singleWithText", "Visit https://codeforces.com/blog/entry/123.",
