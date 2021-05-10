@@ -8,11 +8,59 @@ on:
 
 jobs:
   test:
+    strategy:
+      matrix:
+        go: ['1.14', '1.16']
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
-      - name: Build
-        run: go build
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Vet and build
+        run: |
+          go vet ./...
+          go build ./...
+
       - name: Test
         run: go test -v ./...
+
+      - name: Format
+        run: |
+          FILES=$(gofmt -l .)
+          if [ -n "${FILES}" ]; then
+            echo "Not formatted:"
+            echo "${FILES}"
+            echo
+            echo "Run go fmt ./..."
+            exit 1
+          fi
+
+      - name: Generate
+        run: |
+          (cd && GO111MODULE=on go get github.com/golang/mock/mockgen@v1.5.0)
+          go generate ./...
+          DIFF=$(git status -s)
+          if [ -n "${DIFF}" ]; then
+            echo "${DIFF}"
+            echo
+            echo "Run go generate ./..."
+            exit 1 
+          fi
+
+      - name: Tidy mod file
+        run: |
+          rm go.sum
+          go mod tidy
+          DIFF=$(git diff -U0 --color go.mod go.sum)
+          if [ -n "${DIFF}" ]; then
+            echo "${DIFF}"
+            echo
+            echo "Run go mod tidy"
+            exit 1
+          fi
