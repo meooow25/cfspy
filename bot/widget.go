@@ -30,6 +30,7 @@ type Pages struct {
 	Get   func(pageNum int) *Page
 	Total int
 	First int
+	Files []disgord.CreateMessageFileParams
 }
 
 // MsgCallbackType is the callback function type invoked on message create.
@@ -155,9 +156,13 @@ func (w *widget) run(ctx context.Context, channelID disgord.Snowflake) error {
 	w.currentReacts = make(map[string]bool)
 
 	// Send page to show first, add reacts
+	params := &disgord.CreateMessageParams{
+		Content: w.currentPage.Default.Content,
+		Embed:   w.currentPage.Default.Embed,
+		Files:   w.params.Pages.Files,
+	}
 	var err error
-	w.msg, err = w.messager.Send(
-		w.ctx, channelID, w.currentPage.Default.Content, w.currentPage.Default.Embed)
+	w.msg, err = w.messager.Send(w.ctx, channelID, params)
 	if err != nil {
 		return err
 	}

@@ -133,8 +133,9 @@ type messagerCalls struct {
 }
 
 func (c *messagerCalls) send(content string, embed *disgord.Embed) *gomock.Call {
+	params := &disgord.CreateMessageParams{Content: content, Embed: embed}
 	return c.messager.EXPECT().
-		Send(activeContextMatcher{}, testChannelID, content, embed).
+		Send(activeContextMatcher{}, testChannelID, params).
 		Return(testMsg, nil)
 }
 

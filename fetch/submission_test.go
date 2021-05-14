@@ -28,36 +28,39 @@ func testParseSubmission(t *testing.T, filename string, want *SubmissionInfo) {
 func TestParseSubmission(t *testing.T) {
 	t.Run("solo", func(t *testing.T) {
 		want := &SubmissionInfo{
+			ID: "66681791",
 			Author: &SubmissionInfoAuthor{
 				Handle: "AM.EM.U4EAC19012",
 				Color:  colorClsMap["user-black"],
 			},
-			Problem:  "1267B",
-			Language: "Python 3",
-			Verdict:  "Wrong answer on test 1",
-			Type:     "Practice",
-			SentTime: time.Date(2019, 12, 12, 13, 23, 43, 0, time.UTC),
-			URL:      "testurl",
-			Content:  "x=input()\n",
+			Problem:         "1267B",
+			Language:        "Python 3",
+			Verdict:         "Wrong answer on test 1",
+			ParticipantType: "Practice",
+			SentTime:        time.Date(2019, 12, 12, 13, 23, 43, 0, time.UTC),
+			URL:             "testurl",
+			Content:         "x=input()\n",
 		}
 		testParseSubmission(t, "contest_1267_submission_66681791.html", want)
 	})
 
 	t.Run("ghost", func(t *testing.T) {
 		want := &SubmissionInfo{
-			AuthorGhost: "SPb ITMO: Reduce (Korobkov, Ovechkin, Poduremennykh)",
-			Problem:     "1267A",
-			Language:    "Unknown",
-			Verdict:     "Accepted",
-			Type:        "Virtual",
-			SentTime:    time.Date(2019, 12, 02, 11, 25, 44, 0, time.UTC),
-			URL:         "testurl",
+			ID:              "66173991",
+			AuthorGhost:     "SPb ITMO: Reduce (Korobkov, Ovechkin, Poduremennykh)",
+			Problem:         "1267A",
+			Language:        "Unknown",
+			Verdict:         "Accepted",
+			ParticipantType: "Virtual",
+			SentTime:        time.Date(2019, 12, 02, 11, 25, 44, 0, time.UTC),
+			URL:             "testurl",
 		}
 		testParseSubmission(t, "contest_1267_submission_66173991.html", want)
 	})
 
 	t.Run("team", func(t *testing.T) {
 		want := &SubmissionInfo{
+			ID: "66109629",
 			AuthorTeam: &SubmissionInfoTeam{
 				Name: "RednBlack Tree Team",
 				Authors: []*SubmissionInfoAuthor{
@@ -66,12 +69,12 @@ func TestParseSubmission(t *testing.T) {
 					{Handle: "Sadykhzadeh", Color: colorClsMap["user-cyan"]},
 				},
 			},
-			Problem:  "1267L",
-			Language: "GNU C++17",
-			Verdict:  "Wrong answer on test 1",
-			Type:     "Contestant",
-			SentTime: time.Date(2019, 12, 01, 9, 18, 50, 0, time.UTC),
-			URL:      "testurl",
+			Problem:         "1267L",
+			Language:        "GNU C++17",
+			Verdict:         "Wrong answer on test 1",
+			ParticipantType: "Contestant",
+			SentTime:        time.Date(2019, 12, 01, 9, 18, 50, 0, time.UTC),
+			URL:             "testurl",
 			Content: `#include <bits/stdc++.h>
 
 using namespace std;
@@ -96,16 +99,17 @@ int main()
 
 	t.Run("noTimeAndMemory", func(t *testing.T) {
 		want := &SubmissionInfo{
+			ID: "90658946",
 			Author: &SubmissionInfoAuthor{
 				Handle: "frodakcin",
 				Color:  colorClsMap["user-red"],
 			},
-			Problem:  "1386A",
-			Language: "GNU C++11",
-			Verdict:  "Perfect result: 100 points",
-			Type:     "Practice",
-			SentTime: time.Date(2020, 8, 22, 6, 8, 49, 0, time.UTC),
-			URL:      "testurl",
+			Problem:         "1386A",
+			Language:        "GNU C++11",
+			Verdict:         "Perfect result: 100 points",
+			ParticipantType: "Practice",
+			SentTime:        time.Date(2020, 8, 22, 6, 8, 49, 0, time.UTC),
+			URL:             "testurl",
 			Content: `#include <cstdio>
 #include <cassert>
 

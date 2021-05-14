@@ -85,23 +85,38 @@ func handleSubmissionURL(ctx *bot.Context, match *fetch.SubmissionURLMatch) {
 
 	var content string
 	var embed *disgord.Embed
+	var file *disgord.CreateMessageFileParams
 	if match.LineBegin == 0 {
 		embed = makeSubmissionEmbed(submissionInfo, ctx.Logger)
 	} else {
-		content, err = makeCodeSnippet(
-			submissionInfo.Content, submissionInfo.Language, match.LineBegin, match.LineEnd)
+		snippet, err := makeCodeSnippet(
+			submissionInfo.Content, match.LineBegin, match.LineEnd)
 		if err != nil {
 			respondWithError(ctx, err)
 			return
 		}
-		if bot.ContentTooLong(content) {
-			content, embed = "", makeSubmissionEmbed(submissionInfo, ctx.Logger)
-			embed.Description = "Selected lines too large to display"
+		tryContent := makeContent(snippet, submissionInfo.Language)
+		if !bot.ContentTooLong(tryContent) {
+			content = tryContent
+		} else {
+			// File size should never be too large as Codeforces source limit is 64KB and Discord
+			// limit is 8MB.
+			reader, filename := makeReaderAndFilename(
+				snippet, submissionInfo.Language, submissionInfo.ID)
+			file = &disgord.CreateMessageFileParams{
+				Reader:   reader,
+				FileName: filename,
+			}
 		}
 	}
 
 	page := bot.NewPage(content, embed)
-	if err = respondWithOnePagePreview(ctx, page); err != nil {
+	if file != nil {
+		err = respondWithOnePagePreview(ctx, page, *file)
+	} else {
+		err = respondWithOnePagePreview(ctx, page)
+	}
+	if err != nil {
 		ctx.Logger.Error(fmt.Errorf("Error sending problem info: %w", err))
 	}
 }
@@ -138,12 +153,12 @@ func makeSubmissionEmbed(s *fetch.SubmissionInfo, logger disgord.Logger) *disgor
 		Title:       "Submission for " + s.Problem + " by " + author,
 		URL:         s.URL,
 		Color:       color,
-		Description: prefix + s.Verdict + " • " + s.Type + " • " + language,
+		Description: prefix + s.Verdict + " • " + s.ParticipantType + " • " + language,
 		Timestamp:   disgord.Time{Time: s.SentTime},
 	}
 }
 
-func makeCodeSnippet(code, language string, begin, end int) (string, error) {
+func makeCodeSnippet(code string, begin, end int) (string, error) {
 	code = strings.ReplaceAll(code, "\r\n", "\n")
 	lines := strings.Split(code, "\n")
 	begin, end = clamp(begin, 1, len(lines)), clamp(end, 1, len(lines))
@@ -175,7 +190,20 @@ func makeCodeSnippet(code, language string, begin, end int) (string, error) {
 		return "", errors.New("Selected lines are empty")
 	}
 
-	return "```" + languageNameToExt[language] + "\n" + strings.Join(lines, "\n") + "```", nil
+	return strings.Join(lines, "\n"), nil
+}
+
+func makeContent(snippet, language string) string {
+	return "```" + languageNameToExt[language] + "\n" + snippet + "```"
+}
+
+func makeReaderAndFilename(snippet, language, id string) (*strings.Reader, string) {
+	var ext string
+	if ext = languageNameToExt[language]; ext == "" {
+		ext = "txt"
+	}
+	filename := id + "_snippet." + ext
+	return strings.NewReader(snippet), filename
 }
 
 func clamp(x, low, high int) int {

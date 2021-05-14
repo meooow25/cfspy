@@ -44,7 +44,9 @@ func (f *Fetcher) Submission(ctx context.Context, url string) (*SubmissionInfo, 
 	var s SubmissionInfo
 	infoRow := doc.FindMatcher(infoRowSelec).Eq(1).FindMatcher(infoCellSelec)
 
-	s.Type = strings.TrimSuffix(strings.TrimSpace(infoRow.Eq(1).Contents().First().Text()), ":")
+	s.ID = infoRow.Eq(0).Text()
+	s.ParticipantType = strings.TrimSuffix(
+		strings.TrimSpace(infoRow.Eq(1).Contents().First().Text()), ":")
 	authorCell := infoRow.Eq(1)
 	if s.AuthorGhost = parseGhost(authorCell); s.AuthorGhost == "" {
 		authors := parseAuthors(authorCell)
