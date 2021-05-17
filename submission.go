@@ -52,6 +52,12 @@ var languageNameToExt = map[string]string{
 	"Java 7":    "java",
 }
 
+// The number of lines beyond which the snippet is sent as a file instead of message text.
+// This is because Discord's new file previews are nice and collapsible, taking up less space
+// compared to a wall of text in the message body.
+// The value below is chosen because it seems reasonable to me.
+const maxSnippetMsgLines = 30
+
 // Installs the submission watcher feature. The bot watches for Codeforces submission links and
 // responds with an embed containing info about the submission. If the submission has line numbers,
 // responds with the lines.
@@ -89,24 +95,21 @@ func handleSubmissionURL(ctx *bot.Context, match *fetch.SubmissionURLMatch) {
 	if match.LineBegin == 0 {
 		embed = makeSubmissionEmbed(submissionInfo, ctx.Logger)
 	} else {
-		snippet, err := makeCodeSnippet(
+		snippet, numLines, err := makeCodeSnippet(
 			submissionInfo.Content, match.LineBegin, match.LineEnd)
 		if err != nil {
 			respondWithError(ctx, err)
 			return
 		}
 		tryContent := makeContent(snippet, submissionInfo.Language)
-		if !bot.ContentTooLong(tryContent) {
+		if numLines <= maxSnippetMsgLines && !bot.ContentTooLong(tryContent) {
 			content = tryContent
 		} else {
-			// File size should never be too large as Codeforces source limit is 64KB and Discord
-			// limit is 8MB.
+			// The file size is never expected to be too large as Codeforces source limit is 64KB
+			// and Discord limit is 8MB.
 			reader, filename := makeReaderAndFilename(
 				snippet, submissionInfo.Language, submissionInfo.ID)
-			file = &disgord.CreateMessageFileParams{
-				Reader:   reader,
-				FileName: filename,
-			}
+			file = &disgord.CreateMessageFileParams{Reader: reader, FileName: filename}
 		}
 	}
 
@@ -158,7 +161,7 @@ func makeSubmissionEmbed(s *fetch.SubmissionInfo, logger disgord.Logger) *disgor
 	}
 }
 
-func makeCodeSnippet(code string, begin, end int) (string, error) {
+func makeCodeSnippet(code string, begin, end int) (snippet string, numLines int, err error) {
 	code = strings.ReplaceAll(code, "\r\n", "\n")
 	lines := strings.Split(code, "\n")
 	begin, end = clamp(begin, 1, len(lines)), clamp(end, 1, len(lines))
@@ -187,10 +190,10 @@ func makeCodeSnippet(code string, begin, end int) (string, error) {
 		}
 	}
 	if allEmpty {
-		return "", errors.New("Selected lines are empty")
+		return "", 0, errors.New("Selected lines are empty")
 	}
 
-	return strings.Join(lines, "\n"), nil
+	return strings.Join(lines, "\n"), len(lines), nil
 }
 
 func makeContent(snippet, language string) string {
