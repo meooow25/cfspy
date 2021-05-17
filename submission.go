@@ -107,9 +107,10 @@ func handleSubmissionURL(ctx *bot.Context, match *fetch.SubmissionURLMatch) {
 		} else {
 			// The file size is never expected to be too large as Codeforces source limit is 64KB
 			// and Discord limit is 8MB.
-			reader, filename := makeReaderAndFilename(
-				snippet, submissionInfo.Language, submissionInfo.ID)
-			file = &disgord.CreateMessageFileParams{Reader: reader, FileName: filename}
+			file = &disgord.CreateMessageFileParams{
+				Reader:   strings.NewReader(snippet),
+				FileName: makeFilename(submissionInfo.ID, submissionInfo.Language),
+			}
 		}
 	}
 
@@ -200,13 +201,12 @@ func makeContent(snippet, language string) string {
 	return "```" + languageNameToExt[language] + "\n" + snippet + "```"
 }
 
-func makeReaderAndFilename(snippet, language, id string) (*strings.Reader, string) {
+func makeFilename(id, language string) string {
 	var ext string
 	if ext = languageNameToExt[language]; ext == "" {
 		ext = "txt"
 	}
-	filename := id + "_snippet." + ext
-	return strings.NewReader(snippet), filename
+	return id + "_snippet." + ext
 }
 
 func clamp(x, low, high int) int {
