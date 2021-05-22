@@ -21,14 +21,15 @@ var logger = logrus.New()
 
 func init() {
 	logger.Formatter.(*logrus.TextFormatter).FullTimestamp = true
-	if token == "" {
-		logger.Fatal("TOKEN env var missing")
-	}
 }
 
 func main() {
 	serverCountFeature := flag.Bool("scf", false, "install the server count feature")
 	flag.Parse()
+
+	if token == "" {
+		logger.Fatal("TOKEN env var missing")
+	}
 
 	logger.Info("------------ CFSpy starting ------------")
 	defer logger.Info("------------ CFSpy stopped ------------")

@@ -58,6 +58,16 @@ var languageNameToExt = map[string]string{
 // The value below is chosen because it seems reasonable to me.
 const maxSnippetMsgLines = 30
 
+var (
+	errSelectionEmpty = errors.New("Selected lines are empty")
+	errMissingAuthor  = errors.New("Missing author details in submission info")
+)
+
+const (
+	ghostColor = 0x999999 // Same color as text on CF
+	teamColor  = 0x666666 // Darker than ghosts
+)
+
 // Installs the submission watcher feature. The bot watches for Codeforces submission links and
 // responds with an embed containing info about the submission. If the submission has line numbers,
 // responds with the lines.
@@ -89,29 +99,11 @@ func handleSubmissionURL(ctx *bot.Context, match *fetch.SubmissionURLMatch) {
 		return
 	}
 
-	var content string
-	var embed *disgord.Embed
-	var file *disgord.CreateMessageFileParams
-	if match.LineBegin == 0 {
-		embed = makeSubmissionEmbed(submissionInfo, ctx.Logger)
-	} else {
-		snippet, numLines, err := makeCodeSnippet(
-			submissionInfo.Content, match.LineBegin, match.LineEnd)
-		if err != nil {
-			respondWithError(ctx, err)
-			return
-		}
-		tryContent := makeContent(snippet, submissionInfo.Language)
-		if numLines <= maxSnippetMsgLines && !bot.ContentTooLong(tryContent) {
-			content = tryContent
-		} else {
-			// The file size is never expected to be too large as Codeforces source limit is 64KB
-			// and Discord limit is 8MB.
-			file = &disgord.CreateMessageFileParams{
-				Reader:   strings.NewReader(snippet),
-				FileName: makeFilename(submissionInfo.ID, submissionInfo.Language),
-			}
-		}
+	content, embed, file, err := makeResponse(submissionInfo, match.LineBegin, match.LineEnd)
+	if err != nil {
+		ctx.Logger.Error(err)
+		respondWithError(ctx, err)
+		return
 	}
 
 	page := bot.NewPage(content, embed)
@@ -125,7 +117,39 @@ func handleSubmissionURL(ctx *bot.Context, match *fetch.SubmissionURLMatch) {
 	}
 }
 
-func makeSubmissionEmbed(s *fetch.SubmissionInfo, logger disgord.Logger) *disgord.Embed {
+func makeResponse(
+	info *fetch.SubmissionInfo,
+	lineBegin int,
+	lineEnd int,
+) (string, *disgord.Embed, *disgord.CreateMessageFileParams, error) {
+	// No line numbers, show summary
+	if lineBegin == 0 {
+		embed, err := makeSubmissionEmbed(info)
+		return "", embed, nil, err
+	}
+
+	snippet, numLines, err := makeCodeSnippet(info.Content, lineBegin, lineEnd)
+	if err != nil {
+		return "", nil, nil, err
+	}
+	content := makeContent(snippet, info.Language)
+
+	// Content ok in a message, send
+	if numLines <= maxSnippetMsgLines && !bot.ContentTooLong(content) {
+		return content, nil, nil, nil
+	}
+
+	// Content too large or ugly in a message, send as file
+	// The file size is never expected to be too large as Codeforces source limit is 64KB
+	// and Discord limit is 8MB
+	file := &disgord.CreateMessageFileParams{
+		Reader:   strings.NewReader(snippet),
+		FileName: makeFilename(info.ID, info.Language),
+	}
+	return "", nil, file, nil
+}
+
+func makeSubmissionEmbed(s *fetch.SubmissionInfo) (*disgord.Embed, error) {
 	prefix := ""
 	if s.Verdict == "Accepted" || strings.HasPrefix(s.Verdict, "Perfect result") {
 		prefix = "✅ "
@@ -138,28 +162,30 @@ func makeSubmissionEmbed(s *fetch.SubmissionInfo, logger disgord.Logger) *disgor
 		color = s.Author.Color
 	case s.AuthorGhost != "":
 		author = s.AuthorGhost + " 👻"
-		color = 0x999999 // Same color as text on CF
+		color = ghostColor
 	case s.AuthorTeam != nil:
 		var handles []string
 		for _, author := range s.AuthorTeam.Authors {
 			handles = append(handles, author.Handle)
 		}
 		author = s.AuthorTeam.Name + ": " + strings.Join(handles, ", ")
-		color = 0x666666 // Darker than ghosts
+		color = teamColor
 	default:
-		logger.Error("No author details in submission info: ", s.URL)
+		// not expected
+		return nil, errMissingAuthor
 	}
 	language := s.Language
 	if language == "Unknown" { // Happens for ghosts
 		language = "Unknown language"
 	}
-	return &disgord.Embed{
+	embed := &disgord.Embed{
 		Title:       "Submission for " + s.Problem + " by " + author,
 		URL:         s.URL,
 		Color:       color,
 		Description: prefix + s.Verdict + " • " + s.ParticipantType + " • " + language,
 		Timestamp:   disgord.Time{Time: s.SentTime},
 	}
+	return embed, nil
 }
 
 func makeCodeSnippet(code string, begin, end int) (snippet string, numLines int, err error) {
@@ -191,7 +217,7 @@ func makeCodeSnippet(code string, begin, end int) (snippet string, numLines int,
 		}
 	}
 	if allEmpty {
-		return "", 0, errors.New("Selected lines are empty")
+		return "", 0, errSelectionEmpty
 	}
 
 	return strings.Join(lines, "\n"), len(lines), nil
@@ -206,7 +232,7 @@ func makeFilename(id, language string) string {
 	if ext = languageNameToExt[language]; ext == "" {
 		ext = "txt"
 	}
-	return id + "_snippet." + ext
+	return "snippet_" + id + "." + ext
 }
 
 func clamp(x, low, high int) int {
