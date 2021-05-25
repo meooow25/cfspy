@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"strings"
 	"testing"
 	"time"
@@ -24,7 +25,6 @@ var (
 			{Handle: "member2", Color: 0x030201},
 		},
 	}
-	testAuthorGhost     = "wooooo"
 	testContent         string
 	testContentLongLine = strings.Repeat("a", 5000)
 )
@@ -34,7 +34,7 @@ func init() {
 	for i := 0; i < 200; i++ {
 		contentBuilder.WriteString(fmt.Sprintf("Line %v\n", i+1))
 	}
-	contentBuilder.WriteString("\n")
+	contentBuilder.WriteString("\n") // 200th line empty
 	for i := 200; i < 400; i++ {
 		contentBuilder.WriteString(fmt.Sprintf("Line %v\n", i+1))
 	}
@@ -42,7 +42,7 @@ func init() {
 }
 
 func newSubmissionInfo(opts ...func(*fetch.SubmissionInfo)) *fetch.SubmissionInfo {
-	// defaults: author, language, verdict, content
+	// defaults that can be overriden: author, language, verdict, content
 	info := &fetch.SubmissionInfo{
 		ID:              "998244353",
 		Author:          testAuthor,
@@ -109,6 +109,7 @@ func testContentLines(start, end int) string {
 }
 
 func TestMakeResponse(t *testing.T) {
+	type file struct{ name, content string }
 	tests := []struct {
 		name string
 
@@ -118,7 +119,7 @@ func TestMakeResponse(t *testing.T) {
 
 		wantContent string
 		wantEmbed   *disgord.Embed
-		wantFile    *disgord.CreateMessageFileParams
+		wantFile    *file
 		wantErr     error
 	}{
 		{
@@ -158,9 +159,9 @@ func TestMakeResponse(t *testing.T) {
 		},
 		{
 			name: "summaryAuthorGhost",
-			info: newSubmissionInfo(authorGhost("I'm a ghost"), language("Unknown")),
+			info: newSubmissionInfo(authorGhost("wooooo"), language("Unknown")),
 			wantEmbed: newWantEmbed(
-				"Submission for 4321Z by I'm a ghost 👻",
+				"Submission for 4321Z by wooooo 👻",
 				"Verdict • Contestant • Unknown language",
 				ghostColor,
 			),
@@ -198,9 +199,9 @@ func TestMakeResponse(t *testing.T) {
 			info:      newSubmissionInfo(),
 			lineBegin: 12,
 			lineEnd:   12 + maxSnippetMsgLines,
-			wantFile: &disgord.CreateMessageFileParams{
-				FileName: "snippet_998244353.go",
-				Reader:   strings.NewReader(testContentLines(12, 12+maxSnippetMsgLines)),
+			wantFile: &file{
+				name:    "snippet_998244353.go",
+				content: testContentLines(12, 12+maxSnippetMsgLines),
 			},
 		},
 		{
@@ -208,9 +209,9 @@ func TestMakeResponse(t *testing.T) {
 			info:      newSubmissionInfo(),
 			lineBegin: 12,
 			lineEnd:   365,
-			wantFile: &disgord.CreateMessageFileParams{
-				FileName: "snippet_998244353.go",
-				Reader:   strings.NewReader(testContentLines(12, 365)),
+			wantFile: &file{
+				name:    "snippet_998244353.go",
+				content: testContentLines(12, 365),
 			},
 		},
 		{
@@ -218,9 +219,9 @@ func TestMakeResponse(t *testing.T) {
 			info:      newSubmissionInfo(language("HolyC")),
 			lineBegin: 12,
 			lineEnd:   365,
-			wantFile: &disgord.CreateMessageFileParams{
-				FileName: "snippet_998244353.txt",
-				Reader:   strings.NewReader(testContentLines(12, 365)),
+			wantFile: &file{
+				name:    "snippet_998244353.txt",
+				content: testContentLines(12, 365),
 			},
 		},
 		{
@@ -228,9 +229,9 @@ func TestMakeResponse(t *testing.T) {
 			info:      newSubmissionInfo(content(testContentLongLine)),
 			lineBegin: 1,
 			lineEnd:   1,
-			wantFile: &disgord.CreateMessageFileParams{
-				FileName: "snippet_998244353.go",
-				Reader:   strings.NewReader(testContentLongLine),
+			wantFile: &file{
+				name:    "snippet_998244353.go",
+				content: testContentLongLine,
 			},
 		},
 		{
@@ -244,7 +245,8 @@ func TestMakeResponse(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			content, embed, file, err := makeResponse(test.info, test.lineBegin, test.lineEnd)
+			content, embed, file, err :=
+				makeSubmissionResponse(test.info, test.lineBegin, test.lineEnd)
 
 			eq := func(a, b interface{}) {
 				if diff := deep.Equal(a, b); diff != nil {
@@ -255,8 +257,16 @@ func TestMakeResponse(t *testing.T) {
 			eq(err, test.wantErr)
 			eq(content, test.wantContent)
 			eq(embed, test.wantEmbed)
-			eq(file, test.wantFile)
-			eq(content, test.wantContent)
+			if test.wantFile != nil {
+				eq(file.FileName, test.wantFile.name)
+				fileContent, err := ioutil.ReadAll(file.Reader)
+				if err != nil {
+					t.Fatal(err)
+				}
+				eq(string(fileContent), test.wantFile.content)
+			} else if file != nil {
+				t.Fatal("file not expected")
+			}
 		})
 	}
 }

@@ -99,7 +99,8 @@ func handleSubmissionURL(ctx *bot.Context, match *fetch.SubmissionURLMatch) {
 		return
 	}
 
-	content, embed, file, err := makeResponse(submissionInfo, match.LineBegin, match.LineEnd)
+	content, embed, file, err :=
+		makeSubmissionResponse(submissionInfo, match.LineBegin, match.LineEnd)
 	if err != nil {
 		ctx.Logger.Error(err)
 		respondWithError(ctx, err)
@@ -117,7 +118,7 @@ func handleSubmissionURL(ctx *bot.Context, match *fetch.SubmissionURLMatch) {
 	}
 }
 
-func makeResponse(
+func makeSubmissionResponse(
 	info *fetch.SubmissionInfo,
 	lineBegin int,
 	lineEnd int,
