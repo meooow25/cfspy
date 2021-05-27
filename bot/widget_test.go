@@ -2,6 +2,7 @@ package bot
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -37,6 +38,7 @@ func newWidget(
 	delCallback DelCallbackType,
 	allowOp AllowPredicateType,
 	messager *mock_bot.MockMessager,
+	files ...disgord.CreateMessageFileParams,
 ) *widget {
 	return &widget{
 		params: &WidgetParams{
@@ -44,6 +46,7 @@ func newWidget(
 				Get:   func(i int) *Page { return testPages[i] },
 				Total: pages,
 				First: pages,
+				Files: files,
 			},
 			Lifetime:    lifetime,
 			MsgCallback: msgCallback,
@@ -132,8 +135,16 @@ type messagerCalls struct {
 	messager *mock_bot.MockMessager
 }
 
-func (c *messagerCalls) send(content string, embed *disgord.Embed) *gomock.Call {
-	params := &disgord.CreateMessageParams{Content: content, Embed: embed}
+func (c *messagerCalls) send(
+	content string,
+	embed *disgord.Embed,
+	files ...disgord.CreateMessageFileParams,
+) *gomock.Call {
+	params := &disgord.CreateMessageParams{
+		Content: content,
+		Embed:   embed,
+		Files:   files,
+	}
 	return c.messager.EXPECT().
 		Send(activeContextMatcher{}, testChannelID, params).
 		Return(testMsg, nil)
@@ -212,6 +223,42 @@ func TestWidgetMultiPage(t *testing.T) {
 	allowOp := newAllowOp(t, 0)
 
 	w := newWidget(2, time.Millisecond, msgCallback, delCallback, allowOp, messager)
+	if err := w.run(context.Background(), testChannelID); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestWidgetWithFiles(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	messager := mock_bot.NewMockMessager(ctrl)
+	files := []disgord.CreateMessageFileParams{
+		{
+			FileName: "file1.txt",
+			Reader:   strings.NewReader("content1"),
+		},
+		{
+			FileName: "file2.txt",
+			Reader:   strings.NewReader("content2"),
+		},
+	}
+	calls := messagerCalls{messager}
+	inOrder(
+		calls.send(testPages[2].Default.Content, testPages[2].Default.Embed, files...),
+		calls.react(delSymbol),
+		calls.react(prevSymbol),
+		calls.react(nextSymbol),
+		calls.reactListener(nil),
+		anyOrder(
+			calls.unreact(nextSymbol),
+			calls.unreact(prevSymbol),
+			calls.unreact(delSymbol),
+		),
+	)
+	msgCallback := newMsgCallback(t, 1)
+	delCallback := newDelCallback(t, 0)
+	allowOp := newAllowOp(t, 0)
+
+	w := newWidget(2, time.Millisecond, msgCallback, delCallback, allowOp, messager, files...)
 	if err := w.run(context.Background(), testChannelID); err != nil {
 		t.Fatal(err)
 	}
