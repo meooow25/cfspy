@@ -128,7 +128,8 @@ func TestMakeSubmissionResponse(t *testing.T) {
 			wantEmbed: newWantEmbed(
 				"Submission for 4321Z by author",
 				"✅ Accepted • Contestant • Go",
-				testAuthor.Color),
+				testAuthor.Color,
+			),
 		},
 		{
 			name: "summaryPerfectResult",
