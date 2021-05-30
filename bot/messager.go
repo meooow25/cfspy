@@ -12,7 +12,7 @@ import (
 // Messager wraps a disgord.Session to do message stuff. Used by widgets.
 // Disgord's fluent interface is nice to use but such a pain to mock. Maybe switch to discordgo.
 type Messager interface {
-	Send(ctx context.Context, channelID disgord.Snowflake, content string, embed *disgord.Embed) (*disgord.Message, error)
+	Send(ctx context.Context, channelID disgord.Snowflake, params *disgord.CreateMessageParams) (*disgord.Message, error)
 	Edit(ctx context.Context, msg *disgord.Message, content string, embed *disgord.Embed) (*disgord.Message, error)
 	React(ctx context.Context, msg *disgord.Message, reaction string) error
 	Unreact(ctx context.Context, msg *disgord.Message, reaction string) error
@@ -28,10 +28,9 @@ type disgordMessager struct {
 func (m *disgordMessager) Send(
 	ctx context.Context,
 	channelID disgord.Snowflake,
-	content string,
-	embed *disgord.Embed,
+	params *disgord.CreateMessageParams,
 ) (*disgord.Message, error) {
-	return m.session.WithContext(ctx).SendMsg(channelID, content, embed)
+	return m.session.WithContext(ctx).SendMsg(channelID, params)
 }
 
 func (m *disgordMessager) Edit(

@@ -33,15 +33,17 @@ func prepareCallbacks(ctx *bot.Context) (
 func respondWithOnePagePreview(
 	ctx *bot.Context,
 	page *bot.Page,
+	files ...disgord.CreateMessageFileParams,
 ) error {
 	getPage := func(int) *bot.Page { return page }
-	return respondWithMultiPagePreview(ctx, getPage, 1)
+	return respondWithMultiPagePreview(ctx, getPage, 1, files...)
 }
 
 func respondWithMultiPagePreview(
 	ctx *bot.Context,
 	getPage func(int) *bot.Page,
 	numPages int,
+	files ...disgord.CreateMessageFileParams,
 ) error {
 	msgCallback, delCallback, allowOp := prepareCallbacks(ctx)
 	return ctx.SendWidget(&bot.WidgetParams{
@@ -49,6 +51,7 @@ func respondWithMultiPagePreview(
 			Get:   getPage,
 			Total: numPages,
 			First: numPages,
+			Files: files,
 		},
 		MsgCallback: msgCallback,
 		Lifetime:    time.Minute,

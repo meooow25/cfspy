@@ -75,18 +75,20 @@ type SubmissionInfoTeam struct {
 
 // SubmissionInfo contains submission information.
 type SubmissionInfo struct {
+	ID string
+
 	// These are mutually exclusive.
 	Author      *SubmissionInfoAuthor
 	AuthorTeam  *SubmissionInfoTeam
 	AuthorGhost string
 
-	Problem  string
-	Language string
-	Verdict  string
-	Type     string
-	SentTime time.Time
-	Content  string
-	URL      string
+	Problem         string
+	Language        string
+	Verdict         string
+	ParticipantType string
+	SentTime        time.Time
+	Content         string
+	URL             string
 }
 
 // ProfileInfo contains profile information.
