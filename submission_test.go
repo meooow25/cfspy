@@ -108,7 +108,7 @@ func testContentLines(start, end int) string {
 	return strings.Join(strings.Split(testContent, "\n")[start-1:end], "\n")
 }
 
-func TestMakeResponse(t *testing.T) {
+func TestMakeSubmissionResponse(t *testing.T) {
 	type file struct{ name, content string }
 	tests := []struct {
 		name string
