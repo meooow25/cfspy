@@ -13,32 +13,35 @@ import (
 )
 
 var languageNameToExt = map[string]string{
-	// Currently available in the filter options on the status page of contests.
+	// Available in the filter options on the status page of contests, as of 2021-10-25.
 	"GNU C11":               "c",
 	"Clang++17 Diagnostics": "cpp",
-	"GNU C++11":             "cpp",
 	"GNU C++14":             "cpp",
 	"GNU C++17":             "cpp",
-	"MS C++":                "cpp",
+	"GNU C++20 (64)":        "cpp",
 	"MS C++ 2017":           "cpp",
 	"GNU C++17 (64)":        "cpp",
+	".NET Core C#":          "cs",
 	"Mono C#":               "cs",
 	"D":                     "d",
 	"Go":                    "go",
 	"Haskell":               "hs",
 	"Java 11":               "java",
 	"Java 8":                "java",
-	"Kotlin":                "kt",
+	"Kotlin 1.4":            "kt",
+	"Kotlin 1.5":            "kt",
 	"Ocaml":                 "ml",
 	"Delphi":                "pas",
 	"FPC":                   "pas",
 	"PascalABC.NET":         "pas",
 	"Perl":                  "pl",
+	"PHP":                   "php",
 	"Python 2":              "py",
 	"Python 3":              "py",
 	"Pypy 2":                "py",
 	"PyPy 3":                "py",
-	"Ruby":                  "rb",
+	"PyPy 3-64":             "py",
+	"Ruby 3":                "rb",
 	"Rust":                  "rs",
 	"Scala":                 "sc",
 	"JavaScript":            "js",
@@ -50,6 +53,10 @@ var languageNameToExt = map[string]string{
 	"GNU C++0x": "cpp",
 	"Java 6":    "java",
 	"Java 7":    "java",
+	"GNU C++11": "cpp",
+	"MS C++":    "cpp",
+	"Kotlin":    "kt",
+	"Ruby":      "rb",
 }
 
 // The number of lines beyond which the snippet is sent as a file instead of message text.
