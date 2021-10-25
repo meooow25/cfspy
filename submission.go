@@ -13,7 +13,7 @@ import (
 )
 
 var languageNameToExt = map[string]string{
-	// Currently available in the filter options on the status page of contests.
+	// Available in the filter options on the status page of contests, as of 2021-10-25.
 	"GNU C11":               "c",
 	"Clang++17 Diagnostics": "cpp",
 	"GNU C++14":             "cpp",
