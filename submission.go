@@ -35,6 +35,7 @@ var languageNameToExt = map[string]string{
 	"FPC":                   "pas",
 	"PascalABC.NET":         "pas",
 	"Perl":                  "pl",
+	"PHP":                   "php",
 	"Python 2":              "py",
 	"Python 3":              "py",
 	"Pypy 2":                "py",
