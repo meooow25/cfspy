@@ -8,9 +8,10 @@ A simple Codeforces utility bot for Discord
 
 As of 2025-03-09, this repository is archived and my instance of the bot is offline.
 
-Codeforces began blocking scraping since around 2024-08. This made the bot nearly useless, because most of the features rely on scraping. Can the anti-scraping measures be bypassed? Perhaps, but I do not intend to work against the website.  
+Codeforces began blocking scraping since around 2024-08. This made the bot nearly useless, because most of the features rely on scraping.  
+Can the anti-scraping measures be bypassed? Perhaps, but I do not intend to work against the website.  
 There exists a Codeforces API, but it does not offer any way to access blog, comment, or submission data and is also notoriously unreliable.  
-So it is time to put CFSpy to rest.
+With no other way forward, it is time to put CFSpy to rest.
 
 ---
 
