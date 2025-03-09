@@ -1,8 +1,18 @@
 # CFSpy
 
-[![go-badge](https://img.shields.io/static/v1?label=Built%20with&color=00acd7&style=for-the-badge&message=Go)](https://golang.org/)&ensp;[![server-count-badge](https://img.shields.io/badge/dynamic/json?label=Servers&logo=discord&logoColor=white&color=7289DA&style=for-the-badge&query=%24.serverCount&url=https%3A%2F%2Fgist.githubusercontent.com%2Fmeooow25%2Fe550658ac19cc0cdd515a414afea23bb%2Fraw%2Fserver-count.json)](https://discord.com/api/oauth2/authorize?client_id=713443232834650152&permissions=8192&scope=bot)
+[![go-badge](https://img.shields.io/static/v1?label=Built%20with&color=00acd7&style=for-the-badge&message=Go)](https://golang.org/)
 
 A simple Codeforces utility bot for Discord
+
+## ⚠️ Attention!
+
+As of 2025-03-09, this repository is archived and my instance of the bot is offline.
+
+Codeforces began blocking scraping since around 2024-08. This made the bot nearly useless, because most of the features rely on scraping. Can the anti-scraping measures be bypassed? Perhaps, but I do not intend to work against the website.  
+There exists a Codeforces API, but it does not offer any way to access blog, comment, or submission data and is also notoriously unreliable.  
+So it is time to put CFSpy to rest.
+
+---
 
 #### Who is this for?
 If you have a Discord server where you discuss [Codeforces](https://codeforces.com), you could use this bot.
